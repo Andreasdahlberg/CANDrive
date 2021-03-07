@@ -1,0 +1,166 @@
+EESchema Schematic File Version 4
+EELAYER 30 0
+EELAYER END
+$Descr A4 11693 8268
+encoding utf-8
+Sheet 1 1
+Title ""
+Date ""
+Rev ""
+Comp ""
+Comment1 ""
+Comment2 ""
+Comment3 ""
+Comment4 ""
+$EndDescr
+$Comp
+L Interface_CAN_LIN:SN65HVD234 U?
+U 1 1 60455102
+P 5300 3350
+F 0 "U?" H 5300 3831 50  0000 C CNN
+F 1 "SN65HVD234" H 5300 3740 50  0000 C CNN
+F 2 "Package_SO:SOIC-8_3.9x4.9mm_P1.27mm" H 5300 2850 50  0001 C CNN
+F 3 "http://www.ti.com/lit/ds/symlink/sn65hvd234.pdf" H 5200 3750 50  0001 C CNN
+	1    5300 3350
+	1    0    0    -1  
+$EndComp
+$Comp
+L MCU_ST_STM32F1:STM32F103RBTx U?
+U 1 1 60456778
+P 2800 3350
+F 0 "U?" H 2800 1461 50  0000 C CNN
+F 1 "STM32F103RBTx" H 2800 1370 50  0000 C CNN
+F 2 "Package_QFP:LQFP-64_10x10mm_P0.5mm" H 2200 1650 50  0001 R CNN
+F 3 "http://www.st.com/st-web-ui/static/active/en/resource/technical/document/datasheet/CD00161566.pdf" H 2800 3350 50  0001 C CNN
+	1    2800 3350
+	1    0    0    -1  
+$EndComp
+$Comp
+L Regulator_Linear:LD1117S33TR_SOT223 U?
+U 1 1 6045D865
+P 4600 1550
+F 0 "U?" H 4600 1792 50  0000 C CNN
+F 1 "LD1117S33TR_SOT223" H 4600 1701 50  0000 C CNN
+F 2 "Package_TO_SOT_SMD:SOT-223-3_TabPin2" H 4600 1750 50  0001 C CNN
+F 3 "http://www.st.com/st-web-ui/static/active/en/resource/technical/document/datasheet/CD00000544.pdf" H 4700 1300 50  0001 C CNN
+	1    4600 1550
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	4900 3350 3950 3350
+Wire Wire Line
+	3950 3350 3950 4250
+Wire Wire Line
+	3950 4250 3500 4250
+Wire Wire Line
+	4900 3250 3850 3250
+Wire Wire Line
+	3850 3250 3850 4350
+Wire Wire Line
+	3850 4350 3500 4350
+$Comp
+L power:GND #PWR0101
+U 1 1 60470762
+P 4600 2050
+F 0 "#PWR0101" H 4600 1800 50  0001 C CNN
+F 1 "GND" H 4605 1877 50  0000 C CNN
+F 2 "" H 4600 2050 50  0001 C CNN
+F 3 "" H 4600 2050 50  0001 C CNN
+	1    4600 2050
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	4600 2050 4600 1850
+$Comp
+L power:+3.3V #PWR0102
+U 1 1 604725E6
+P 5150 1400
+F 0 "#PWR0102" H 5150 1250 50  0001 C CNN
+F 1 "+3.3V" H 5165 1573 50  0000 C CNN
+F 2 "" H 5150 1400 50  0001 C CNN
+F 3 "" H 5150 1400 50  0001 C CNN
+	1    5150 1400
+	1    0    0    -1  
+$EndComp
+$Comp
+L power:+3.3V #PWR0103
+U 1 1 60475E77
+P 5450 2700
+F 0 "#PWR0103" H 5450 2550 50  0001 C CNN
+F 1 "+3.3V" H 5465 2873 50  0000 C CNN
+F 2 "" H 5450 2700 50  0001 C CNN
+F 3 "" H 5450 2700 50  0001 C CNN
+	1    5450 2700
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	4900 1550 5150 1550
+Wire Wire Line
+	5150 1550 5150 1400
+Wire Wire Line
+	5300 3050 5300 2700
+Wire Wire Line
+	5300 2700 5450 2700
+$Comp
+L power:GND #PWR0104
+U 1 1 6047E7F3
+P 5300 4000
+F 0 "#PWR0104" H 5300 3750 50  0001 C CNN
+F 1 "GND" H 5305 3827 50  0000 C CNN
+F 2 "" H 5300 4000 50  0001 C CNN
+F 3 "" H 5300 4000 50  0001 C CNN
+	1    5300 4000
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	5300 4000 5300 3750
+$Comp
+L Device:R R?
+U 1 1 6048183E
+P 4650 3750
+F 0 "R?" H 4720 3796 50  0000 L CNN
+F 1 "10K" H 4720 3705 50  0000 L CNN
+F 2 "" V 4580 3750 50  0001 C CNN
+F 3 "~" H 4650 3750 50  0001 C CNN
+	1    4650 3750
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	4900 3550 4650 3550
+Wire Wire Line
+	4650 3550 4650 3600
+$Comp
+L power:GND #PWR0105
+U 1 1 60482511
+P 4650 4000
+F 0 "#PWR0105" H 4650 3750 50  0001 C CNN
+F 1 "GND" H 4655 3827 50  0000 C CNN
+F 2 "" H 4650 4000 50  0001 C CNN
+F 3 "" H 4650 4000 50  0001 C CNN
+	1    4650 4000
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	4650 4000 4650 3900
+Wire Wire Line
+	3500 4150 4050 4150
+Wire Wire Line
+	4050 4150 4050 3450
+Wire Wire Line
+	4050 3450 4900 3450
+$Comp
+L Connector:Conn_01x04_Female J?
+U 1 1 60489796
+P 6850 3350
+F 0 "J?" H 6878 3326 50  0000 L CNN
+F 1 "Conn_01x04_Female" H 6878 3235 50  0000 L CNN
+F 2 "" H 6850 3350 50  0001 C CNN
+F 3 "~" H 6850 3350 50  0001 C CNN
+	1    6850 3350
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	6650 3350 5700 3350
+Wire Wire Line
+	6650 3450 5700 3450
+$EndSCHEMATC
