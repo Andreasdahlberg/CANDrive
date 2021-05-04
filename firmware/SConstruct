@@ -1,0 +1,57 @@
+# -*- coding: utf-8 -*
+#
+# This file is part of CANDrive.
+#
+# CANDrive is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+
+# CANDrive is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+
+# You should have received a copy of the GNU General Public License
+# along with CANDrive.  If not, see <http://www.gnu.org/licenses/>.
+
+__author__ = 'andreas.dahlberg90@gmail.com (Andreas Dahlberg)'
+
+import os
+import sys
+
+PROJECT_NAME = 'CANDrive'
+
+config_variables = Variables('config.py')
+config_variables.Add('OPTIMIZATION', 'The optimization level to use for compilation(0, 1, 2, 3, s, g)', 'g')
+config_variables.Add('STD', 'The C Dialect to use', 'c17')
+
+cflags = [
+    '-mcpu=cortex-m3',
+    '-mthumb',
+    '-O${OPTIMIZATION}',
+    '-Wall',
+    '-Wextra',
+    '-std=${STD}',
+],
+
+env = Environment(
+    tools=['default', 'compilation_db'],
+    variables = config_variables,
+    CC='arm-none-eabi-gcc',
+    LINK='arm-none-eabi-ld',
+    AR='arm-none-eabi-ar',
+    STRIP='arm-none-eabi-strip',
+    CFLAGS=cflags,
+    LINKFLAGS=['-Tapp/link.ld']
+)
+
+env.SConscript('app/SConscript',
+                duplicate=0,
+                variant_dir='build/',
+                exports={'env': env, 'project_name': PROJECT_NAME})
+
+
+compdb = env.CompilationDatabase()
+Alias('compdb', compdb)
+Help('compdb: Generate a compilation database.\n')

@@ -1,0 +1,2 @@
+
+CAN_INTERFACE = 'can0'
