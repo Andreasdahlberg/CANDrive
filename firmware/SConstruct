@@ -36,21 +36,31 @@ cflags = [
 ],
 
 env = Environment(
-    tools=['default', 'compilation_db'],
+    tools=['default', 'hex', 'compilation_db'],
     variables = config_variables,
     CC='arm-none-eabi-gcc',
     LINK='arm-none-eabi-ld',
     AR='arm-none-eabi-ar',
     STRIP='arm-none-eabi-strip',
     CFLAGS=cflags,
+    CCFLAGS=['-DSTM32F1'],
     LINKFLAGS=['-Tapp/link.ld']
 )
 
-env.SConscript('app/SConscript',
-                duplicate=0,
-                variant_dir='build/',
-                exports={'env': env, 'project_name': PROJECT_NAME})
+app, hex = env.SConscript('app/SConscript',
+                      duplicate=0,
+                      variant_dir='build/',
+                      exports={'env': env, 'project_name': PROJECT_NAME})
 
+env.Alias('build', app)
+Help('build: Build application.\n')
+
+env.Command('libopencm3_stm32f1.a', '', 'cd libopencm3 && make -j{}'.format(GetOption('num_jobs')))
+Alias('build-opencm3', 'libopencm3_stm32f1.a')
+Help('build-opencm3: Build the opencm3 library.\n')
+
+flash = Command('flash', hex, 'st-flash --format ihex write {}'.format('${SOURCE}'))
+Help('flash: Flash application to target.\n')
 
 compdb = env.CompilationDatabase()
 Alias('compdb', compdb)

@@ -15,26 +15,33 @@
 # You should have received a copy of the GNU General Public License
 # along with CANDrive.  If not, see <http://www.gnu.org/licenses/>.
 
-import os
+import SCons.Util
+import SCons.Tool.cc as cc
 
-Import(['*'])
+__author__ = 'andreas.dahlberg90@gmail.com (Andreas Dahlberg)'
 
-MODULES = ['main']
-module_objects = []
+OBJCOPY = 'arm-none-eabi-objcopy'
 
-env.Append(CPPPATH=[
-    '#libopencm3/include'
-])
+def generate(env):
+    """Add Builders and construction variables for the compiler to an Environment."""
+    cc.generate(env)
 
-for module in MODULES:
-    sconscript_file = os.path.join(module, 'SConscript')
+    env['CC'] = env.Detect('$CC')
+    env['OBJCOPY'] = env.Detect(OBJCOPY)
+    env['SHCCFLAGS'] = SCons.Util.CLVar('$CFLAGS')
 
-    module_object = SConscript(sconscript_file, exports='env')
-    module_objects.append(module_object)
+    env.Append(BUILDERS={
+        'Hex': _get_hex_builder()
+    })
 
 
+def exists(env):
+    return True
 
-app = env.Program('application.elf', module_objects, LIBS=['libopencm3_stm32f1.a'], LIBPATH='#libopencm3/lib/')
-hex = env.Hex('application.hex', app)
 
-Return(['app', 'hex'])
+def _get_hex_builder():
+    return SCons.Builder.Builder(
+        action=SCons.Action.Action(
+            "${OBJCOPY} -O ihex ${SOURCES} ${TARGET}"
+        )
+    )
