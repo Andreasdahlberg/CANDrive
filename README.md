@@ -9,7 +9,7 @@ CANDrive is a brushed DC Motor Controller controlled via a [CAN](https://en.wiki
 * Firmware updates over CAN
 * Emergency stop 
 * 5 A output current
-* 12 V supply voltage
+* 12-24 V supply voltage
 
 ## Hardware
 [BOM](https://octopart.com/bom-tool/TDnAzRKf)
