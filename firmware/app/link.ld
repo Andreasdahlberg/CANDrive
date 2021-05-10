@@ -13,13 +13,9 @@ SECTIONS
     .text :
     {
         *(vectors)    /* Vector table */
-        *(.text)      /* Program code */
+        *(.text*)      /* Program code */
+        *(.rodata*)    /* Read only data */
     } > FLASH
-
-    .rodata :
-    {
-        *(.rodata)    /* Read only data */
-    }
 
     _DATA_ROM_START = .;
 
@@ -29,13 +25,14 @@ SECTIONS
     .data : AT(_DATA_ROM_START)
     {
         *(.data)      /* Data memory */
-    }
+    } > RAM
+
     _DATA_RAM_END = .;
 
     _BSS_START = .;   /* Indicates where BSS section starts in RAM */
     .bss :
     {
         *(.bss)       /* Zero-filled run time allocate data memory */
-    }
+    } > RAM
     _BSS_END = .;     /* Indicates where BSS section ends in RAM */
 }
