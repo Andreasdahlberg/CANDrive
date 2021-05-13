@@ -30,21 +30,27 @@ cflags = [
     '-mcpu=cortex-m3',
     '-mthumb',
     '-O${OPTIMIZATION}',
+    '-g',
     '-Wall',
     '-Wextra',
     '-std=${STD}',
-],
+]
+
+ldflags = [
+    '-Tapp/stm32f103rb.ld',
+    '--specs=nosys.specs',
+    '-nostartfiles'
+]
 
 env = Environment(
     tools=['default', 'hex', 'compilation_db'],
     variables = config_variables,
     CC='arm-none-eabi-gcc',
-    LINK='arm-none-eabi-ld',
     AR='arm-none-eabi-ar',
     STRIP='arm-none-eabi-strip',
     CFLAGS=cflags,
     CCFLAGS=['-DSTM32F1'],
-    LINKFLAGS=['-Tapp/link.ld']
+    LINKFLAGS=ldflags
 )
 
 app, hex = env.SConscript('app/SConscript',
