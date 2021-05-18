@@ -1,2 +1,4 @@
 
 CAN_INTERFACE = 'can0'
+SERIAL_PORT = '/dev/ttyACM0'
+BAUD_RATE = '115200'

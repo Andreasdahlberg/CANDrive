@@ -25,6 +25,8 @@ PROJECT_NAME = 'CANDrive'
 config_variables = Variables('config.py')
 config_variables.Add('OPTIMIZATION', 'The optimization level to use for compilation(0, 1, 2, 3, s, g)', 'g')
 config_variables.Add('STD', 'The C Dialect to use', 'c17')
+config_variables.Add('SERIAL_PORT', 'Serial port')
+config_variables.Add('BAUD_RATE', 'Baud rate for the serial port')
 
 cflags = [
     '-mcpu=cortex-m3',
@@ -77,3 +79,6 @@ Help('compdb: Generate a compilation database.\n')
 
 env.Command('size', app, 'arm-none-eabi-size {}'.format('${SOURCE}'))
 Help('size: Display the application size.\n')
+
+env.Command('serial', '', 'minicom -D ${SERIAL_PORT} -b ${BAUD_RATE} -t linux')
+Help('serial: Display serial output from the device.\n')
