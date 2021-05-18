@@ -74,3 +74,6 @@ Help('flash: Flash application to target.\n')
 compdb = env.CompilationDatabase()
 Alias('compdb', compdb)
 Help('compdb: Generate a compilation database.\n')
+
+env.Command('size', app, 'arm-none-eabi-size {}'.format('${SOURCE}'))
+Help('size: Display the application size.\n')
