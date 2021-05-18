@@ -44,7 +44,8 @@ ldflags = [
     '-Tapp/stm32f103rb.ld',
     '-mcpu=cortex-m3',
     '-mfix-cortex-m3-ldrd',
-    '-mthumb'
+    '-mthumb',
+    '-specs=nano.specs',
 ]
 
 env = Environment(
