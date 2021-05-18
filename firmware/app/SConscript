@@ -19,7 +19,7 @@ import os
 
 Import(['*'])
 
-MODULES = ['main']
+MODULES = ['main', 'fault_handler', 'syscalls']
 module_objects = []
 
 env.Append(CPPPATH=[
@@ -33,8 +33,15 @@ for module in MODULES:
     module_objects.append(module_object)
 
 
+env.Append(LIBPATH = '#libopencm3/lib/')
+env.Append(LIBS =[
+    '-lc',
+    '-lgcc',
+    '-lnosys',
+    'libopencm3_stm32f1.a'
+])
 
-app = env.Program('application.elf', module_objects, LIBS=['libopencm3_stm32f1.a'], LIBPATH='#libopencm3/lib/')
+app = env.Program('application.elf', module_objects)
 hex = env.Hex('application.hex', app)
 
 Return(['app', 'hex'])

@@ -28,6 +28,7 @@ config_variables.Add('STD', 'The C Dialect to use', 'c17')
 
 cflags = [
     '-mcpu=cortex-m3',
+    '-mfix-cortex-m3-ldrd',
     '-mthumb',
     '-O${OPTIMIZATION}',
     '-g',
@@ -37,9 +38,11 @@ cflags = [
 ]
 
 ldflags = [
+    '-nostartfiles',
     '-Tapp/stm32f103rb.ld',
-    '--specs=nosys.specs',
-    '-nostartfiles'
+    '-mcpu=cortex-m3',
+    '-mfix-cortex-m3-ldrd',
+    '-mthumb'
 ]
 
 env = Environment(
