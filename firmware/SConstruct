@@ -55,7 +55,7 @@ env = Environment(
     AR='arm-none-eabi-ar',
     STRIP='arm-none-eabi-strip',
     CFLAGS=cflags,
-    CPPDEFINES=['STM32F1'],
+    CPPDEFINES=['STM32F1', 'BAUD_RATE=${BAUD_RATE}'],
     LINKFLAGS=ldflags
 )
 
