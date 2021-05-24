@@ -19,7 +19,7 @@ import os
 
 Import(['*'])
 
-MODULES = ['main', 'fault_handler', 'syscalls']
+MODULES = ['main', 'fault_handler', 'syscalls', 'logging']
 module_objects = []
 
 env.Append(CPPPATH=[
