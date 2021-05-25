@@ -82,3 +82,8 @@ fp-info-cache
 
 # Python
 *.pyc
+
+# Misc
+build
+compile_commands.json
+.sconsign.dblite
