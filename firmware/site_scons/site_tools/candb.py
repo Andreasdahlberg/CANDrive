@@ -15,33 +15,29 @@
 # You should have received a copy of the GNU General Public License
 # along with CANDrive.  If not, see <http://www.gnu.org/licenses/>.
 
-import os
+import SCons.Util
+import SCons.Tool.cc as cc
 
-Import(['*'])
+__author__ = 'andreas.dahlberg90@gmail.com (Andreas Dahlberg)'
 
-MODULES = ['main', 'fault_handler', 'syscalls', 'logging', 'candb']
-module_objects = []
+def generate(env):
+    """Add Builders and construction variables for the compiler to an Environment."""
+    cc.generate(env)
 
-env.Append(CPPPATH=[
-    '#libopencm3/include'
-])
-
-for module in MODULES:
-    sconscript_file = os.path.join(module, 'SConscript')
-
-    module_object = SConscript(sconscript_file, exports='env')
-    module_objects.append(module_object)
+    env.Append(BUILDERS={
+        'CANDB': _get_candb_builder()
+    })
 
 
-env.Append(LIBPATH = '#libopencm3/lib/')
-env.Append(LIBS =[
-    '-lc',
-    '-lgcc',
-    '-lnosys',
-    'libopencm3_stm32f1.a'
-])
+def exists(env):
 
-app = env.Program('application.elf', module_objects)
-hex = env.Hex('application.hex', app)
+    return True
 
-Return(['app', 'hex'])
+
+def _get_candb_builder():
+
+    return SCons.Builder.Builder(
+        action=SCons.Action.Action(
+            'cantools generate_c_source --no-floating-point-numbers --database-name ${TARGET.filebase} --output-directory ${TARGET.dir} ${SOURCE}'
+        )
+    )

@@ -49,7 +49,7 @@ ldflags = [
 ]
 
 env = Environment(
-    tools=['default', 'hex', 'compilation_db'],
+    tools=['default', 'hex', 'candb', 'compilation_db'],
     variables = config_variables,
     CC='arm-none-eabi-gcc',
     AR='arm-none-eabi-ar',

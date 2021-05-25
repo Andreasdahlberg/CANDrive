@@ -1,0 +1,9 @@
+
+Import(['*'])
+
+candb_source = env.CANDB(
+    source='#/../can_drive.dbc',
+    target='candb.c')
+
+objects = env.Object(source=candb_source)
+Return('objects')
