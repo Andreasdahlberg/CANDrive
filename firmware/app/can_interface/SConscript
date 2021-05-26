@@ -19,29 +19,15 @@ import os
 
 Import(['*'])
 
-MODULES = ['main', 'fault_handler', 'syscalls', 'logging', 'candb', 'can_interface']
-module_objects = []
+SOURCE = Glob('*.c')
 
 env.Append(CPPPATH=[
-    '#libopencm3/include'
+    '../utility',
+    '../logging',
+    '../candb'
 ])
 
-for module in MODULES:
-    sconscript_file = os.path.join(module, 'SConscript')
+OBJECTS = env.Object(SOURCE)
 
-    module_object = SConscript(sconscript_file, exports='env')
-    module_objects.append(module_object)
+Return('OBJECTS')
 
-
-env.Append(LIBPATH = '#libopencm3/lib/')
-env.Append(LIBS =[
-    '-lc',
-    '-lgcc',
-    '-lnosys',
-    'libopencm3_stm32f1.a'
-])
-
-app = env.Program('application.elf', module_objects)
-hex = env.Hex('application.hex', app)
-
-Return(['app', 'hex'])
