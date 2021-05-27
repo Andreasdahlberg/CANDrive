@@ -59,6 +59,8 @@ env = Environment(
     LINKFLAGS=ldflags
 )
 
+env['ENV']['TERM'] = os.environ['TERM']
+
 app, hex = env.SConscript('app/SConscript',
                       duplicate=0,
                       variant_dir='build/',
