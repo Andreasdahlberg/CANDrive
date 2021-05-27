@@ -34,15 +34,16 @@ along with CANDrive firmware.  If not, see <http://www.gnu.org/licenses/>.
 //TYPE DEFINITIONS
 //////////////////////////////////////////////////////////////////////////
 
-typedef struct __attribute__((packed)) ContextStateFrame {
-  uint32_t r0;
-  uint32_t r1;
-  uint32_t r2;
-  uint32_t r3;
-  uint32_t r12;
-  uint32_t lr;
-  uint32_t return_address;
-  uint32_t xpsr;
+typedef struct __attribute__((packed)) ContextStateFrame
+{
+    uint32_t r0;
+    uint32_t r1;
+    uint32_t r2;
+    uint32_t r3;
+    uint32_t r12;
+    uint32_t lr;
+    uint32_t return_address;
+    uint32_t xpsr;
 } sContextStateFrame;
 
 //////////////////////////////////////////////////////////////////////////
@@ -67,13 +68,13 @@ typedef struct __attribute__((packed)) ContextStateFrame {
 
 __attribute__((optimize("O0"))) void hard_fault_handler (__attribute__((unused))sContextStateFrame *frame)
 {
-  if (IS_DEBUGGING())
-  {
-    BREAKPOINT();
-
-    while (1)
+    if (IS_DEBUGGING())
     {
-      /* Do nothing here */
+        BREAKPOINT();
+
+        while (1)
+        {
+            /* Do nothing here */
+        }
     }
-  }
 }

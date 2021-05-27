@@ -162,19 +162,19 @@ static inline const char *LevelToString(enum logging_level_t level)
 {
     switch (level)
     {
-    case LOGGING_CRITICAL:
-        return "CRITICAL";;
-    case LOGGING_ERROR:
-        return "ERROR";
-    case LOGGING_WARNING:
-        return "WARNING";
-    case LOGGING_INFO:
-        return "INFO";
-    case LOGGING_DEBUG:
-        return "DEBUG";
-    case LOGGING_NOTSET:
-        return "NOTSET";
-    default:
-        return "UNKNOWN";
+        case LOGGING_CRITICAL:
+            return "CRITICAL";;
+        case LOGGING_ERROR:
+            return "ERROR";
+        case LOGGING_WARNING:
+            return "WARNING";
+        case LOGGING_INFO:
+            return "INFO";
+        case LOGGING_DEBUG:
+            return "DEBUG";
+        case LOGGING_NOTSET:
+            return "NOTSET";
+        default:
+            return "UNKNOWN";
     }
 }
