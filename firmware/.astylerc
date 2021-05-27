@@ -1,0 +1,10 @@
+--style=allman
+--indent=spaces=4
+--indent-switches
+--align-pointer=name
+--align-reference=name
+--close-templates
+--add-brackets
+--add-one-line-brackets
+--convert-tabs
+--mode=c
