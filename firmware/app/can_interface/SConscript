@@ -23,8 +23,7 @@ SOURCE = Glob('*.c')
 
 env.Append(CPPPATH=[
     '../utility',
-    '../logging',
-    '../candb'
+    '../logging'
 ])
 
 OBJECTS = env.Object(SOURCE)

@@ -30,10 +30,13 @@ along with CANDrive firmware.  If not, see <http://www.gnu.org/licenses/>.
 
 #include <stdint.h>
 #include <stddef.h>
+#include <stdbool.h>
 
 //////////////////////////////////////////////////////////////////////////
 //DEFINES
 //////////////////////////////////////////////////////////////////////////
+
+typedef void (*caninterface_listener_cb_t)(uint32_t id, const void *data_p, size_t size);
 
 //////////////////////////////////////////////////////////////////////////
 //TYPE DEFINITIONS
@@ -48,8 +51,25 @@ along with CANDrive firmware.  If not, see <http://www.gnu.org/licenses/>.
  */
 void CANInterface_Init(void);
 
-/* NOT IMPLEMENTED YET */
-void CANInterface_Send(uint32_t id, void *data_p, size_t size);
-void CANInterface_RegisterListener(void);
+/**
+ * Transmit a CAN-frame
+ *
+ * @param  id     ID
+ * @param  data_p Pointer to data.
+ * @param  size   Size of data, max 8.
+ *
+ * @return True if frame was sent/queued, otherwise false.
+ */
+bool CANInterface_Transmit(uint32_t id, void *data_p, size_t size);
+
+/**
+ * Register a listener.
+ *
+ * The registered callback will be called when a CAN-frame is received.
+ * Note that the callback is called from an ISR.
+ *
+ * @param listener_cb Callback.
+ */
+void CANInterface_RegisterListener(caninterface_listener_cb_t listener_cb);
 
 #endif

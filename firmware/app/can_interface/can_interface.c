@@ -42,8 +42,10 @@ along with CANDrive firmware.  If not, see <http://www.gnu.org/licenses/>.
 
 #define CANIF_LOGGER_NAME "CANIf"
 #ifndef CANIF_LOGGER_DEBUG_LEVEL
-#define CANIF_LOGGER_DEBUG_LEVEL LOGGING_INFO
+#define CANIF_LOGGER_DEBUG_LEVEL LOGGING_DEBUG
 #endif
+
+#define MAX_NUMBER_OF_LISTENERS 1
 
 //////////////////////////////////////////////////////////////////////////
 //TYPE DEFINITIONS
@@ -52,6 +54,8 @@ along with CANDrive firmware.  If not, see <http://www.gnu.org/licenses/>.
 struct module_t
 {
     logging_logger_t logger;
+    caninterface_listener_cb_t listeners[MAX_NUMBER_OF_LISTENERS];
+    size_t number_of_listeners;
 };
 
 //////////////////////////////////////////////////////////////////////////
@@ -78,6 +82,34 @@ void CANInterface_Init(void)
 
     InitCANPeripheral();
     Logging_Info(module.logger, "CAN initialized");
+}
+
+bool CANInterface_Transmit(uint32_t id, void *data_p, size_t size)
+{
+    assert(data_p != NULL);
+    assert(size <= 8);
+
+    Logging_Debug(module.logger, "CANTX{id=0x%x}", id);
+
+    bool extended_id = false;
+    bool request_transmit = false;
+    return can_transmit(CAN1,
+                        id,
+                        extended_id,
+                        request_transmit,
+                        size,
+                        data_p) != -1;
+}
+
+void CANInterface_RegisterListener(caninterface_listener_cb_t listener_cb)
+{
+    assert(listener_cb != NULL);
+    assert(module.number_of_listeners < ElementsIn(module.listeners));
+
+    module.listeners[module.number_of_listeners] = listener_cb;
+    ++module.number_of_listeners;
+
+    Logging_Info(module.logger, "New listener registered: 0x%x", (int)listener_cb);
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -140,6 +172,15 @@ static void InitCANPeripheral(void)
     /* Enable CAN RX interrupt. */
     can_enable_irq(CAN1, CAN_IER_FMPIE0);
 }
+
+void NotifyListeners(uint32_t id, const void *data_p, size_t size)
+{
+    for (size_t i = 0; i < ElementsIn(module.listeners); ++i)
+    {
+        module.listeners[i](id, data_p, size);
+    }
+}
+
 //////////////////////////////////////////////////////////////////////////
 //ISR
 //////////////////////////////////////////////////////////////////////////
@@ -156,5 +197,6 @@ void usb_lp_can_rx0_isr(void)
     can_receive(CAN1, 0, false, &id, &ext, &rtr, &fmi, &length, data, NULL);
     can_fifo_release(CAN1, 0);
 
-    Logging_Debug(module.logger, "CANRX{id=%u}", id);
+    Logging_Debug(module.logger, "CANRX{id=0x%x}", id);
+    NotifyListeners(id, &data, length);
 }
