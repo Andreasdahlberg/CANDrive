@@ -173,11 +173,11 @@ static void InitCANPeripheral(void)
     can_enable_irq(CAN1, CAN_IER_FMPIE0);
 }
 
-void NotifyListeners(uint32_t id, const void *data_p, size_t size)
+void NotifyListeners(const struct can_frame_t *frame_p)
 {
-    for (size_t i = 0; i < ElementsIn(module.listeners); ++i)
+    for (size_t i = 0; i < module.number_of_listeners; ++i)
     {
-        module.listeners[i](id, data_p, size);
+        module.listeners[i](frame_p);
     }
 }
 
@@ -187,16 +187,14 @@ void NotifyListeners(uint32_t id, const void *data_p, size_t size)
 
 void usb_lp_can_rx0_isr(void)
 {
-    uint32_t id;
     bool ext;
     bool rtr;
     uint8_t fmi;
-    uint8_t length;
-    uint8_t data[8];
+    struct can_frame_t frame;
 
-    can_receive(CAN1, 0, false, &id, &ext, &rtr, &fmi, &length, data, NULL);
+    can_receive(CAN1, 0, false, &frame.id, &ext, &rtr, &fmi, &frame.size, frame.data, NULL);
     can_fifo_release(CAN1, 0);
 
-    Logging_Debug(module.logger, "CANRX{id=0x%x}", id);
-    NotifyListeners(id, &data, length);
+    Logging_Debug(module.logger, "CANRX{id=0x%x}", frame.id);
+    NotifyListeners(&frame);
 }
