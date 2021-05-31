@@ -25,6 +25,7 @@ along with CANDrive firmware.  If not, see <http://www.gnu.org/licenses/>.
 //INCLUDES
 //////////////////////////////////////////////////////////////////////////
 
+#include <unistd.h>
 #include <libopencm3/stm32/usart.h>
 #include <errno.h>
 
@@ -42,7 +43,7 @@ int _write(int file, char *ptr, int len)
 {
     int i;
 
-    if (file == 1)
+    if (file == STDOUT_FILENO || file == STDERR_FILENO)
     {
         for (i = 0; i < len; i++)
         {
