@@ -88,3 +88,9 @@ Help('serial: Display serial output from the device.\n')
 
 env.Command("format", None, 'astyle --options=.astylerc --recursive app/*.c app/*.h')
 Help('format: Format all source files.\n')
+
+env.Command("gdb-server", None, 'st-util -m -n')
+Help('gdb: Start a GDB server.\n')
+
+env.Command("gdb", app, 'gdb-multiarch ${SOURCE} --eval-command="target remote localhost:4242"')
+Help('gdb: Start GDB and attach to target.\n')
