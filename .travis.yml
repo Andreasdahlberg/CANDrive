@@ -1,0 +1,13 @@
+dist: focal
+language: c
+before_install:
+  - sudo apt-get update
+  - sudo apt-get -y install gcc-arm-none-eabi
+  - sudo python3 -m pip install scons
+before_script:
+  - git clone https://github.com/eerimoq/cantools.git
+  - cd cantools && sudo python setup.py install
+
+notifications:
+  email:
+    - andreas.dahlberg90@gmail.com
