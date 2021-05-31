@@ -1,3 +1,5 @@
+[![Build Status](https://travis-ci.com/Andreasdahlberg/CANDrive.svg?branch=main)](https://travis-ci.com/Andreasdahlberg/CANDrive)
+
 # CANDrive
 CANDrive is a brushed DC Motor Controller controlled via a [CAN](https://en.wikipedia.org/wiki/CAN_bus) interface.
 
