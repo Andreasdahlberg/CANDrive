@@ -2,11 +2,15 @@ dist: focal
 language: c
 before_install:
   - sudo apt-get update
-  - sudo apt-get -y install gcc-arm-none-eabi
+  - sudo apt-get -y install gcc-arm-none-eabi libnewlib-nano-arm-none-eabi
   - sudo python3 -m pip install scons
 before_script:
   - git clone https://github.com/eerimoq/cantools.git
   - cd cantools && sudo python setup.py install
+
+script:
+  - scons -C firmware build-opencm3 -j2
+  - scons -C firmware build -j2
 
 notifications:
   email:
