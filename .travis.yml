@@ -14,7 +14,7 @@ before_script:
 - cd ..
 script:
 - scons -C firmware build-opencm3 -j2
-- scons -C firmware build -j2
+- build-wrapper-linux-x86-64 --out-dir bw-output scons -C firmware build -j2
 - sonar-scanner
 notifications:
   email:
