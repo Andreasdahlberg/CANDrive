@@ -1,7 +1,7 @@
 /**
- * @file   logging.c
+ * @file   utility.h
  * @Author Andreas Dahlberg (andreas.dahlberg90@gmail.com)
- * @brief  Logging module.
+ * @brief  Utility-module.
  */
 
 /*
@@ -21,47 +21,56 @@ You should have received a copy of the GNU General Public License
 along with CANDrive firmware.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef UTILITY_H_
-#define UTILITY_H_
-
 //////////////////////////////////////////////////////////////////////////
 //INCLUDES
 //////////////////////////////////////////////////////////////////////////
 
-#include <stddef.h>
+#include <string.h>
+#include "utility.h"
 
 //////////////////////////////////////////////////////////////////////////
 //DEFINES
 //////////////////////////////////////////////////////////////////////////
-
-#define ElementsIn(array) \
-    ({ \
-        _Static_assert \
-        ( \
-            ! __builtin_types_compatible_p(__typeof__(array), __typeof__(&array[0])), \
-            "ElementsIn: "  # array " is not an array" \
-        ); \
-        sizeof(array) / sizeof((array)[0]); \
-    })
-
-#define STRINGIFY(x) #x
 
 //////////////////////////////////////////////////////////////////////////
 //TYPE DEFINITIONS
 //////////////////////////////////////////////////////////////////////////
 
 //////////////////////////////////////////////////////////////////////////
-//FUNCTION PROTOTYPES
+//VARIABLES
 //////////////////////////////////////////////////////////////////////////
-/**
- * Copy strings in a safe way.
- *
- * @param  dst_p Pointer to destination buffer,
- * @param  src_p Pointer to string.
- * @param  bufsize Size of destination buffer.
- *
- * @return Total length of the string.
- */
-size_t strlcpy(char *dst_p, const char *src_p, size_t bufsize);
 
-#endif
+//////////////////////////////////////////////////////////////////////////
+//LOCAL FUNCTION PROTOTYPES
+//////////////////////////////////////////////////////////////////////////
+
+//////////////////////////////////////////////////////////////////////////
+//FUNCTIONS
+//////////////////////////////////////////////////////////////////////////
+
+size_t strlcpy(char *dst_p, const char *src_p, size_t bufsize)
+{
+    size_t length = 0;
+
+    for (size_t i = 0; i < bufsize; ++i)
+    {
+        *(dst_p + i) = *(src_p + i);
+
+        if (*(src_p + i) == '\0')
+        {
+            break;
+        }
+        ++length;
+    }
+
+    if (length == bufsize)
+    {
+        *(dst_p + bufsize - 1) = '\0';
+    }
+
+    return length;
+}
+
+//////////////////////////////////////////////////////////////////////////
+//LOCAL FUNCTIONS
+//////////////////////////////////////////////////////////////////////////
