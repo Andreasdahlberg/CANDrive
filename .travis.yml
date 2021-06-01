@@ -1,20 +1,26 @@
 dist: focal
 language: c
+git:
+  depth: false
 before_install:
-  - sudo apt-get update
-  - sudo apt-get -y install gcc-arm-none-eabi libnewlib-arm-none-eabi libnewlib-nano-arm-none-eabi
-  - sudo python3 -m pip install scons
+- sudo apt-get update
+- sudo apt-get -y install gcc-arm-none-eabi libnewlib-arm-none-eabi libnewlib-nano-arm-none-eabi
+- sudo python3 -m pip install scons
 before_script:
-  - git clone https://github.com/eerimoq/cantools.git
-  - cd cantools
-  - git checkout f42efa9bf8a9b6c7723d75df8f92a41f20f9c756
-  - sudo python setup.py install
-  - cd ..
-
+- git clone https://github.com/eerimoq/cantools.git
+- cd cantools
+- git checkout f42efa9bf8a9b6c7723d75df8f92a41f20f9c756
+- sudo python setup.py install
+- cd ..
 script:
-  - scons -C firmware build-opencm3 -j2
-  - scons -C firmware build -j2
-
+- scons -C firmware build-opencm3 -j2
+- scons -C firmware build -j2
+- sonar-scanner
 notifications:
   email:
-    - andreas.dahlberg90@gmail.com
+  - andreas.dahlberg90@gmail.com
+addons:
+  sonarcloud:
+    organization: "andreasdahlberg-github"
+    token:
+      secure: "/ytEIqAiwbPnE3+6eTiNhWHdL/KKHqzOHZpDOlmRrS2XN4t1KaMP4l+tKV8reWjdAxkjim51V9PupLHH25+/vIyjqF1kTIXlSrU97a9aX8/vwVnQCYnNdGVHxyAi1jvhXtc80YL0cTPTYFg1yeS0rdRq5bUTvuzcROxk/PHBl6daPCyv8EPa+JW+tr3gZP6EOyCLfFRiPqJHBMjnqF8Vp5hv7oZF1nKEt7MFNYm6u3FrosBajTBf7ZPgUSic3qw0Oz1ONCvhOiP5z9hoSw9arOfkCYxB602l930zfHZQVsSXaYJc30PieCpO5gc3cliiFkSkyGonYos96U7LlQ+atMY1anBnPljA06peXc1T87e0FtNe0l8UxPfrVOLK7GqOwK1J7qBB0W7DjdPLxWkBzijV3XD0apHOx9mez4lkJqD7hl35vhz9RpN+bJliN944aEwn22L3Dq7CPzierFkz5j3qF3ps5xK1Mz/LB1H7h+UVsT5uNRj1DdfYZisxv5R64BkvuiUhvwp2dRvu2J5BDNcVQDmZH9jBn2a55rn5xovwUeqXXy4="
