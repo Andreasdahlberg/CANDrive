@@ -33,7 +33,6 @@ along with CANDrive firmware.  If not, see <http://www.gnu.org/licenses/>.
 #include <libopencm3/stm32/rcc.h>
 #include "utility.h"
 #include "logging.h"
-#include "candb.h"
 #include "can_interface.h"
 
 //////////////////////////////////////////////////////////////////////////
