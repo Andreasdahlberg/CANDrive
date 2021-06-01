@@ -94,7 +94,8 @@ logging_logger_t Logging_GetLogger(const char *name_p)
     if (logger_p == NULL && module.number_of_loggers < MAX_NUMBER_OF_LOGGERS)
     {
         logger_p = &module.loggers[module.number_of_loggers];
-        strncpy(logger_p->name, name_p, sizeof(logger_p->name));
+        strlcpy(logger_p->name, name_p, sizeof(logger_p->name));
+
         logger_p->level = LOGGING_NOTSET;
 
         ++module.number_of_loggers;
