@@ -164,7 +164,7 @@ static inline const char *LevelToString(enum logging_level_t level)
     switch (level)
     {
         case LOGGING_CRITICAL:
-            return "CRITICAL";;
+            return "CRITICAL";
         case LOGGING_ERROR:
             return "ERROR";
         case LOGGING_WARNING:
