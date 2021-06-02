@@ -46,6 +46,12 @@ along with CANDrive firmware.  If not, see <http://www.gnu.org/licenses/>.
 
 #define STRINGIFY(x) #x
 
+#if defined(__clang__)
+#define NO_OPTIMIZATION_ATTRIBUTE optnone
+#else
+#define NO_OPTIMIZATION_ATTRIBUTE optimize("O0")
+#endif
+
 //////////////////////////////////////////////////////////////////////////
 //TYPE DEFINITIONS
 //////////////////////////////////////////////////////////////////////////

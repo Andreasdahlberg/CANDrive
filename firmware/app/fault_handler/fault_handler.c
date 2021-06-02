@@ -29,6 +29,7 @@ along with CANDrive firmware.  If not, see <http://www.gnu.org/licenses/>.
 #include <libopencm3/cm3/common.h>
 #include <libopencm3/cm3/memorymap.h>
 #include <libopencm3/cm3/scs.h>
+#include "utility.h"
 
 //////////////////////////////////////////////////////////////////////////
 //TYPE DEFINITIONS
@@ -66,7 +67,7 @@ typedef struct __attribute__((packed)) ContextStateFrame
 //FUNCTIONS
 //////////////////////////////////////////////////////////////////////////
 
-__attribute__((optimize("O0"))) void hard_fault_handler (__attribute__((unused))sContextStateFrame *frame)
+__attribute__((NO_OPTIMIZATION_ATTRIBUTE)) void hard_fault_handler (__attribute__((unused))sContextStateFrame *frame)
 {
     if (IS_DEBUGGING())
     {
