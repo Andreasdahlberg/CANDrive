@@ -30,7 +30,6 @@ config_variables.Add('BAUD_RATE', 'Baud rate for the serial port')
 
 cflags = [
     '-mcpu=cortex-m3',
-    '-mfix-cortex-m3-ldrd',
     '-mthumb',
     '-O${OPTIMIZATION}',
     '-g',
@@ -43,7 +42,6 @@ ldflags = [
     '-nostartfiles',
     '-Tapp/stm32f103rb.ld',
     '-mcpu=cortex-m3',
-    '-mfix-cortex-m3-ldrd',
     '-mthumb',
     '-specs=nano.specs',
 ]
