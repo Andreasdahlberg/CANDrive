@@ -52,7 +52,7 @@ along with CANDrive firmware.  If not, see <http://www.gnu.org/licenses/>.
 
 struct module_t
 {
-    logging_logger_t logger;
+    logging_logger_t *logger;
     caninterface_listener_cb_t listeners[MAX_NUMBER_OF_LISTENERS];
     size_t number_of_listeners;
 };

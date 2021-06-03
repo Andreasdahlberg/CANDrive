@@ -47,7 +47,7 @@ along with CANDrive firmware.  If not, see <http://www.gnu.org/licenses/>.
 
 typedef uint32_t (*logging_time_cb_t)(void);
 
-typedef struct logging_logger_t *logging_logger_t;
+typedef struct logging_logger_t logging_logger_t;
 
 enum logging_level_t
 {
@@ -79,7 +79,7 @@ void Logging_Init(logging_time_cb_t time_callback);
  *
  * @return Logger instance.
  */
-logging_logger_t Logging_GetLogger(const char *name_p);
+logging_logger_t *Logging_GetLogger(const char *name_p);
 
 /**
  * Set the log level for a logging instance.
@@ -87,7 +87,7 @@ logging_logger_t Logging_GetLogger(const char *name_p);
  * @param logger Logger instance.
  * @param level  Log level.
  */
-void Logging_SetLevel(logging_logger_t logger, enum logging_level_t level);
+void Logging_SetLevel(logging_logger_t *logger_p, enum logging_level_t level);
 
 /**
  * Create a log message.
@@ -100,6 +100,6 @@ void Logging_SetLevel(logging_logger_t logger, enum logging_level_t level);
  * @param line      Line number.
  * @param message_p Log message.
  */
-void Logging_Log(const logging_logger_t logger, enum logging_level_t level, const char *file_p, uint32_t line, const char *message_p, ...);
+void Logging_Log(const logging_logger_t *logger_p, enum logging_level_t level, const char *file_p, uint32_t line, const char *message_p, ...);
 
 #endif

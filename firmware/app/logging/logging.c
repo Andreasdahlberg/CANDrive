@@ -69,7 +69,7 @@ static struct module_t module;
 //////////////////////////////////////////////////////////////////////////
 
 static inline void PrintHeader(enum logging_level_t level, const char *name_p, const char *file_p, uint32_t line);
-static logging_logger_t GetLoggerByName(const char *name_p);
+static logging_logger_t *GetLoggerByName(const char *name_p);
 static inline const char *LevelToString(enum logging_level_t level);
 
 //////////////////////////////////////////////////////////////////////////
@@ -83,11 +83,11 @@ void Logging_Init(logging_time_cb_t time_callback)
     module = (__typeof__(module)) {.get_time_cb = time_callback};
 }
 
-logging_logger_t Logging_GetLogger(const char *name_p)
+logging_logger_t *Logging_GetLogger(const char *name_p)
 {
     assert(name_p != NULL);
 
-    struct logging_logger_t *logger_p;
+    logging_logger_t *logger_p;
     logger_p = GetLoggerByName(name_p);
 
     /* Get a new logger instance if the name was not found. */
@@ -104,13 +104,13 @@ logging_logger_t Logging_GetLogger(const char *name_p)
     return logger_p;
 }
 
-void Logging_SetLevel(logging_logger_t logger_p, enum logging_level_t level)
+void Logging_SetLevel(logging_logger_t *logger_p, enum logging_level_t level)
 {
     assert(logger_p != NULL);
     logger_p->level = level;
 }
 
-void Logging_Log(const logging_logger_t logger_p, enum logging_level_t level, const char *file_p, uint32_t line, const char *message_p, ...)
+void Logging_Log(const logging_logger_t *logger_p, enum logging_level_t level, const char *file_p, uint32_t line, const char *message_p, ...)
 {
     assert(logger_p != NULL);
     if (level >= logger_p->level)
@@ -143,9 +143,9 @@ static inline void PrintHeader(enum logging_level_t level, const char *name_p, c
     printf("[%lu] %s:%s %s:%lu ", timestamp, LevelToString(level), name_p, file_p, line);
 }
 
-static logging_logger_t GetLoggerByName(const char *name_p)
+static logging_logger_t *GetLoggerByName(const char *name_p)
 {
-    logging_logger_t logger_p = NULL;
+    logging_logger_t *logger_p = NULL;
 
     for (size_t i = 0; i < module.number_of_loggers; ++i)
     {
