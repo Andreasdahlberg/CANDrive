@@ -1,4 +1,5 @@
 [![Build Status](https://travis-ci.com/Andreasdahlberg/CANDrive.svg?branch=main)](https://travis-ci.com/Andreasdahlberg/CANDrive)
+[![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=Andreasdahlberg_CANDrive&metric=alert_status)](https://sonarcloud.io/dashboard?id=Andreasdahlberg_CANDrive)
 
 # CANDrive
 CANDrive is a brushed DC Motor Controller controlled via a [CAN](https://en.wikipedia.org/wiki/CAN_bus) interface.
