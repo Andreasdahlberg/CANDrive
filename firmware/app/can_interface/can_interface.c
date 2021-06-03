@@ -96,7 +96,7 @@ bool CANInterface_Transmit(uint32_t id, void *data_p, size_t size)
                         id,
                         extended_id,
                         request_transmit,
-                        size,
+                        (uint8_t)size,
                         data_p) != -1;
 }
 

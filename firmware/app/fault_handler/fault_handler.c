@@ -67,7 +67,7 @@ typedef struct __attribute__((packed)) ContextStateFrame
 //FUNCTIONS
 //////////////////////////////////////////////////////////////////////////
 
-__attribute__((NO_OPTIMIZATION_ATTRIBUTE)) void hard_fault_handler (__attribute__((unused))sContextStateFrame *frame)
+__attribute__((NO_OPTIMIZATION_ATTRIBUTE)) void hard_fault_handler (__attribute__((unused))const sContextStateFrame *frame)
 {
     if (IS_DEBUGGING())
     {
