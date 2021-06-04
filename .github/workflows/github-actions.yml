@@ -35,4 +35,9 @@ jobs:
 
       - name: Build CANDrive
         run: |
-          scons -C ${{ github.workspace }}/firmware build -j2
+          build-wrapper-linux-x86-64 --out-dir bw-output scons -C ${{ github.workspace }}/firmware build -j2
+
+      - name: Run SonarScanner
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        run: sonar-scanner -Dsonar.login=$SONAR_TOKEN
