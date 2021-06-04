@@ -57,7 +57,9 @@ env = Environment(
     LINKFLAGS=ldflags
 )
 
-env['ENV']['TERM'] = os.environ['TERM']
+TERM = os.getenv('TERM')
+if TERM:
+    env['ENV']['TERM'] = TERM
 
 app, hex = env.SConscript('app/SConscript',
                       duplicate=0,
