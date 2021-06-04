@@ -1,4 +1,4 @@
-name: GitHub Actions Demo
+name: CANDrive CI
 on: [push]
 jobs:
   Explore-GitHub-Actions:
@@ -16,8 +16,10 @@ jobs:
       - name: Install SCons
         run: sudo python3 -m pip install scons
 
-      - name: Check out repository code
+      - name: Check out repository and submodules
         uses: actions/checkout@v2
+        with:
+          submodules: recursive
 
       - name: Build LibOpenCM3
         run: |
