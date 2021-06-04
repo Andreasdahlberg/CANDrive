@@ -15,3 +15,10 @@ jobs:
         run: sudo apt install -y gcc-arm-none-eabi libnewlib-arm-none-eabi libnewlib-nano-arm-none-eabi
       - name: Install SCons
         run: sudo python3 -m pip install scons
+
+      - name: Check out repository code
+        uses: actions/checkout@v2
+
+      - name: Build LibOpenCM3
+        run: |
+          scons -C ${{ github.workspace }}/firmware build-opencm3 -j2
