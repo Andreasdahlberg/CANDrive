@@ -19,7 +19,7 @@ import os
 
 Import(['*'])
 
-MODULES = ['main', 'fault_handler', 'syscalls', 'logging', 'candb', 'can_interface', 'fifo', 'utility']
+MODULES = ['main', 'fault_handler', 'syscalls', 'logging', 'candb', 'can_interface', 'fifo', 'utility', 'signal_handler']
 module_objects = []
 
 env.Append(CPPPATH=[
@@ -43,5 +43,41 @@ env.Append(LIBS =[
 
 app = env.Program('application.elf', module_objects)
 hex = env.Hex('application.hex', app)
+
+test_env = Environment(
+    tools=['default', 'coverage', 'compilation_db'],
+    CC='gcc',
+    CCFLAGS=['-g', '-O0', '-std=c17'],
+    LIBS=['cmocka', 'gcov']
+)
+
+tests = []
+for module in MODULES:
+    unit_env = test_env.Clone()
+
+    if os.path.isfile(os.path.join(Dir('.').srcnode().abspath, module, 'test', 'SConscript')):
+        unit_test_dir = os.path.join(module, 'test', 'test')
+        unit_test_sconscript_file = os.path.join(module, 'test', 'SConscript')
+        unit_test_object = SConscript(unit_test_sconscript_file,
+            variant_dir=unit_test_dir,
+            duplicate=0,
+            exports={'env': unit_env})
+
+        unit_env.Append(CCFLAGS='--coverage')
+        unit_env.Append(CPPPATH='#app/test/mocks')
+
+        module_dir = os.path.join(module, 'test', 'module')
+        module_sconscript_file = os.path.join(module, 'SConscript')
+        module_object = SConscript(module_sconscript_file,
+            variant_dir=module_dir,
+            duplicate=0,
+            exports={'env': unit_env})
+
+        runner_name = os.path.join(module, 'test', 'TestRunner')
+        runner = unit_env.Program(target=runner_name, source=[unit_test_object, module_object])
+        tests.append(runner)
+
+test_runner = test_env.Coverage(source=tests, target='test-runner')
+test_env.Alias('test', test_runner)
 
 Return(['app', 'hex'])
