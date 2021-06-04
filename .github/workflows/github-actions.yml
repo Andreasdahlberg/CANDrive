@@ -1,0 +1,44 @@
+name: CANDrive CI
+on: [push, pull_request]
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    env:
+      SONAR_RUNNER_HOME: /usr/lib/sonar-scanner
+
+    steps:
+      - name: Install cantools
+        run: |
+          git clone https://github.com/eerimoq/cantools.git
+          cd cantools
+          git checkout f42efa9bf8a9b6c7723d75df8f92a41f20f9c756
+          sudo python setup.py install
+          cd ..
+          sudo rm -rf cantools
+      - name: Install build tools
+        run: sudo apt install -y gcc-arm-none-eabi libnewlib-arm-none-eabi libnewlib-nano-arm-none-eabi
+      - name: Install SCons
+        run: sudo python3 -m pip install scons
+
+      - name: Check out repository and submodules
+        uses: actions/checkout@v2
+        with:
+          submodules: recursive
+
+      - name: Install SonarScanner and buildwrapper
+        working-directory: ${{ github.workspace }}
+        run: sudo scripts/install_sonarscanner_build_wrapper.sh
+
+      - name: Build LibOpenCM3
+        run: |
+          scons -C ${{ github.workspace }}/firmware build-opencm3 -j2
+
+      - name: Build CANDrive
+        run: |
+          build-wrapper-linux-x86-64 --out-dir bw-output scons -C ${{ github.workspace }}/firmware build -j2
+
+      - name: Run SonarScanner
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        run: sonar-scanner
