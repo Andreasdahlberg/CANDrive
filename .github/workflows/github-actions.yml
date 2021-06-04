@@ -14,6 +14,7 @@ jobs:
           git checkout f42efa9bf8a9b6c7723d75df8f92a41f20f9c756
           sudo pip install -e .
           cd ..
+          sudo rm -rf cantools
       - name: Install build tools
         run: sudo apt install -y gcc-arm-none-eabi libnewlib-arm-none-eabi libnewlib-nano-arm-none-eabi
       - name: Install SCons
