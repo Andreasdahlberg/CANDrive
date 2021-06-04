@@ -24,10 +24,14 @@ jobs:
         with:
           submodules: recursive
 
-      - name: Install SonarScanner and build-wrapper
+      - name: Install SonarScanner and buildwrapper
         working-directory: ${{ github.workspace }}
         run: sudo scripts/install_sonarscanner_build_wrapper.sh
 
       - name: Build LibOpenCM3
         run: |
           scons -C ${{ github.workspace }}/firmware build-opencm3 -j2
+
+      - name: Build CANDrive
+        run: |
+          scons -C ${{ github.workspace }}/firmware build -j2
