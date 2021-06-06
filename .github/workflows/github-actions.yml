@@ -33,6 +33,10 @@ jobs:
         working-directory: ${{ github.workspace }}
         run: sudo scripts/install_sonarscanner_build_wrapper.sh
 
+      - name: Build and run tests
+        run: |
+          scons -C ${{ github.workspace }}/firmware test -j2
+
       - name: Build LibOpenCM3
         run: |
           scons -C ${{ github.workspace }}/firmware build-opencm3 -j2
