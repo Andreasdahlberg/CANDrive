@@ -3,7 +3,7 @@
 	[
 		{
 			"path": ".",
-            "file_exclude_patterns": ["*.a", "*.o"],
+            "file_exclude_patterns": ["*.a", "*.o", "*.gcov", ".sconsign.dblite"],
 		}
 	],
     "settings":
