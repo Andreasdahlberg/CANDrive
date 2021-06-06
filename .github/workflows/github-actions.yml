@@ -16,7 +16,7 @@ jobs:
           cd ..
           sudo rm -rf cantools
       - name: Install build tools
-        run: sudo apt install -y gcc-arm-none-eabi libnewlib-arm-none-eabi libnewlib-nano-arm-none-eabi valgrind
+        run: sudo apt install -y gcc-arm-none-eabi libnewlib-arm-none-eabi libnewlib-nano-arm-none-eabi valgrind gcovr
       - name: Install SCons
         run: sudo python3 -m pip install scons
 
@@ -36,6 +36,10 @@ jobs:
       - name: Build and run tests
         run: |
           scons -C ${{ github.workspace }}/firmware test -j2
+
+      - name: Process code coverage results
+        working-directory: ${{ github.workspace }}/firmware
+        run: gcovr -k
 
       - name: Build LibOpenCM3
         run: |
