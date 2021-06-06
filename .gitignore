@@ -87,5 +87,6 @@ fp-info-cache
 build
 compile_commands.json
 .sconsign.dblite
-.sublime-workspace
+*.sublime-workspace
 .scannerwork
+*.gcov
