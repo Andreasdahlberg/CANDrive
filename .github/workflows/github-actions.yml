@@ -16,7 +16,7 @@ jobs:
           cd ..
           sudo rm -rf cantools
       - name: Install build tools
-        run: sudo apt install -y gcc-arm-none-eabi libnewlib-arm-none-eabi libnewlib-nano-arm-none-eabi
+        run: sudo apt install -y gcc-arm-none-eabi libnewlib-arm-none-eabi libnewlib-nano-arm-none-eabi valgrind
       - name: Install SCons
         run: sudo python3 -m pip install scons
 
@@ -24,6 +24,10 @@ jobs:
         uses: actions/checkout@v2
         with:
           submodules: recursive
+
+      - name: Install cmocka
+        working-directory: ${{ github.workspace }}
+        run: sudo scripts/install_cmocka.sh
 
       - name: Install SonarScanner and buildwrapper
         working-directory: ${{ github.workspace }}
