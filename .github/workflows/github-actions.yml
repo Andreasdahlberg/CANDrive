@@ -39,7 +39,10 @@ jobs:
 
       - name: Process code coverage results
         working-directory: ${{ github.workspace }}/firmware
-        run: gcovr -k
+        run: |
+          gcovr -k
+          pwd
+          ls
 
       - name: Build LibOpenCM3
         run: |
