@@ -48,8 +48,31 @@ test_env = Environment(
     tools=['default', 'coverage', 'compilation_db'],
     CC='gcc',
     CCFLAGS=['-g', '-O0', '-std=c17'],
+    CPPPATH=['#libopencm3/include'],
+    CPPDEFINES=['STM32F1'],
     LIBS=['cmocka', 'gcov']
 )
+
+mocks = []
+unit_env = test_env.Clone()
+mock_dir = os.path.join('test', 'mocks', 'test')
+mock_sconscript_file = os.path.join('test', 'mocks', 'SConscript')
+mock_object = SConscript(mock_sconscript_file,
+            variant_dir=mock_dir,
+            duplicate=0,
+            exports={'env': unit_env})
+mocks.append(mock_object)
+
+for module in MODULES:
+    unit_env = test_env.Clone()
+    if os.path.isfile(os.path.join(Dir('.').srcnode().abspath, module, 'test', 'mock', 'SConscript')):
+        mock_dir = os.path.join(module, 'test', 'mock', 'test')
+        mock_sconscript_file = os.path.join(module, 'test', 'mock', 'SConscript')
+        mock_object = SConscript(mock_sconscript_file,
+            variant_dir=mock_dir,
+            duplicate=0,
+            exports={'env': unit_env})
+        mocks.append(mock_object)
 
 tests = []
 for module in MODULES:
@@ -74,7 +97,7 @@ for module in MODULES:
             exports={'env': unit_env})
 
         runner_name = os.path.join(module, 'test', 'TestRunner')
-        runner = unit_env.Program(target=runner_name, source=[unit_test_object, module_object])
+        runner = unit_env.Program(target=runner_name, source=[unit_test_object, module_object, mocks])
         tests.append(runner)
 
 test_runner = test_env.Coverage(source=tests, target='test-runner')
