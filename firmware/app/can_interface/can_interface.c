@@ -108,7 +108,7 @@ void CANInterface_RegisterListener(caninterface_listener_cb_t listener_cb)
     module.listeners[module.number_of_listeners] = listener_cb;
     ++module.number_of_listeners;
 
-    Logging_Info(module.logger, "New listener registered: 0x%x", (int)listener_cb);
+    Logging_Info(module.logger, "New listener registered: 0x%x", (uintptr_t)listener_cb);
 }
 
 //////////////////////////////////////////////////////////////////////////
