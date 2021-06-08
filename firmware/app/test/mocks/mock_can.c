@@ -31,6 +31,7 @@ along with CANDrive firmware.  If not, see <http://www.gnu.org/licenses/>.
 #include <setjmp.h>
 #include <cmocka.h>
 #include <stdio.h>
+#include <string.h>
 #include <libopencm3/stm32/can.h>
 
 //////////////////////////////////////////////////////////////////////////
@@ -55,10 +56,12 @@ along with CANDrive firmware.  If not, see <http://www.gnu.org/licenses/>.
 
 __attribute__((weak)) void can_reset(uint32_t canport)
 {
+    check_expected(canport);
 }
 
 __attribute__((weak)) int can_init(uint32_t canport, bool ttcm, bool abom, bool awum, bool nart, bool rflm, bool txfp, uint32_t sjw, uint32_t ts1, uint32_t ts2, uint32_t brp, bool loopback, bool silent)
 {
+    check_expected(canport);
     mock_type(int);
 }
 
@@ -84,6 +87,8 @@ __attribute__((weak)) void can_filter_id_list_32bit_init(uint32_t nr, uint32_t i
 
 __attribute__((weak)) void can_enable_irq(uint32_t canport, uint32_t irq)
 {
+    check_expected(canport);
+    check_expected(irq);
 }
 
 __attribute__((weak)) void can_disable_irq(uint32_t canport, uint32_t irq)
@@ -92,11 +97,22 @@ __attribute__((weak)) void can_disable_irq(uint32_t canport, uint32_t irq)
 
 __attribute__((weak)) int can_transmit(uint32_t canport, uint32_t id, bool ext, bool rtr, uint8_t length, uint8_t *data)
 {
+    check_expected(canport);
+    check_expected(id);
+    check_expected(length);
+    check_expected(data);
     mock_type(int);
 }
 
 __attribute__((weak)) void can_receive(uint32_t canport, uint8_t fifo, bool release, uint32_t *id, bool *ext, bool *rtr, uint8_t *fmi, uint8_t *length, uint8_t *data, uint16_t *timestamp)
 {
+    check_expected(canport);
+
+    *id = mock_type(uint32_t);
+    *length = mock_type(uint8_t);
+
+    uint8_t *mock_data_p = mock_ptr_type(uint8_t *);
+    memcpy(data, mock_data_p, *length);
 }
 
 __attribute__((weak)) void can_fifo_release(uint32_t canport, uint8_t fifo)
