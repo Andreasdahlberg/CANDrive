@@ -123,8 +123,7 @@ static void InitCANPeripheral(void)
     rcc_periph_clock_enable(RCC_GPIOB);
     rcc_periph_clock_enable(RCC_CAN1);
 
-    AFIO_MAPR |= AFIO_MAPR_CAN1_REMAP_PORTB;
-
+    gpio_primary_remap(AFIO_MAPR_CAN1_REMAP_PORTB, 0);
     gpio_set_mode(GPIO_BANK_CAN1_PB_RX, GPIO_MODE_INPUT, GPIO_CNF_INPUT_PULL_UPDOWN, GPIO_CAN1_PB_RX);
     gpio_set(GPIO_BANK_CAN1_PB_RX, GPIO_CAN1_PB_RX);
     gpio_set_mode(GPIO_BANK_CAN1_PB_TX, GPIO_MODE_OUTPUT_50_MHZ, GPIO_CNF_OUTPUT_ALTFN_PUSHPULL, GPIO_CAN1_PB_TX);
