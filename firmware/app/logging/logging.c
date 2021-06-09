@@ -37,9 +37,13 @@ along with CANDrive firmware.  If not, see <http://www.gnu.org/licenses/>.
 //DEFINES
 //////////////////////////////////////////////////////////////////////////
 
-#define MAX_NUMBER_OF_LOGGERS 4
+#define MAX_NUMBER_OF_LOGGERS 5
 #define LOGGER_NAME_MAX_LENGTH 16
 
+#define LOGGING_LOGGER_NAME "Log"
+#ifndef LOGGING_LOGGER_DEBUG_LEVEL
+#define LOGGING_LOGGER_DEBUG_LEVEL LOGGING_DEBUG
+#endif
 
 //////////////////////////////////////////////////////////////////////////
 //TYPE DEFINITIONS
@@ -56,6 +60,7 @@ struct module_t
     struct logging_logger_t loggers[MAX_NUMBER_OF_LOGGERS];
     size_t number_of_loggers;
     logging_time_cb_t get_time_cb;
+    logging_logger_t *logger;
 };
 
 //////////////////////////////////////////////////////////////////////////
@@ -81,6 +86,10 @@ void Logging_Init(logging_time_cb_t time_callback)
     assert(time_callback != NULL);
 
     module = (__typeof__(module)) {.get_time_cb = time_callback};
+
+    module.logger = Logging_GetLogger(LOGGING_LOGGER_NAME);
+    Logging_SetLevel(module.logger, LOGGING_LOGGER_DEBUG_LEVEL);
+    Logging_Info(module.logger, "Logging initialized");
 }
 
 logging_logger_t *Logging_GetLogger(const char *name_p)
@@ -145,10 +154,14 @@ static inline void PrintHeader(enum logging_level_t level, const char *name_p, c
 
 static logging_logger_t *GetLoggerByName(const char *name_p)
 {
-    logging_logger_t *logger_p = NULL;
     char truncated_name[LOGGER_NAME_MAX_LENGTH];
-    strlcpy(truncated_name, name_p, sizeof(truncated_name));
+    size_t size = strlcpy(truncated_name, name_p, sizeof(truncated_name));
+    if (size >= sizeof(truncated_name))
+    {
+        Logging_Warning(module.logger, "Truncated: %s -> %s", name_p, truncated_name);
+    }
 
+    logging_logger_t *logger_p = NULL;
     for (size_t i = 0; i < module.number_of_loggers; ++i)
     {
         if (strncmp(module.loggers[i].name, truncated_name, ElementsIn(module.loggers[i].name)) == 0)
