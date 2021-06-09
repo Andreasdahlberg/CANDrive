@@ -146,10 +146,12 @@ static inline void PrintHeader(enum logging_level_t level, const char *name_p, c
 static logging_logger_t *GetLoggerByName(const char *name_p)
 {
     logging_logger_t *logger_p = NULL;
+    char truncated_name[LOGGER_NAME_MAX_LENGTH];
+    strlcpy(truncated_name, name_p, sizeof(truncated_name));
 
     for (size_t i = 0; i < module.number_of_loggers; ++i)
     {
-        if (strncmp(module.loggers[i].name, name_p, ElementsIn(module.loggers[i].name)) == 0)
+        if (strncmp(module.loggers[i].name, truncated_name, ElementsIn(module.loggers[i].name)) == 0)
         {
             logger_p = &module.loggers[i];
             break;
