@@ -30,6 +30,7 @@ along with CANDrive firmware.  If not, see <http://www.gnu.org/licenses/>.
 #include <stdarg.h>
 #include <string.h>
 #include <assert.h>
+#include <inttypes.h>
 #include "utility.h"
 #include "logging.h"
 
@@ -148,8 +149,7 @@ static inline void PrintHeader(enum logging_level_t level, const char *name_p, c
     {
         timestamp = module.get_time_cb();
     }
-
-    printf("[%lu] %s:%s %s:%lu ", timestamp, LevelToString(level), name_p, file_p, line);
+    printf("[%" PRIu32 "] %s:%s %s:%" PRIu32 " ", timestamp, LevelToString(level), name_p, file_p, line);
 }
 
 static logging_logger_t *GetLoggerByName(const char *name_p)
