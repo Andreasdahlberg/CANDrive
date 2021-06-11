@@ -53,12 +53,11 @@ along with CANDrive firmware.  If not, see <http://www.gnu.org/licenses/>.
 
 static uint32_t get_timestamp(void)
 {
-    mock_type(uint32_t);
+    return 0;
 }
 
 static int Setup(void **state)
 {
-
     Logging_Init(get_timestamp);
     return 0;
 }
@@ -101,6 +100,18 @@ void test_Logging_GetLogger_NoAvailableLoggers(void **state)
     assert_non_null(Logging_GetLogger("TestLoggerA"));
 }
 
+void test_Logging_GetLogger_TruncatedName(void **state)
+{
+    const char logger_name[] = "verylongloggername";
+    logging_logger_t *logger_p = Logging_GetLogger(logger_name);
+    assert_non_null(logger_p);
+
+    assert_ptr_equal(logger_p, Logging_GetLogger(logger_name));
+
+    const char truncated_logger_name[] = "verylongloggern";
+    assert_ptr_equal(logger_p, Logging_GetLogger(truncated_logger_name));
+}
+
 //////////////////////////////////////////////////////////////////////////
 //FUNCTIONS
 //////////////////////////////////////////////////////////////////////////
@@ -113,6 +124,7 @@ int main(int argc, char *argv[])
         cmocka_unit_test_setup(test_Logging_GetLogger_Invalid, Setup),
         cmocka_unit_test_setup(test_Logging_GetLogger, Setup),
         cmocka_unit_test_setup(test_Logging_GetLogger_NoAvailableLoggers, Setup),
+        cmocka_unit_test_setup(test_Logging_GetLogger_TruncatedName, Setup),
     };
 
     if (argc >= 2)
