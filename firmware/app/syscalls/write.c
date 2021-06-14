@@ -33,17 +33,17 @@ along with CANDrive firmware.  If not, see <http://www.gnu.org/licenses/>.
 //FUNCTION PROTOTYPES
 //////////////////////////////////////////////////////////////////////////
 
-int _write(int file, char *ptr, int len);
+ssize_t _write(uint32_t file, char *ptr, size_t len);
 
 //////////////////////////////////////////////////////////////////////////
 //FUNCTIONS
 //////////////////////////////////////////////////////////////////////////
 
-int _write(int file, char *ptr, int len)
+ssize_t _write(uint32_t file, char *ptr, size_t len)
 {
     if ((file == STDOUT_FILENO) || (file == STDERR_FILENO))
     {
-        Serial_Send(ptr, (size_t)len);
+        Serial_Send(ptr, len);
         return len;
     }
 
