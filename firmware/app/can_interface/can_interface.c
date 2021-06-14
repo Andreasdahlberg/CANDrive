@@ -154,7 +154,7 @@ static void InitCANPeripheral(void)
                  CAN_BTR_TS2_6TQ,
                  2,
                  loopback,
-                 silent))
+                 silent) != 0)
     {
         Logging_Critical(module.logger, "Failed to initialize CAN1");
         assert(false);
