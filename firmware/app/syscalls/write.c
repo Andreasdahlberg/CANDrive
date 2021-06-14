@@ -26,8 +26,8 @@ along with CANDrive firmware.  If not, see <http://www.gnu.org/licenses/>.
 //////////////////////////////////////////////////////////////////////////
 
 #include <unistd.h>
-#include <libopencm3/stm32/usart.h>
 #include <errno.h>
+#include "serial.h"
 
 //////////////////////////////////////////////////////////////////////////
 //FUNCTION PROTOTYPES
@@ -41,15 +41,10 @@ int _write(int file, char *ptr, int len);
 
 int _write(int file, char *ptr, int len)
 {
-    int i;
-
     if (file == STDOUT_FILENO || file == STDERR_FILENO)
     {
-        for (i = 0; i < len; i++)
-        {
-            usart_send_blocking(USART2, ptr[i]);
-        }
-        return i;
+        Serial_Send(ptr, (size_t)len);
+        return len;
     }
 
     errno = EIO;

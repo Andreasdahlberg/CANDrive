@@ -23,7 +23,8 @@ SOURCE = Glob('*.c')
 
 env.Append(CPPPATH=[
     '../logging',
-    '../can_interface'
+    '../can_interface',
+    '../serial'
 ])
 
 OBJECTS = env.Object(SOURCE)

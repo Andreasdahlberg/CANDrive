@@ -22,7 +22,7 @@ Import(['*'])
 SOURCE = Glob('*.c')
 
 env.Append(CPPPATH=[
-
+    '#/app/serial'
 ])
 
 OBJECTS = env.Object(SOURCE)
