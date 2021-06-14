@@ -44,7 +44,7 @@ ssize_t _write(uint32_t file, char *ptr, size_t len)
     if ((file == STDOUT_FILENO) || (file == STDERR_FILENO))
     {
         Serial_Send(ptr, len);
-        return len;
+        return (ssize_t)len;
     }
 
     errno = EIO;
