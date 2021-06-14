@@ -57,12 +57,12 @@ __attribute__((weak)) void Logging_Init(logging_time_cb_t time_callback)
 {
 }
 
-__attribute__((weak)) logging_logger_t *Logging_GetLogger(const char* name_p)
+__attribute__((weak)) logging_logger_t *Logging_GetLogger(const char *name_p)
 {
     mock_type(logging_logger_t *);
 }
 
-__attribute__((weak)) void Logging_SetLevel(logging_logger_t* logger_p, enum logging_level_t level)
+__attribute__((weak)) void Logging_SetLevel(logging_logger_t *logger_p, enum logging_level_t level)
 {
 }
 
