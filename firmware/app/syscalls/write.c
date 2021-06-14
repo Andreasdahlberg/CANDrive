@@ -41,7 +41,7 @@ int _write(int file, char *ptr, int len);
 
 int _write(int file, char *ptr, int len)
 {
-    if (file == STDOUT_FILENO || file == STDERR_FILENO)
+    if ((file == STDOUT_FILENO) || (file == STDERR_FILENO))
     {
         Serial_Send(ptr, (size_t)len);
         return len;

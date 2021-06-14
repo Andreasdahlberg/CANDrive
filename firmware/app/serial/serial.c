@@ -65,7 +65,7 @@ void Serial_Init(uint32_t baud_rate)
 
 void Serial_Send(const void *data_p, size_t size)
 {
-    for (size_t i = 0; i < size; i++)
+    for (size_t i = 0; i < size; ++i)
     {
         const uint8_t data = ((uint8_t *)data_p)[i];
         usart_send_blocking(USART2, data);

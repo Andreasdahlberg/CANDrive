@@ -51,6 +51,11 @@ static void gpio_setup(void)
                   GPIO_CNF_OUTPUT_PUSHPULL, GPIO5);
 }
 
+static inline void nop(void)
+{
+    __asm__("nop");
+}
+
 //////////////////////////////////////////////////////////////////////////
 //FUNCTIONS
 //////////////////////////////////////////////////////////////////////////
@@ -68,9 +73,9 @@ int main(void)
         printf("Hello %lu!\r\n", a);
         ++a;
 
-        for (size_t i = 0; i < 800000; i++)    /* Wait a bit. */
+        for (size_t i = 0; i < 800000; ++i)    /* Wait a bit. */
         {
-            __asm__("nop");
+            nop();
         }
     }
 

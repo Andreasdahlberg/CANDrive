@@ -101,7 +101,7 @@ logging_logger_t *Logging_GetLogger(const char *name_p)
     logger_p = GetLoggerByName(name_p);
 
     /* Get a new logger instance if the name was not found. */
-    if (logger_p == NULL && module.number_of_loggers < MAX_NUMBER_OF_LOGGERS)
+    if ((logger_p == NULL) && (module.number_of_loggers < MAX_NUMBER_OF_LOGGERS))
     {
         logger_p = &module.loggers[module.number_of_loggers];
         strlcpy(logger_p->name, name_p, sizeof(logger_p->name));
