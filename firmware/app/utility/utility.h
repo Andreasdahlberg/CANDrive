@@ -1,7 +1,7 @@
 /**
- * @file   logging.c
+ * @file   utility.h
  * @Author Andreas Dahlberg (andreas.dahlberg90@gmail.com)
- * @brief  Logging module.
+ * @brief  Utility-module.
  */
 
 /*

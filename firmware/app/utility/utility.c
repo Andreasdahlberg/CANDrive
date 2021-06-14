@@ -1,5 +1,5 @@
 /**
- * @file   utility.h
+ * @file   utility.c
  * @Author Andreas Dahlberg (andreas.dahlberg90@gmail.com)
  * @brief  Utility-module.
  */

@@ -1,5 +1,5 @@
 /**
- * @file   fifo.h
+ * @file   fifo.c
  * @Author Andreas Dahlberg (andreas.dahlberg90@gmail.com)
  * @brief  FIFO-module.
  */

@@ -1,5 +1,5 @@
 /**
- * @file   can_interface.h
+ * @file   can_interface.c
  * @Author Andreas Dahlberg (andreas.dahlberg90@gmail.com)
  * @brief  CAN-Bus interface.
  */
