@@ -104,7 +104,7 @@ logging_logger_t *Logging_GetLogger(const char *name_p)
     if ((logger_p == NULL) && (module.number_of_loggers < MAX_NUMBER_OF_LOGGERS))
     {
         logger_p = &module.loggers[module.number_of_loggers];
-        strlcpy(logger_p->name, name_p, sizeof(logger_p->name));
+        CopyString(logger_p->name, name_p, sizeof(logger_p->name));
 
         logger_p->level = LOGGING_NOTSET;
 
@@ -155,7 +155,7 @@ static inline void PrintHeader(enum logging_level_t level, const char *name_p, c
 static logging_logger_t *GetLoggerByName(const char *name_p)
 {
     char truncated_name[LOGGER_NAME_MAX_LENGTH];
-    size_t size = strlcpy(truncated_name, name_p, sizeof(truncated_name));
+    size_t size = CopyString(truncated_name, name_p, sizeof(truncated_name));
     if (size >= sizeof(truncated_name))
     {
         Logging_Warning(module.logger, "Truncated: %s -> %s", name_p, truncated_name);

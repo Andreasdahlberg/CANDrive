@@ -48,7 +48,7 @@ along with CANDrive firmware.  If not, see <http://www.gnu.org/licenses/>.
 //FUNCTIONS
 //////////////////////////////////////////////////////////////////////////
 
-size_t strlcpy(char *dst_p, const char *src_p, size_t bufsize)
+size_t CopyString(char *dst_p, const char *src_p, size_t bufsize)
 {
     size_t length = 0;
 

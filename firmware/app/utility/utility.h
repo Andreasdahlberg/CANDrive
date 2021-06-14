@@ -68,6 +68,6 @@ along with CANDrive firmware.  If not, see <http://www.gnu.org/licenses/>.
  *
  * @return Total length of the string.
  */
-size_t strlcpy(char *dst_p, const char *src_p, size_t bufsize);
+size_t CopyString(char *dst_p, const char *src_p, size_t bufsize);
 
 #endif
