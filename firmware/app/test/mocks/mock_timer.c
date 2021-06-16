@@ -109,6 +109,7 @@ __attribute__((weak)) void timer_one_shot_mode(uint32_t timer_peripheral)
 
 __attribute__((weak)) void timer_continuous_mode(uint32_t timer_peripheral)
 {
+    check_expected(timer_peripheral);
 }
 
 __attribute__((weak)) void timer_update_on_any(uint32_t timer_peripheral)
@@ -189,6 +190,8 @@ __attribute__((weak)) void timer_set_repetition_counter(uint32_t timer_periphera
 
 __attribute__((weak)) void timer_set_period(uint32_t timer_peripheral, uint32_t period)
 {
+    check_expected(timer_peripheral);
+    check_expected(period);
 }
 
 __attribute__((weak)) void timer_enable_oc_clear(uint32_t timer_peripheral, enum tim_oc_id oc_id)
@@ -209,6 +212,8 @@ __attribute__((weak)) void timer_set_oc_slow_mode(uint32_t timer_peripheral, enu
 
 __attribute__((weak)) void timer_set_oc_mode(uint32_t timer_peripheral, enum tim_oc_id oc_id, enum tim_oc_mode oc_mode)
 {
+    check_expected(timer_peripheral);
+    check_expected(oc_mode);
 }
 
 __attribute__((weak)) void timer_enable_oc_preload(uint32_t timer_peripheral, enum tim_oc_id oc_id)
