@@ -68,6 +68,19 @@ static int Setup(void **state)
     return 0;
 }
 
+static uint32_t FrequencyToPeriod(uint32_t frequency)
+{
+    const uint32_t main_frequency = 72000000;
+    return main_frequency / frequency;
+}
+
+static void SetFrequency(uint32_t frequency)
+{
+    expect_any(timer_set_period, timer_peripheral);
+    expect_any(timer_set_period, period);
+    PWM_SetFrequency(&pwm_output, frequency);
+}
+
 //////////////////////////////////////////////////////////////////////////
 //TESTS
 //////////////////////////////////////////////////////////////////////////
@@ -104,18 +117,71 @@ static void test_PWM_SetFrequency_InvalidParameters(void **state)
 static void test_PWM_SetFrequency(void **state)
 {
     const size_t channel = 0;
-    const uint32_t main_frequency = 72000000;
 
-    const uint32_t frequencies[] = {1, 20000, main_frequency};
+    const uint32_t frequencies[] = {1, 20000, 72000000};
     for (size_t i = 0; i < ElementsIn(frequencies); ++i)
     {
-        const uint32_t expected_period = main_frequency / frequencies[i];
+        const uint32_t expected_period = FrequencyToPeriod(frequencies[i]);
         expect_value(timer_set_period, timer_peripheral, channel_to_timer_map[channel]);
         expect_value(timer_set_period, period, expected_period);
         PWM_SetFrequency(&pwm_output, frequencies[i]);
     }
 }
 
+static void test_PWM_SetDuty_InvalidParameters(void **state)
+{
+    expect_assert_failure(PWM_SetDuty(NULL, 0));
+    expect_assert_failure(PWM_SetDuty(&pwm_output, 101));
+    expect_assert_failure(PWM_SetDuty(NULL, 101));
+}
+
+static void test_PWM_SetDuty(void **state)
+{
+    const size_t channel = 0;
+    const uint32_t duty_cycles[] = {0, 1, 50, 99, 100};
+
+    SetFrequency(720000);
+    for (size_t i = 0; i < ElementsIn(duty_cycles); ++i)
+    {
+        expect_value(timer_set_oc_value, value, duty_cycles[i]);
+        PWM_SetDuty(&pwm_output, duty_cycles[i]);
+    }
+
+    SetFrequency(360000);
+    for (size_t i = 0; i < ElementsIn(duty_cycles); ++i)
+    {
+        expect_value(timer_set_oc_value, value, duty_cycles[i] * 2);
+        PWM_SetDuty(&pwm_output, (duty_cycles[i]));
+    }
+}
+
+static void test_PWM_Enable_InvalidParameter(void **state)
+{
+    expect_assert_failure(PWM_Enable(NULL));
+}
+
+static void test_PWM_Enable(void **state)
+{
+    const size_t channel = 0;
+    expect_value(timer_enable_oc_output, timer_peripheral, channel_to_timer_map[channel]);
+    expect_value(timer_enable_oc_output, oc_id, TIM_OC3);
+    expect_value(timer_enable_counter, timer_peripheral, channel_to_timer_map[channel]);
+    PWM_Enable(&pwm_output);
+}
+
+static void test_PWM_Disable_InvalidParameter(void **state)
+{
+    expect_assert_failure(PWM_Disable(NULL));
+}
+
+static void test_PWM_Disable(void **state)
+{
+    const size_t channel = 0;
+    expect_value(timer_disable_counter, timer_peripheral, channel_to_timer_map[channel]);
+    expect_value(timer_disable_oc_output, timer_peripheral, channel_to_timer_map[channel]);
+    expect_value(timer_disable_oc_output, oc_id, TIM_OC3);
+    PWM_Disable(&pwm_output);
+}
 //////////////////////////////////////////////////////////////////////////
 //FUNCTIONS
 //////////////////////////////////////////////////////////////////////////
@@ -128,6 +194,12 @@ int main(int argc, char *argv[])
         cmocka_unit_test(test_PWM_Init),
         cmocka_unit_test_setup(test_PWM_SetFrequency_InvalidParameters, Setup),
         cmocka_unit_test_setup(test_PWM_SetFrequency, Setup),
+        cmocka_unit_test_setup(test_PWM_SetDuty_InvalidParameters, Setup),
+        cmocka_unit_test_setup(test_PWM_SetDuty, Setup),
+        cmocka_unit_test_setup(test_PWM_Enable_InvalidParameter, Setup),
+        cmocka_unit_test_setup(test_PWM_Enable, Setup),
+        cmocka_unit_test_setup(test_PWM_Disable_InvalidParameter, Setup),
+        cmocka_unit_test_setup(test_PWM_Disable, Setup)
     };
 
     if (argc >= 2)
