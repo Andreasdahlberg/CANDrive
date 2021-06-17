@@ -124,16 +124,15 @@ void PWM_SetDuty(pwm_output_t *self_p, uint32_t duty)
     timer_set_oc_value(self_p->config_p->timer_peripheral, self_p->config_p->oc_id, oc_compare_value);
 }
 
-void PWM_Enable(pwm_output_t *self_p)
+void PWM_Enable(const pwm_output_t *self_p)
 {
     assert(self_p != NULL);
-    assert(self_p->frequency > 0);
 
     timer_enable_oc_output(self_p->config_p->timer_peripheral, self_p->config_p->oc_id);
     timer_enable_counter(self_p->config_p->timer_peripheral);
 }
 
-void PWM_Disable(pwm_output_t *self_p)
+void PWM_Disable(const pwm_output_t *self_p)
 {
     assert(self_p != NULL);
 
