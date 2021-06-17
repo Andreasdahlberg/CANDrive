@@ -79,13 +79,13 @@ void PWM_SetDuty(pwm_output_t *self_p, uint32_t duty);
  *
  * @param self_p Pointer to PWM output struct.
  */
-void PWM_Enable(pwm_output_t *self_p);
+void PWM_Enable(const pwm_output_t *self_p);
 
 /**
  * Disable the PWM output.
  *
  * @param self_p Pointer to PWM output struct.
  */
-void PWM_Disable(pwm_output_t *self_p);
+void PWM_Disable(const pwm_output_t *self_p);
 
 #endif
