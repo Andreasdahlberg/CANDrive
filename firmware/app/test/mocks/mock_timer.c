@@ -130,10 +130,12 @@ __attribute__((weak)) void timer_disable_update_event(uint32_t timer_peripheral)
 
 __attribute__((weak)) void timer_enable_counter(uint32_t timer_peripheral)
 {
+    check_expected(timer_peripheral);
 }
 
 __attribute__((weak)) void timer_disable_counter(uint32_t timer_peripheral)
 {
+    check_expected(timer_peripheral);
 }
 
 __attribute__((weak)) void timer_set_output_idle_state(uint32_t timer_peripheral, uint32_t outputs)
@@ -234,10 +236,14 @@ __attribute__((weak)) void timer_set_oc_polarity_low(uint32_t timer_peripheral, 
 
 __attribute__((weak)) void timer_enable_oc_output(uint32_t timer_peripheral, enum tim_oc_id oc_id)
 {
+    check_expected(timer_peripheral);
+    check_expected(oc_id);
 }
 
 __attribute__((weak)) void timer_disable_oc_output(uint32_t timer_peripheral, enum tim_oc_id oc_id)
 {
+    check_expected(timer_peripheral);
+    check_expected(oc_id);
 }
 
 __attribute__((weak)) void timer_set_oc_idle_state_set(uint32_t timer_peripheral, enum tim_oc_id oc_id)
@@ -250,6 +256,7 @@ __attribute__((weak)) void timer_set_oc_idle_state_unset(uint32_t timer_peripher
 
 __attribute__((weak)) void timer_set_oc_value(uint32_t timer_peripheral, enum tim_oc_id oc_id, uint32_t value)
 {
+    check_expected(value);
 }
 
 __attribute__((weak)) void timer_enable_break_main_output(uint32_t timer_peripheral)
