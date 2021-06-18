@@ -33,6 +33,7 @@ along with CANDrive firmware.  If not, see <http://www.gnu.org/licenses/>.
 #include <stdio.h>
 #include <string.h>
 #include "serial.h"
+#include "can_interface.h"
 
 static void clock_setup(void)
 {
@@ -65,6 +66,7 @@ int main(void)
     clock_setup();
     gpio_setup();
     Serial_Init(BAUD_RATE);
+    CANInterface_Init();
 
     uint32_t a = 0;
     while (1)
