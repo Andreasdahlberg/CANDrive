@@ -55,6 +55,9 @@ typedef void (*caninterface_listener_cb_t)(const struct can_frame_t *frame_p);
 
 /**
  * Initialize the CAN interface.
+ *
+ * Note: It's required to setup acceptance filters before any CAN-frames can be received.
+ *       See 'CANInterface_AddFilter'.
  */
 void CANInterface_Init(void);
 
@@ -78,5 +81,15 @@ bool CANInterface_Transmit(uint32_t id, void *data_p, size_t size);
  * @param listener_cb Callback.
  */
 void CANInterface_RegisterListener(caninterface_listener_cb_t listener_cb);
+
+/**
+ * Add a acceptance filter to the CAN interface.
+ *
+ * Up to 28 filters can be added.
+ *
+ * @param id CAN-frame ID.
+ * @param mask CAN-frame ID bit mask.
+ */
+void CANInterface_AddFilter(uint16_t id, uint16_t mask);
 
 #endif
