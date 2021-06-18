@@ -71,6 +71,11 @@ __attribute__((weak)) void can_filter_init(uint32_t nr, bool scale_32bit, bool i
 
 __attribute__((weak)) void can_filter_id_mask_16bit_init(uint32_t nr, uint16_t id1, uint16_t mask1, uint16_t id2, uint16_t mask2, uint32_t fifo, bool enable)
 {
+    check_expected(nr);
+    check_expected(id1);
+    check_expected(mask1);
+    check_expected(id2);
+    check_expected(mask2);
 }
 
 __attribute__((weak)) void can_filter_id_mask_32bit_init(uint32_t nr, uint32_t id, uint32_t mask, uint32_t fifo, bool enable)

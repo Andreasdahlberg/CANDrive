@@ -69,7 +69,7 @@ static int Setup(void **state)
     return 0;
 }
 
-void Listener(const struct can_frame_t *frame_p)
+static void Listener(const struct can_frame_t *frame_p)
 {
     check_expected(frame_p->id);
     check_expected(frame_p->size);
@@ -85,11 +85,31 @@ static void ReceiveCANFrame(const struct can_frame_t *frame_p)
     usb_lp_can_rx0_isr();
 }
 
+static uint16_t ShiftedIDMask(uint16_t id_mask)
+{
+    uint16_t result = id_mask;
+
+    if (id_mask != 0xFFFF)
+    {
+        result = id_mask << 5;
+    }
+    return result;
+}
+
+static void ExpectCANFilterInit(uint32_t filter_id, uint16_t id1, uint16_t mask1, uint16_t id2, uint16_t mask2)
+{
+    expect_value(can_filter_id_mask_16bit_init, nr, filter_id);
+    expect_value(can_filter_id_mask_16bit_init, id1, ShiftedIDMask(id1));
+    expect_value(can_filter_id_mask_16bit_init, mask1, ShiftedIDMask(mask1));
+    expect_value(can_filter_id_mask_16bit_init, id2, ShiftedIDMask(id2));
+    expect_value(can_filter_id_mask_16bit_init, mask2, ShiftedIDMask(mask2));
+}
+
 //////////////////////////////////////////////////////////////////////////
 //TESTS
 //////////////////////////////////////////////////////////////////////////
 
-void test_CANInterface_Init_Error(void **state)
+static void test_CANInterface_Init_Error(void **state)
 {
     will_return(Logging_GetLogger, dummy_logger);
     will_return(can_init, 1);
@@ -98,7 +118,7 @@ void test_CANInterface_Init_Error(void **state)
     expect_assert_failure(CANInterface_Init())
 }
 
-void test_CANInterface_Init(void **state)
+static void test_CANInterface_Init(void **state)
 {
     will_return(Logging_GetLogger, dummy_logger);
     will_return(can_init, 0);
@@ -125,14 +145,13 @@ static void test_CANInterface_RegisterListener_Full(void **state)
     expect_assert_failure(CANInterface_RegisterListener(Listener));
 }
 
-void test_CANInterface_ReceiveWithNoListeners(void **state)
+static void test_CANInterface_ReceiveWithNoListeners(void **state)
 {
     struct can_frame_t frame = {.id = 0x1, .size = 2, .data = {0x3, 0x4}};
     ReceiveCANFrame(&frame);
 }
 
-
-void test_CANInterface_ReceiveWithListener(void **state)
+static void test_CANInterface_ReceiveWithListener(void **state)
 {
     const struct can_frame_t frame = {.id = 0x1, .size = 2, .data = {0x3, 0x4}};
 
@@ -144,7 +163,7 @@ void test_CANInterface_ReceiveWithListener(void **state)
     ReceiveCANFrame(&frame);
 }
 
-void test_CANInterface_Transmit_Invalid(void **state)
+static void test_CANInterface_Transmit_Invalid(void **state)
 {
     const uint32_t id = 0x1;
     uint8_t data;
@@ -153,7 +172,7 @@ void test_CANInterface_Transmit_Invalid(void **state)
     expect_assert_failure(CANInterface_Transmit(id, NULL, 9));
 }
 
-void test_CANInterface_Transmit_Error(void **state)
+static void test_CANInterface_Transmit_Error(void **state)
 {
     const uint32_t id = 0x2;
     uint8_t data = 1;
@@ -167,7 +186,7 @@ void test_CANInterface_Transmit_Error(void **state)
     assert_false(CANInterface_Transmit(id, &data, sizeof(data)));
 }
 
-void test_CANInterface_Transmit(void **state)
+static void test_CANInterface_Transmit(void **state)
 {
     const uint32_t id = 0x3;
     uint8_t data[] = {0, 1, 2, 3, 4, 5, 6, 7};
@@ -180,6 +199,48 @@ void test_CANInterface_Transmit(void **state)
     will_return(can_transmit, mailbox_number);
 
     assert_true(CANInterface_Transmit(id, &data, sizeof(data)));
+}
+
+static void test_CANInterface_AddFilter(void **state)
+{
+    const uint16_t default_id_mask = 0xFFFF;
+
+    const uint16_t id1 = 0xA0;
+    const uint16_t mask1 = 0xF0;
+    const uint16_t id2 = 0xB0;
+    const uint16_t mask2 = 0x0F;
+    uint32_t filter_id = 0;
+
+    /* First filter on filter bank 0 */
+    ExpectCANFilterInit(filter_id, id1, mask1, default_id_mask, default_id_mask);
+    CANInterface_AddFilter(id1, mask1);
+
+    /* Second filter on filter bank 0 */
+    ExpectCANFilterInit(filter_id, id1, mask1, id2, mask2);
+    CANInterface_AddFilter(id2, mask2);
+
+    /* First filter on filter bank 1 */
+    filter_id = 1;
+    ExpectCANFilterInit(filter_id, id1, mask1, default_id_mask, default_id_mask);
+    CANInterface_AddFilter(id1, mask1);
+
+    /* Second filter on filter bank 1 */
+    ExpectCANFilterInit(filter_id, id1, mask1, id2, mask2);
+    CANInterface_AddFilter(id2, mask2);
+
+    /* Use all remaining filter banks and expect assert when no more banks are available. */
+    const size_t max_number_of_filters = 28;
+    const size_t number_of_used_filters = 4;
+    for (size_t i = 0; i < (max_number_of_filters - number_of_used_filters); ++i)
+    {
+        expect_any(can_filter_id_mask_16bit_init, nr);
+        expect_any(can_filter_id_mask_16bit_init, id1);
+        expect_any(can_filter_id_mask_16bit_init, mask1);
+        expect_any(can_filter_id_mask_16bit_init, id2);
+        expect_any(can_filter_id_mask_16bit_init, mask2);
+        CANInterface_AddFilter(id1, mask1);
+    }
+    expect_assert_failure(CANInterface_AddFilter(id1, mask1));
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -199,6 +260,7 @@ int main(int argc, char *argv[])
         cmocka_unit_test_setup(test_CANInterface_Transmit_Invalid, Setup),
         cmocka_unit_test_setup(test_CANInterface_Transmit_Error, Setup),
         cmocka_unit_test_setup(test_CANInterface_Transmit, Setup),
+        cmocka_unit_test_setup(test_CANInterface_AddFilter, Setup),
     };
 
     if (argc >= 2)

@@ -46,15 +46,31 @@ along with CANDrive firmware.  If not, see <http://www.gnu.org/licenses/>.
 
 #define MAX_NUMBER_OF_LISTENERS 1
 
+/**
+ * Since 16-bit filter scale is used, the max number of filters are twice the
+ * number of filter banks.
+ */
+#define NUMBER_OF_FILTER_BANKS 14
+#define MAX_NUMBER_OF_FILTERS (NUMBER_OF_FILTER_BANKS * 2)
+_Static_assert((MAX_NUMBER_OF_FILTERS % 2) == 0, "MAX_NUMBER_OF_FILTERS must be an even number");
+
 //////////////////////////////////////////////////////////////////////////
 //TYPE DEFINITIONS
 //////////////////////////////////////////////////////////////////////////
+
+struct filter_t
+{
+    uint16_t id;
+    uint16_t mask;
+};
 
 struct module_t
 {
     logging_logger_t *logger;
     caninterface_listener_cb_t listeners[MAX_NUMBER_OF_LISTENERS];
     size_t number_of_listeners;
+    struct filter_t filters[MAX_NUMBER_OF_FILTERS];
+    size_t number_of_filters;
 };
 
 //////////////////////////////////////////////////////////////////////////
@@ -68,6 +84,8 @@ static struct module_t module;
 //////////////////////////////////////////////////////////////////////////
 
 static void InitCANPeripheral(void);
+static void NotifyListeners(const struct can_frame_t *frame_p);
+static void InitFilterArray(void);
 
 //////////////////////////////////////////////////////////////////////////
 //FUNCTIONS
@@ -80,6 +98,7 @@ void CANInterface_Init(void)
     Logging_SetLevel(module.logger, CANIF_LOGGER_DEBUG_LEVEL);
 
     InitCANPeripheral();
+    InitFilterArray();
     Logging_Info(module.logger, "CAN initialized");
 }
 
@@ -111,6 +130,29 @@ void CANInterface_RegisterListener(caninterface_listener_cb_t listener_cb)
     Logging_Info(module.logger, "New listener registered: 0x%x", (uintptr_t)listener_cb);
 }
 
+void CANInterface_AddFilter(uint16_t id, uint16_t mask)
+{
+    assert(module.number_of_filters < MAX_NUMBER_OF_FILTERS);
+
+    /* Left shift since IDs are 11-bits. */
+    module.filters[module.number_of_filters].id = id << 5;
+    module.filters[module.number_of_filters].mask = mask << 5;
+
+    const uint32_t filter_id = module.number_of_filters / 2;
+    const uint32_t fifo = 0;
+    const bool enable = true;
+    const uint16_t id1 =  module.filters[filter_id * 2].id;
+    const uint16_t mask1 =  module.filters[filter_id * 2].mask;
+    const uint16_t id2 =  module.filters[(filter_id * 2) + 1].id;
+    const uint16_t mask2 =  module.filters[(filter_id * 2) + 1].mask;
+    can_filter_id_mask_16bit_init(filter_id, id1, mask1, id2, mask2, fifo, enable);
+
+    ++module.number_of_filters;
+
+    Logging_Info(module.logger, "New filter added: {id=0x%x,mask=0x%x} (%u/%u)", id, mask, module.number_of_filters, MAX_NUMBER_OF_FILTERS);
+    Logging_Debug(module.logger, "{filter_id=%u, id1=0x%x, mask1=0x%x, id2=0x%x, mask2=0x%x}", filter_id, id1, mask1, id2, mask2);
+}
+
 //////////////////////////////////////////////////////////////////////////
 //LOCAL FUNCTIONS
 //////////////////////////////////////////////////////////////////////////
@@ -139,7 +181,7 @@ static void InitCANPeripheral(void)
     const bool no_automatic_retransmission = false;
     const bool receive_fifo_locked_mode = false;
     const bool transmit_fifo_priority = false;
-    const bool loopback = false;
+    const bool loopback = true;
     const bool silent = false;
 
     if (can_init(CAN1,
@@ -160,22 +202,23 @@ static void InitCANPeripheral(void)
         assert(false);
     }
 
-    const uint32_t filter_id = 0;
-    const uint32_t can_id = 0;
-    const uint32_t can_mask = 0;
-    const uint32_t fifo = 0;
-    const bool enable = true;
-    can_filter_id_mask_32bit_init(filter_id, can_id, can_mask, fifo, enable);
-
     /* Enable CAN RX interrupt. */
     can_enable_irq(CAN1, CAN_IER_FMPIE0);
 }
 
-void NotifyListeners(const struct can_frame_t *frame_p)
+static void NotifyListeners(const struct can_frame_t *frame_p)
 {
     for (size_t i = 0; i < module.number_of_listeners; ++i)
     {
         module.listeners[i](frame_p);
+    }
+}
+
+static void InitFilterArray(void)
+{
+    for(size_t i = 0; i < ElementsIn(module.filters); ++i)
+    {
+        module.filters[i] = (__typeof__(module.filters[i])) {.id = 0xFFFF, .mask = 0xFFFF};
     }
 }
 
