@@ -69,7 +69,7 @@ app, hex = env.SConscript('app/SConscript',
 env.Alias('build', app)
 Help('build: Build application.\n')
 
-env.Command('libopencm3_stm32f1.a', '', 'cd libopencm3 && make -j{}'.format(GetOption('num_jobs')))
+env.Command('libopencm3_stm32f1.a', '', 'cd libopencm3 && make TARGETS=stm32/f1 -j{}'.format(GetOption('num_jobs')))
 Alias('build-opencm3', 'libopencm3_stm32f1.a')
 Help('build-opencm3: Build the opencm3 library.\n')
 
