@@ -135,8 +135,8 @@ void CANInterface_AddFilter(uint16_t id, uint16_t mask)
     assert(module.number_of_filters < MAX_NUMBER_OF_FILTERS);
 
     /* Left shift since IDs are 11-bits. */
-    module.filters[module.number_of_filters].id = id << 5;
-    module.filters[module.number_of_filters].mask = mask << 5;
+    module.filters[module.number_of_filters].id = (uint16_t)(id << 5);
+    module.filters[module.number_of_filters].mask = (uint16_t)(mask << 5);
 
     const uint32_t filter_id = module.number_of_filters / 2;
     const uint32_t fifo = 0;
