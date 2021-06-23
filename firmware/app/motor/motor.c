@@ -167,7 +167,7 @@ static inline void SetupGPIO(void)
     rcc_periph_clock_enable(RCC_GPIOC);
 
     const uint16_t gpios = GPIO_SEL | GPIO_INA | GPIO_INB;
-    gpio_set(GPIO_PORT, gpios);
+    gpio_clear(GPIO_PORT, gpios);
     gpio_set_mode(GPIO_PORT, GPIO_MODE_OUTPUT_50_MHZ, GPIO_CNF_OUTPUT_PUSHPULL, gpios);
     gpio_set_mode(GPIO_PORT, GPIO_MODE_INPUT, GPIO_CNF_INPUT_ANALOG, GPIO_CS);
 }
