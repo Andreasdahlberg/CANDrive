@@ -53,7 +53,7 @@ struct motor_t
 enum motor_status_t
 {
     MOTOR_OK = 0,
-    MOTOR_UNKNOWN = 0,
+    MOTOR_UNKNOWN,
     MOTOR_SHORT_TO_GROUND,
     MOTOR_SHORT_TO_VCC,
     MOTOR_OPEN_LOAD,
