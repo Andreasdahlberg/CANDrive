@@ -122,6 +122,13 @@ void Motor_Coast(struct motor_t *self_p);
  */
 void Motor_Brake(struct motor_t *self_p);
 
-enum motor_status_t Motor_GetStatus(struct motor_t *self_p);
+/**
+ * Get the motor fault status.
+ *
+ * @param self_p Pointer to motor instance.
+ *
+ * @return Fault status.
+ */
+enum motor_status_t Motor_GetStatus(const struct motor_t *self_p);
 
 #endif
