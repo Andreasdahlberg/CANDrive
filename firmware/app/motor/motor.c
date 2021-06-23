@@ -152,7 +152,7 @@ void Motor_Brake(struct motor_t *self_p)
     Logging_Debug(self_p->logger_p, "Braking enabled");
 }
 
-enum motor_status_t Motor_GetStatus(struct motor_t *self_p)
+enum motor_status_t Motor_GetStatus(const struct motor_t *self_p)
 {
     assert(self_p != NULL);
     return MOTOR_UNKNOWN;
