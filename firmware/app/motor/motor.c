@@ -174,7 +174,7 @@ static inline void SetupGPIO(void)
 
 static inline uint16_t SpeedToDutyCycle(int16_t speed)
 {
-    uint16_t duty_cycle = speed;
+    uint16_t duty_cycle = (uint16_t)speed;
     if (speed < 0)
     {
         duty_cycle = (uint16_t)(speed * -1);
