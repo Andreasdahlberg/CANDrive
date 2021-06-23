@@ -36,32 +36,35 @@ along with CANDrive firmware.  If not, see <http://www.gnu.org/licenses/>.
 #include "logging.h"
 #include "can_interface.h"
 
-static void clock_setup(void)
-{
-    rcc_clock_setup_pll(&rcc_hse_configs[RCC_CLOCK_HSE8_72MHZ]);
+//////////////////////////////////////////////////////////////////////////
+//DEFINES
+//////////////////////////////////////////////////////////////////////////
 
-    /* Enable GPIOA clock (for LED GPIOs). */
-    rcc_periph_clock_enable(RCC_GPIOC);
-}
+#define MAIN_LOGGER_NAME "Main"
+#ifndef MAIN_LOGGER_DEBUG_LEVEL
+#define MAIN_LOGGER_DEBUG_LEVEL LOGGING_DEBUG
+#endif
 
-static void gpio_setup(void)
-{
-    gpio_set(GPIOA, GPIO5);
+#define GPIO_LED_PORT GPIOA
+#define GPIO_LED GPIO5
 
-    /* Setup GPIO6 and 7 (in GPIO port A) for LED use. */
-    gpio_set_mode(GPIOA, GPIO_MODE_OUTPUT_50_MHZ,
-                  GPIO_CNF_OUTPUT_PUSHPULL, GPIO5);
-}
+//////////////////////////////////////////////////////////////////////////
+//TYPE DEFINITIONS
+//////////////////////////////////////////////////////////////////////////
 
-static inline void nop(void)
-{
-    __asm__("nop");
-}
+//////////////////////////////////////////////////////////////////////////
+//VARIABLES
+//////////////////////////////////////////////////////////////////////////
 
-static uint32_t GetTimestamp(void)
-{
-    return 0;
-}
+//////////////////////////////////////////////////////////////////////////
+//LOCAL FUNCTION PROTOTYPES
+//////////////////////////////////////////////////////////////////////////
+
+static void SetupClock(void);
+static void SetupGPIO(void);
+static inline void Nop(void);
+static void Delay(void);
+static uint32_t GetTimestamp(void);
 
 //////////////////////////////////////////////////////////////////////////
 //FUNCTIONS
@@ -69,24 +72,58 @@ static uint32_t GetTimestamp(void)
 
 int main(void)
 {
-    clock_setup();
-    gpio_setup();
+    SetupClock();
+    SetupGPIO();
+
     Serial_Init(BAUD_RATE);
     Logging_Init(GetTimestamp);
     CANInterface_Init();
 
-    uint32_t a = 0;
+    logging_logger_t *logger_p = Logging_GetLogger(MAIN_LOGGER_NAME);
+    Logging_SetLevel(logger_p, MAIN_LOGGER_DEBUG_LEVEL);
+    Logging_Info(logger_p, "Application ready");
+
     while (1)
     {
-        gpio_toggle(GPIOA, GPIO5);
-        printf("Hello %lu!\r\n", a);
-        ++a;
-
-        for (size_t i = 0; i < 800000; ++i)    /* Wait a bit. */
-        {
-            nop();
-        }
+        gpio_toggle(GPIO_LED_PORT, GPIO_LED);
+        Delay();
     }
 
+    return 0;
+}
+
+//////////////////////////////////////////////////////////////////////////
+//LOCAL FUNCTIONS
+//////////////////////////////////////////////////////////////////////////
+
+static void SetupClock(void)
+{
+    rcc_clock_setup_pll(&rcc_hse_configs[RCC_CLOCK_HSE8_72MHZ]);
+
+    /* Enable GPIO clock, for LED GPIO. */
+    rcc_periph_clock_enable(RCC_GPIOA);
+}
+
+static void SetupGPIO(void)
+{
+    gpio_set(GPIO_LED_PORT, GPIO_LED);
+    gpio_set_mode(GPIO_LED_PORT, GPIO_MODE_OUTPUT_50_MHZ, GPIO_CNF_OUTPUT_PUSHPULL, GPIO5);
+}
+
+static inline void Nop(void)
+{
+    __asm__("nop");
+}
+
+static void Delay(void)
+{
+    for (size_t i = 0; i < 800000; ++i)
+    {
+        Nop();
+    }
+}
+
+static uint32_t GetTimestamp(void)
+{
     return 0;
 }
