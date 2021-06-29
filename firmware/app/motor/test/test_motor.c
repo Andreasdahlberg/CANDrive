@@ -1,0 +1,90 @@
+/**
+ * @file   test_motor.c
+ * @Author Andreas Dahlberg (andreas.dahlberg90@gmail.com)
+ * @brief  Test suite for the Motor module.
+ */
+
+/*
+This file is part of CANDrive firmware.
+
+CANDrive firmware is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+CANDrive firmware is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with CANDrive firmware.  If not, see <http://www.gnu.org/licenses/>.
+*/
+
+//////////////////////////////////////////////////////////////////////////
+//INCLUDES
+//////////////////////////////////////////////////////////////////////////
+
+#include <stdarg.h>
+#include <stddef.h>
+#include <stdint.h>
+#include <setjmp.h>
+#include <cmocka.h>
+#include <stdio.h>
+#include <stdbool.h>
+
+#include "motor.h"
+
+//////////////////////////////////////////////////////////////////////////
+//DEFINES
+//////////////////////////////////////////////////////////////////////////
+
+
+//////////////////////////////////////////////////////////////////////////
+//TYPE DEFINITIONS
+//////////////////////////////////////////////////////////////////////////
+
+//////////////////////////////////////////////////////////////////////////
+//VARIABLES
+//////////////////////////////////////////////////////////////////////////
+
+static struct logging_logger_t *dummy_logger;
+
+//////////////////////////////////////////////////////////////////////////
+//LOCAL FUNCTIONS
+//////////////////////////////////////////////////////////////////////////
+
+static int Setup(void **state)
+{
+    will_return(Logging_GetLogger, dummy_logger);
+
+    return 0;
+}
+
+//////////////////////////////////////////////////////////////////////////
+//TESTS
+//////////////////////////////////////////////////////////////////////////
+
+static void test_Motor_Init(void **state)
+{
+
+}
+
+//////////////////////////////////////////////////////////////////////////
+//FUNCTIONS
+//////////////////////////////////////////////////////////////////////////
+
+int main(int argc, char *argv[])
+{
+    const struct CMUnitTest test_FIFO[] =
+    {
+        cmocka_unit_test(test_Motor_Init)
+    };
+
+    if (argc >= 2)
+    {
+        cmocka_set_test_filter(argv[1]);
+    }
+
+    return cmocka_run_group_tests(test_FIFO, NULL, NULL);
+}
