@@ -34,6 +34,7 @@ along with CANDrive firmware.  If not, see <http://www.gnu.org/licenses/>.
 #include <stdbool.h>
 
 #include "motor.h"
+#include "pwm.h"
 
 //////////////////////////////////////////////////////////////////////////
 //DEFINES
@@ -49,6 +50,7 @@ along with CANDrive firmware.  If not, see <http://www.gnu.org/licenses/>.
 //////////////////////////////////////////////////////////////////////////
 
 static struct logging_logger_t *dummy_logger;
+const uint32_t DEFAULT_PWM_FREQUENCY = 20000;
 
 //////////////////////////////////////////////////////////////////////////
 //LOCAL FUNCTIONS
@@ -65,9 +67,29 @@ static int Setup(void **state)
 //TESTS
 //////////////////////////////////////////////////////////////////////////
 
+static void test_Motor_Init_Error(void **state)
+{
+    const char motor_name[] = "TM1";
+    struct motor_t motor;
+    struct pwm_output_t pwm;
+
+    expect_assert_failure(Motor_Init(NULL, motor_name, &pwm));
+    expect_assert_failure(Motor_Init(&motor, NULL, &pwm));
+    expect_assert_failure(Motor_Init(&motor, motor_name, NULL));
+}
+
 static void test_Motor_Init(void **state)
 {
+    const char motor_name[] = "TM1";
+    struct motor_t motor;
+    struct pwm_output_t pwm;
 
+    will_return(Logging_GetLogger, dummy_logger);
+    expect_function_call(PWM_Disable);
+    expect_value(PWM_SetFrequency, frequency, DEFAULT_PWM_FREQUENCY);
+    expect_value(PWM_SetDuty, duty, 0);
+
+    Motor_Init(&motor, motor_name, &pwm);
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -78,6 +100,7 @@ int main(int argc, char *argv[])
 {
     const struct CMUnitTest test_FIFO[] =
     {
+        cmocka_unit_test(test_Motor_Init_Error),
         cmocka_unit_test(test_Motor_Init)
     };
 
