@@ -84,8 +84,7 @@ void Motor_Init(struct motor_t *self_p, char *name, struct pwm_output_t *pwm_out
     PWM_SetDuty(self_p->pwm_output_p, 0);
 
     /**
-     * TODO: ADC for current consumption, Input capture for encoder and
-     *       pins for direction.
+     * TODO: ADC for current consumption and input capture for encoder.
      */
 
     Logging_Info(self_p->logger_p, "Motor(%s) initialized", name);
