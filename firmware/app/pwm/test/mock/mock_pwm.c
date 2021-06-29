@@ -59,18 +59,22 @@ __attribute__((weak)) void PWM_Init(pwm_output_t *self_p, size_t channel)
 
 __attribute__((weak)) void PWM_SetFrequency(pwm_output_t *self_p, uint32_t frequency)
 {
+    check_expected(frequency);
 }
 
 __attribute__((weak)) void PWM_SetDuty(pwm_output_t *self_p, uint32_t duty)
 {
+    check_expected(duty);
 }
 
 __attribute__((weak)) void PWM_Enable(const pwm_output_t *self_p)
 {
+    function_called();
 }
 
 __attribute__((weak)) void PWM_Disable(const pwm_output_t *self_p)
 {
+    function_called();
 }
 
 //////////////////////////////////////////////////////////////////////////
