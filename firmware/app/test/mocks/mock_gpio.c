@@ -57,6 +57,11 @@ __attribute__((weak)) void gpio_set_mode(uint32_t gpioport, uint8_t mode, uint8_
 {
 }
 
+__attribute__((weak)) void gpio_clear(uint32_t gpioport, uint16_t gpios)
+{
+
+}
+
 __attribute__((weak)) void gpio_set(uint32_t gpio_port, uint16_t gpios)
 {
 
