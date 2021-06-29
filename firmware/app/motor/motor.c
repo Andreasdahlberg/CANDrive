@@ -67,7 +67,7 @@ static inline void SetDirection(bool forward);
 //FUNCTIONS
 //////////////////////////////////////////////////////////////////////////
 
-void Motor_Init(struct motor_t *self_p, char *name, struct pwm_output_t *pwm_output_p)
+void Motor_Init(struct motor_t *self_p, const char *name, struct pwm_output_t *pwm_output_p)
 {
     assert(self_p != NULL);
     assert(pwm_output_p != NULL);
