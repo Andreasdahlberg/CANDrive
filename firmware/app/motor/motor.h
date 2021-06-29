@@ -71,7 +71,7 @@ enum motor_status_t
  * @param name Name of the motor instance, used for logging.
  * @param pwm_p Pointer to PWM output instance(must be initialized).
  */
-void Motor_Init(struct motor_t *self_p, char *name, struct pwm_output_t *pwm_p);
+void Motor_Init(struct motor_t *self_p, const char *name, struct pwm_output_t *pwm_p);
 
 /**
  * Get the motor RPM.
