@@ -28,7 +28,6 @@ along with CANDrive firmware.  If not, see <http://www.gnu.org/licenses/>.
 #include <libopencm3/stm32/rcc.h>
 #include <libopencm3/stm32/gpio.h>
 #include <assert.h>
-#include <math.h>
 #include "utility.h"
 #include "motor.h"
 
