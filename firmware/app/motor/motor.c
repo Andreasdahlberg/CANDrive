@@ -70,6 +70,7 @@ static inline void SetDirection(bool forward);
 void Motor_Init(struct motor_t *self_p, const char *name, struct pwm_output_t *pwm_output_p)
 {
     assert(self_p != NULL);
+    assert(name != NULL);
     assert(pwm_output_p != NULL);
 
     *self_p = (__typeof__(*self_p)) {0};
