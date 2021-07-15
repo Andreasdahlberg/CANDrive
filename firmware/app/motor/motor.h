@@ -42,12 +42,19 @@ along with CANDrive firmware.  If not, see <http://www.gnu.org/licenses/>.
 //TYPE DEFINITIONS
 //////////////////////////////////////////////////////////////////////////
 
+enum motor_direction_t
+{
+    MOTOR_DIR_CW = 0,
+    MOTOR_DIR_CCW
+};
+
+
 struct motor_t
 {
     pwm_output_t *pwm_output_p;
     logging_logger_t *logger_p;
     int16_t speed;
-    bool forward;
+    enum motor_direction_t direction;
 };
 
 enum motor_status_t
@@ -130,5 +137,28 @@ void Motor_Brake(struct motor_t *self_p);
  * @return Fault status.
  */
 enum motor_status_t Motor_GetStatus(const struct motor_t *self_p);
+
+/**
+ * Get the motor direction.
+ *
+ * This function returns the measured direction and this can differ from the
+ * commanded direction.
+ *
+ * @param self_p Pointer to motor instance.
+ *
+ * @return Motor direction.
+ */
+enum motor_direction_t Motor_GetDirection(const struct motor_t *self_p);
+
+/**
+ * Get the current motor position.
+ *
+ * @param self_p Pointer to motor instance.
+ *
+ * @return Motor position in degrees.
+ */
+uint32_t Motor_GetPosition(const struct motor_t *self_p);
+
+const char *Motor_DirectionToString(const struct motor_t *self_p, enum motor_direction_t direction);
 
 #endif

@@ -33,6 +33,7 @@ along with CANDrive firmware.  If not, see <http://www.gnu.org/licenses/>.
 #include <stdio.h>
 #include <stdbool.h>
 #include <stdlib.h>
+#include <libopencm3/stm32/timer.h>
 #include "utility.h"
 #include "motor.h"
 #include "pwm.h"
@@ -66,6 +67,9 @@ static int Setup(void **state)
     motor = (__typeof__(motor)) {0};
 
     will_return(Logging_GetLogger, dummy_logger);
+    expect_value(timer_set_period, timer_peripheral, TIM4);
+    expect_value(timer_set_period, period, 29);
+    expect_value(timer_enable_counter, timer_peripheral, TIM4);
     expect_function_call(PWM_Disable);
     expect_value(PWM_SetFrequency, frequency, DEFAULT_PWM_FREQUENCY);
     expect_value(PWM_SetDuty, duty, 0);
@@ -95,6 +99,9 @@ static void test_Motor_Init(void **state)
     struct pwm_output_t pwm;
 
     will_return(Logging_GetLogger, dummy_logger);
+    expect_value(timer_set_period, timer_peripheral, TIM4);
+    expect_value(timer_set_period, period, 29);
+    expect_value(timer_enable_counter, timer_peripheral, TIM4);
     expect_function_call(PWM_Disable);
     expect_value(PWM_SetFrequency, frequency, DEFAULT_PWM_FREQUENCY);
     expect_value(PWM_SetDuty, duty, 0);
@@ -203,6 +210,16 @@ static void test_Motor_GetStatus(void **state)
     assert_int_equal(Motor_GetStatus(&motor), MOTOR_UNKNOWN);
 }
 
+static void test_Motor_GetDirection_Invalid(void **state)
+{
+    expect_assert_failure(Motor_GetDirection(NULL));
+}
+
+static void test_Motor_GetDirection(void **state)
+{
+    assert_int_equal(Motor_GetDirection(&motor), MOTOR_DIR_CW);
+}
+
 //////////////////////////////////////////////////////////////////////////
 //FUNCTIONS
 //////////////////////////////////////////////////////////////////////////
@@ -226,6 +243,8 @@ int main(int argc, char *argv[])
         cmocka_unit_test_setup(test_Motor_Brake, Setup),
         cmocka_unit_test_setup(test_Motor_GetStatus_Invalid, Setup),
         cmocka_unit_test_setup(test_Motor_GetStatus, Setup),
+        cmocka_unit_test_setup(test_Motor_GetDirection_Invalid, Setup),
+        cmocka_unit_test_setup(test_Motor_GetDirection, Setup),
     };
 
     if (argc >= 2)
