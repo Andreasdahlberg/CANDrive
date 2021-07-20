@@ -179,7 +179,7 @@ enum motor_direction_t Motor_GetDirection(const struct motor_t *self_p)
 uint32_t Motor_GetPosition(const struct motor_t *self_p)
 {
     assert(self_p != NULL);
-    return (GetPosition() * 360) / 29;
+    return (GetPosition() * 360) / 30;
 }
 
 const char *Motor_DirectionToString(const struct motor_t *self_p, enum motor_direction_t direction)
