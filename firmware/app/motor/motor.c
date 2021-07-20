@@ -71,7 +71,6 @@ static inline void SetGpio(uint16_t gpio, bool state);
 static inline void SetDirection(enum motor_direction_t direction);
 static inline uint32_t GetPosition(void);
 static inline void ResetPosition(void);
-static inline uint32_t GetDIRValue(void);
 
 //////////////////////////////////////////////////////////////////////////
 //FUNCTIONS
@@ -173,7 +172,8 @@ enum motor_status_t Motor_GetStatus(const struct motor_t *self_p)
 enum motor_direction_t Motor_GetDirection(const struct motor_t *self_p)
 {
     assert(self_p != NULL);
-    return GetDIRValue() == 0 ? MOTOR_DIR_CW : MOTOR_DIR_CCW;
+
+    return timer_get_direction(ENCODER_TIMER_PERIPHERAL) == 0 ? MOTOR_DIR_CW : MOTOR_DIR_CCW;
 }
 
 uint32_t Motor_GetPosition(const struct motor_t *self_p)
@@ -283,9 +283,4 @@ static inline void ResetPosition(void)
 static inline uint32_t GetPosition(void)
 {
     return timer_get_counter(ENCODER_TIMER_PERIPHERAL);
-}
-
-static inline uint32_t GetDIRValue(void)
-{
-    return (TIM_CR1(ENCODER_TIMER_PERIPHERAL) >> 4) & 1;
 }
