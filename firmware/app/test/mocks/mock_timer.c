@@ -103,6 +103,12 @@ __attribute__((weak)) void timer_direction_down(uint32_t timer_peripheral)
 {
 }
 
+__attribute__((weak)) uint32_t timer_get_direction(uint32_t timer_peripheral)
+{
+    check_expected(timer_peripheral);
+    mock_type(uint32_t);
+}
+
 __attribute__((weak)) void timer_one_shot_mode(uint32_t timer_peripheral)
 {
 }
@@ -321,6 +327,7 @@ __attribute__((weak)) void timer_generate_event(uint32_t timer_peripheral, uint3
 
 __attribute__((weak)) uint32_t timer_get_counter(uint32_t timer_peripheral)
 {
+    check_expected(timer_peripheral);
     mock_type(uint32_t);
 }
 
