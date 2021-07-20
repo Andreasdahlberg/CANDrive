@@ -217,7 +217,39 @@ static void test_Motor_GetDirection_Invalid(void **state)
 
 static void test_Motor_GetDirection(void **state)
 {
+    expect_value(timer_get_direction, timer_peripheral, TIM4);
+    will_return(timer_get_direction, TIM_CR1_DIR_UP);
     assert_int_equal(Motor_GetDirection(&motor), MOTOR_DIR_CW);
+
+    expect_value(timer_get_direction, timer_peripheral, TIM4);
+    will_return(timer_get_direction, TIM_CR1_DIR_DOWN);
+    assert_int_equal(Motor_GetDirection(&motor), MOTOR_DIR_CCW);
+}
+
+static void test_Motor_GetPosition_Invalid(void **state)
+{
+    expect_assert_failure(Motor_GetPosition(NULL));
+}
+
+static void test_Motor_GetPosition(void **state)
+{
+    uint32_t counter_data[] = {0, 1, 28, 29};
+
+    for (size_t i = 0; i < ElementsIn(counter_data); ++i)
+    {
+        expect_value(timer_get_counter, timer_peripheral, TIM4);
+        will_return(timer_get_counter, counter_data[i]);
+
+        uint32_t expect_position = (counter_data[i] * 360) / 30;
+        assert_int_equal(Motor_GetPosition(&motor), expect_position);
+    }
+}
+
+static void test_Motor_DirectionToString(void **state)
+{
+    assert_string_equal(Motor_DirectionToString(&motor, MOTOR_DIR_CW), "MOTOR_DIR_CW");
+    assert_string_equal(Motor_DirectionToString(&motor, MOTOR_DIR_CCW), "MOTOR_DIR_CCW");
+    assert_string_equal(Motor_DirectionToString(&motor, UINT32_MAX), "UNKNOWN");
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -245,6 +277,10 @@ int main(int argc, char *argv[])
         cmocka_unit_test_setup(test_Motor_GetStatus, Setup),
         cmocka_unit_test_setup(test_Motor_GetDirection_Invalid, Setup),
         cmocka_unit_test_setup(test_Motor_GetDirection, Setup),
+        cmocka_unit_test_setup(test_Motor_GetPosition_Invalid, Setup),
+        cmocka_unit_test_setup(test_Motor_GetPosition, Setup),
+        cmocka_unit_test_setup(test_Motor_DirectionToString, Setup),
+
     };
 
     if (argc >= 2)
