@@ -96,10 +96,6 @@ void Motor_Init(struct motor_t *self_p, const char *name, struct pwm_output_t *p
     PWM_SetFrequency(self_p->pwm_output_p, PWM_FREQUENCY);
     PWM_SetDuty(self_p->pwm_output_p, 0);
 
-    /**
-     * TODO: ADC for current consumption and input capture for encoder.
-     */
-
     Logging_Info(self_p->logger_p, "Motor(%s) initialized", name);
 }
 
