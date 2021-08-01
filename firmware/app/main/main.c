@@ -35,6 +35,7 @@ along with CANDrive firmware.  If not, see <http://www.gnu.org/licenses/>.
 #include "serial.h"
 #include "logging.h"
 #include "can_interface.h"
+#include "adc.h"
 
 //////////////////////////////////////////////////////////////////////////
 //DEFINES
@@ -78,6 +79,7 @@ int main(void)
     Serial_Init(BAUD_RATE);
     Logging_Init(GetTimestamp);
     CANInterface_Init();
+    ADC_Init();
 
     logging_logger_t *logger_p = Logging_GetLogger(MAIN_LOGGER_NAME);
     Logging_SetLevel(logger_p, MAIN_LOGGER_DEBUG_LEVEL);

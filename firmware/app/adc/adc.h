@@ -44,4 +44,6 @@ along with CANDrive firmware.  If not, see <http://www.gnu.org/licenses/>.
 //FUNCTION PROTOTYPES
 //////////////////////////////////////////////////////////////////////////
 
+void ADC_Init(void);
+
 #endif
