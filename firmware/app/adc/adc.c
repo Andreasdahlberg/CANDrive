@@ -44,6 +44,9 @@ along with CANDrive firmware.  If not, see <http://www.gnu.org/licenses/>.
 #define ADC_LOGGER_DEBUG_LEVEL LOGGING_DEBUG
 #endif
 
+#define NUMBER_OF_READINGS_PER_SAMPLE 16
+#define MAX_NUMBER_OF_CHANNELS 2
+
 //////////////////////////////////////////////////////////////////////////
 //TYPE DEFINITIONS
 //////////////////////////////////////////////////////////////////////////
@@ -51,7 +54,9 @@ along with CANDrive firmware.  If not, see <http://www.gnu.org/licenses/>.
 struct module_t
 {
     logging_logger_t *logger;
-    uint32_t sample_buffer[8];
+    uint32_t sample_buffer[NUMBER_OF_READINGS_PER_SAMPLE * MAX_NUMBER_OF_CHANNELS];
+    uint32_t samples[MAX_NUMBER_OF_CHANNELS];
+    size_t number_of_channels;
 };
 
 //////////////////////////////////////////////////////////////////////////
@@ -67,6 +72,7 @@ static struct module_t module;
 static void SetupNVIC(void);
 static void SetupDMA(void);
 static void SetupADC(void);
+static inline uint32_t SampleToVoltage(uint32_t sample);
 
 //////////////////////////////////////////////////////////////////////////
 //FUNCTIONS
@@ -83,12 +89,26 @@ void ADC_Init(void)
     SetupADC();
 
     Logging_Info(module.logger, "ADC initialized");
+}
 
-#if 1
-    uint8_t channel_array[] = {11};
-    adc_set_regular_sequence(ADC1, ElementsIn(channel_array), channel_array);
+void ADC_Start(uint8_t *channels_p, size_t number_of_channels)
+{
+    assert(channels_p != NULL);
+    assert(number_of_channels <= ElementsIn(module.samples));
+
+    module.number_of_channels = number_of_channels;
+
+    adc_set_regular_sequence(ADC1, number_of_channels, channels_p);
     adc_start_conversion_regular(ADC1);
-#endif
+
+    Logging_Debug(module.logger, "Started scanning %u channel(s).", number_of_channels);
+}
+
+uint32_t ADC_GetVoltage(size_t channel)
+{
+    assert(channel < ElementsIn(module.samples));
+
+    return SampleToVoltage(module.samples[channel]);
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -155,17 +175,35 @@ static void SetupADC(void)
     adc_calibrate(ADC1);
 }
 
+static inline uint32_t SampleToVoltage(uint32_t sample)
+{
+    const uint32_t reference_voltage = 3300;
+    const uint32_t adc_resolution = 4096;
+
+    return (sample * reference_voltage) / adc_resolution;
+}
+
+static inline void UpdateSamples(void)
+{
+    for (size_t channel_index = 0; channel_index < module.number_of_channels; ++channel_index)
+    {
+        const size_t total_number_of_readings = module.number_of_channels * NUMBER_OF_READINGS_PER_SAMPLE;
+        uint32_t sample_sum = 0;
+
+        for (size_t i = 0; i < total_number_of_readings; i += module.number_of_channels)
+        {
+            sample_sum += module.sample_buffer[i] & 0xFF00;
+        }
+
+        module.samples[channel_index] = sample_sum / NUMBER_OF_READINGS_PER_SAMPLE;
+    }
+}
+
 void dma1_channel1_isr(void)
 {
+    UpdateSamples();
+
     const uint32_t dma = DMA1;
     const uint8_t channel = 1;
-
-    for (size_t i = 0; i < ElementsIn(module.sample_buffer); ++i)
-    {
-        Logging_Debug(module.logger, "DATA%u: %u", i, module.sample_buffer[i] & 0xFF);
-    }
-    Logging_Debug(module.logger, "End of data\r\n");
-
     dma_clear_interrupt_flags(dma, channel, DMA_TCIF);
-
 }

@@ -43,7 +43,26 @@ along with CANDrive firmware.  If not, see <http://www.gnu.org/licenses/>.
 //////////////////////////////////////////////////////////////////////////
 //FUNCTION PROTOTYPES
 //////////////////////////////////////////////////////////////////////////
-
+/**
+ * Initialize the ADC.
+ */
 void ADC_Init(void);
+
+/**
+ * Start scanning conversions on the selected channels.
+ *
+ * @param channels_p Array with channel indexes.
+ * @param number_of_channels Number of channel indexes.
+ */
+void ADC_Start(uint8_t *channels_p, size_t number_of_channels);
+
+/**
+ * Get the voltage for the selected channel.
+ *
+ * @param  channel Channel index.
+ *
+ * @return Voltage in mV.
+ */
+uint32_t ADC_GetVoltage(size_t channel);
 
 #endif
