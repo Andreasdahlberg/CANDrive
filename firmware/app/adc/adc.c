@@ -98,7 +98,7 @@ void ADC_Start(uint8_t *channels_p, size_t number_of_channels)
 
     module.number_of_channels = number_of_channels;
 
-    adc_set_regular_sequence(ADC1, number_of_channels, channels_p);
+    adc_set_regular_sequence(ADC1, (uint8_t)number_of_channels, channels_p);
     adc_start_conversion_regular(ADC1);
 
     Logging_Debug(module.logger, "Started scanning %u channel(s).", number_of_channels);
@@ -145,10 +145,10 @@ static void SetupDMA(void)
     dma_enable_circular_mode(dma, channel);
     dma_enable_memory_increment_mode(dma, channel);
     dma_set_memory_size(dma, channel, DMA_CCR_MSIZE_32BIT);
-    dma_set_memory_address(dma, channel, (uint32_t)module.sample_buffer);
+    dma_set_memory_address(dma, channel, (uintptr_t)module.sample_buffer);
     dma_set_number_of_data(dma, channel, ElementsIn(module.sample_buffer));
     dma_set_read_from_peripheral(dma, channel);
-    dma_set_peripheral_address(dma, channel, (uint32_t)&ADC_DR(ADC1));
+    dma_set_peripheral_address(dma, channel, (uintptr_t)&ADC_DR(ADC1));
     dma_set_peripheral_size(dma, channel, DMA_CCR_PSIZE_32BIT);
     dma_set_priority(dma, channel, DMA_CCR_PL_HIGH);
     dma_enable_transfer_complete_interrupt(dma, channel);
