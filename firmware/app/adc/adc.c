@@ -137,7 +137,7 @@ static void SetupNVIC(void)
 static void SetupDMA(void)
 {
     const uint32_t dma = DMA1;
-    const uint8_t channel = 1;
+    const uint8_t channel = DMA_CHANNEL1;
 
     rcc_periph_clock_enable(RCC_DMA1);
 
