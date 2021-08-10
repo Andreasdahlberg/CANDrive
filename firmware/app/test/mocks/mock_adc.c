@@ -56,6 +56,7 @@ along with CANDrive firmware.  If not, see <http://www.gnu.org/licenses/>.
 
 __attribute__((weak)) void adc_power_on(uint32_t adc)
 {
+    check_expected(adc);
 }
 
 __attribute__((weak)) void adc_power_off(uint32_t adc)
@@ -112,6 +113,7 @@ __attribute__((weak)) void adc_enable_analog_watchdog_on_selected_channel(uint32
 
 __attribute__((weak)) void adc_enable_scan_mode(uint32_t adc)
 {
+    check_expected(adc);
 }
 
 __attribute__((weak)) void adc_disable_scan_mode(uint32_t adc)
@@ -208,6 +210,7 @@ __attribute__((weak)) void adc_start_conversion_injected(uint32_t adc)
 
 __attribute__((weak)) void adc_enable_dma(uint32_t adc)
 {
+    check_expected(adc);
 }
 
 __attribute__((weak)) void adc_disable_dma(uint32_t adc)

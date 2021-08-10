@@ -56,6 +56,8 @@ along with CANDrive firmware.  If not, see <http://www.gnu.org/licenses/>.
 
 __attribute__((weak)) void dma_channel_reset(uint32_t dma, uint8_t channel)
 {
+    check_expected(dma);
+    check_expected(channel);
 }
 
 __attribute__((weak)) void dma_clear_interrupt_flags(uint32_t dma, uint8_t channel, uint32_t interrupts)
@@ -85,6 +87,8 @@ __attribute__((weak)) void dma_set_peripheral_size(uint32_t dma, uint8_t channel
 
 __attribute__((weak)) void dma_enable_memory_increment_mode(uint32_t dma, uint8_t channel)
 {
+    check_expected(dma);
+    check_expected(channel);
 }
 
 __attribute__((weak)) void dma_disable_memory_increment_mode(uint32_t dma, uint8_t channel)
@@ -101,10 +105,14 @@ __attribute__((weak)) void dma_disable_peripheral_increment_mode(uint32_t dma, u
 
 __attribute__((weak)) void dma_enable_circular_mode(uint32_t dma, uint8_t channel)
 {
+    check_expected(dma);
+    check_expected(channel);
 }
 
 __attribute__((weak)) void dma_set_read_from_peripheral(uint32_t dma, uint8_t channel)
 {
+    check_expected(dma);
+    check_expected(channel);
 }
 
 __attribute__((weak)) void dma_set_read_from_memory(uint32_t dma, uint8_t channel)
@@ -129,6 +137,8 @@ __attribute__((weak)) void dma_disable_half_transfer_interrupt(uint32_t dma, uin
 
 __attribute__((weak)) void dma_enable_transfer_complete_interrupt(uint32_t dma, uint8_t channel)
 {
+    check_expected(dma);
+    check_expected(channel);
 }
 
 __attribute__((weak)) void dma_disable_transfer_complete_interrupt(uint32_t dma, uint8_t channel)
@@ -137,6 +147,8 @@ __attribute__((weak)) void dma_disable_transfer_complete_interrupt(uint32_t dma,
 
 __attribute__((weak)) void dma_enable_channel(uint32_t dma, uint8_t channel)
 {
+    check_expected(dma);
+    check_expected(channel);
 }
 
 __attribute__((weak)) void dma_disable_channel(uint32_t dma, uint8_t channel)
@@ -149,6 +161,8 @@ __attribute__((weak)) void dma_set_peripheral_address(uint32_t dma, uint8_t chan
 
 __attribute__((weak)) void dma_set_memory_address(uint32_t dma, uint8_t channel, uint32_t address)
 {
+    check_expected(dma);
+    check_expected(channel);
 }
 
 __attribute__((weak)) uint16_t dma_get_number_of_data(uint32_t dma, uint8_t channel)
@@ -158,6 +172,9 @@ __attribute__((weak)) uint16_t dma_get_number_of_data(uint32_t dma, uint8_t chan
 
 __attribute__((weak)) void dma_set_number_of_data(uint32_t dma, uint8_t channel, uint16_t number)
 {
+    check_expected(dma);
+    check_expected(channel);
+    check_expected(number);
 }
 
 //////////////////////////////////////////////////////////////////////////
