@@ -197,7 +197,7 @@ static inline void UpdateSamples(void)
         const size_t total_number_of_readings = module.number_of_channels * NUMBER_OF_READINGS_PER_SAMPLE;
         uint32_t sample_sum = 0;
 
-        for (size_t i = 0; i < total_number_of_readings; i += module.number_of_channels)
+        for (size_t i = channel_index; i < total_number_of_readings; i += module.number_of_channels)
         {
             sample_sum += module.sample_buffer[i] & 0xFF00;
         }
