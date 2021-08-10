@@ -49,7 +49,7 @@ test_env = Environment(
     CC='gcc',
     CCFLAGS=['-g', '-O0', '-std=c17'],
     CPPPATH=['#libopencm3/include'],
-    CPPDEFINES=['STM32F1'],
+    CPPDEFINES=['STM32F1', 'UNIT_TEST'],
     LIBS=['cmocka', 'gcov']
 )
 

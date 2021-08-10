@@ -65,4 +65,13 @@ void ADC_Start(uint8_t *channels_p, size_t number_of_channels);
  */
 uint32_t ADC_GetVoltage(size_t channel);
 
+#ifdef UNIT_TEST
+/**
+ * Get the sample buffer.
+ *
+ * @return Pointer to sample buffer.
+ */
+uint32_t *ADC_GetSampleBuffer(void);
+#endif
+
 #endif
