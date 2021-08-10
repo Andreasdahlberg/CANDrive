@@ -111,6 +111,13 @@ uint32_t ADC_GetVoltage(size_t channel)
     return SampleToVoltage(module.samples[channel]);
 }
 
+#ifdef UNIT_TEST
+uint32_t *ADC_GetSampleBuffer(void)
+{
+    return module.sample_buffer;
+}
+#endif
+
 //////////////////////////////////////////////////////////////////////////
 //LOCAL FUNCTIONS
 //////////////////////////////////////////////////////////////////////////
