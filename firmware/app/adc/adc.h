@@ -71,7 +71,7 @@ uint32_t ADC_GetVoltage(size_t channel);
  *
  * @return Pointer to sample buffer.
  */
-uint32_t *ADC_GetSampleBuffer(void);
+volatile uint32_t *ADC_GetSampleBuffer(void);
 #endif
 
 #endif
