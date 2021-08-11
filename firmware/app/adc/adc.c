@@ -54,8 +54,8 @@ along with CANDrive firmware.  If not, see <http://www.gnu.org/licenses/>.
 struct module_t
 {
     logging_logger_t *logger;
-    uint32_t sample_buffer[NUMBER_OF_READINGS_PER_SAMPLE * MAX_NUMBER_OF_CHANNELS];
-    uint32_t samples[MAX_NUMBER_OF_CHANNELS];
+    volatile uint32_t sample_buffer[NUMBER_OF_READINGS_PER_SAMPLE * MAX_NUMBER_OF_CHANNELS];
+    volatile uint32_t samples[MAX_NUMBER_OF_CHANNELS];
     size_t number_of_channels;
 };
 
@@ -73,6 +73,7 @@ static void SetupNVIC(void);
 static void SetupDMA(void);
 static void SetupADC(void);
 static inline uint32_t SampleToVoltage(uint32_t sample);
+static inline void UpdateSamples(void);
 
 //////////////////////////////////////////////////////////////////////////
 //FUNCTIONS
@@ -112,7 +113,7 @@ uint32_t ADC_GetVoltage(size_t channel)
 }
 
 #ifdef UNIT_TEST
-uint32_t *ADC_GetSampleBuffer(void)
+volatile uint32_t *ADC_GetSampleBuffer(void)
 {
     return module.sample_buffer;
 }
@@ -211,6 +212,6 @@ void dma1_channel1_isr(void)
     UpdateSamples();
 
     const uint32_t dma = DMA1;
-    const uint8_t channel = 1;
+    const uint8_t channel = DMA_CHANNEL1;
     dma_clear_interrupt_flags(dma, channel, DMA_TCIF);
 }
