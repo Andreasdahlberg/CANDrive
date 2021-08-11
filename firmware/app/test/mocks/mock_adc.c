@@ -182,6 +182,9 @@ __attribute__((weak)) void adc_set_single_conversion_mode(uint32_t adc)
 
 __attribute__((weak)) void adc_set_regular_sequence(uint32_t adc, uint8_t length, uint8_t channel[])
 {
+    check_expected(adc);
+    check_expected(length);
+    check_expected_ptr(channel);
 }
 
 __attribute__((weak)) void adc_set_injected_sequence(uint32_t adc, uint8_t length, uint8_t channel[])
@@ -202,6 +205,7 @@ __attribute__((weak)) void adc_set_watchdog_low_threshold(uint32_t adc, uint16_t
 
 __attribute__((weak)) void adc_start_conversion_regular(uint32_t adc)
 {
+    check_expected(adc);
 }
 
 __attribute__((weak)) void adc_start_conversion_injected(uint32_t adc)

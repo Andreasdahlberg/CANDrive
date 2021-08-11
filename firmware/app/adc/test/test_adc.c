@@ -52,14 +52,14 @@ along with CANDrive firmware.  If not, see <http://www.gnu.org/licenses/>.
 static struct logging_logger_t *dummy_logger;
 
 //////////////////////////////////////////////////////////////////////////
-//LOCAL FUNCTIONS
+//FUNCTION PROTOTYPES
 //////////////////////////////////////////////////////////////////////////
 
-static int Setup(void **state)
-{
+void dma1_channel1_isr(void);
 
-    return 0;
-}
+//////////////////////////////////////////////////////////////////////////
+//LOCAL FUNCTIONS
+//////////////////////////////////////////////////////////////////////////
 
 static void ExpectDMASetup(void)
 {
@@ -96,16 +96,116 @@ static void ExpectADCSetup(void)
     expect_value(adc_power_on, adc, adc);
 }
 
-//////////////////////////////////////////////////////////////////////////
-//TESTS
-//////////////////////////////////////////////////////////////////////////
+static void ExpectADCConversionStart(uint8_t *channels_p, size_t number_of_channels)
+{
+    const uint32_t adc = ADC1;
 
-void test_ADC_Init(void **state)
+    expect_value(adc_set_regular_sequence, adc, adc);
+    expect_value(adc_set_regular_sequence, length, number_of_channels);
+    expect_value(adc_set_regular_sequence, channel, channels_p);
+    expect_value(adc_start_conversion_regular, adc, adc);
+}
+
+static void ClearSampleBuffer()
+{
+    const size_t number_of_readings_per_sample = 16;
+    uint32_t *sample_buffer_p = ADC_GetSampleBuffer();
+
+    for (size_t i = 0; i < number_of_readings_per_sample; ++i)
+    {
+        sample_buffer_p[i] = 0;
+    }
+}
+
+static void FillSampleBuffer(uint32_t value, size_t number_of_samples, uint8_t offset, uint8_t step)
+{
+    const size_t number_of_readings_per_sample = 16;
+    uint32_t *sample_buffer_p = ADC_GetSampleBuffer();
+
+    for (size_t i = offset; i < number_of_samples * step; i += step)
+    {
+        sample_buffer_p[i] = value;
+    }
+}
+
+static int Setup(void **state)
 {
     will_return(Logging_GetLogger, dummy_logger);
     ExpectDMASetup();
     ExpectADCSetup();
     ADC_Init();
+    return 0;
+}
+
+//////////////////////////////////////////////////////////////////////////
+//TESTS
+//////////////////////////////////////////////////////////////////////////
+
+static void test_ADC_Init(void **state)
+{
+    will_return(Logging_GetLogger, dummy_logger);
+    ExpectDMASetup();
+    ExpectADCSetup();
+    ADC_Init();
+}
+
+static void test_ADC_Start_Invalid(void **state)
+{
+    uint8_t channels[3];
+
+    expect_assert_failure(ADC_Start(NULL, 0));
+    expect_assert_failure(ADC_Start(channels, ElementsIn(channels)));
+}
+
+static void test_ADC_Start(void **state)
+{
+    uint8_t channels[2] = {0, 1};
+
+    ExpectADCConversionStart(channels, ElementsIn(channels));
+    ADC_Start(channels, ElementsIn(channels));
+}
+
+static void test_ADC_GetVoltage_Invalid(void **state)
+{
+    expect_assert_failure(ADC_GetVoltage(3));
+}
+
+static void test_ADC_GetVoltage(void **state)
+{
+    const size_t number_of_readings_per_sample = 16;
+    uint8_t channels[2] = {2, 3};
+
+    /* One channel */
+    uint8_t number_of_channels = 1;
+    ExpectADCConversionStart(channels, number_of_channels);
+    ADC_Start(channels, number_of_channels);
+
+    ClearSampleBuffer();
+    FillSampleBuffer(4096, number_of_readings_per_sample, 0, number_of_channels);
+    dma1_channel1_isr();
+    assert_int_equal(ADC_GetVoltage(0), 3300);
+
+    ClearSampleBuffer();
+    FillSampleBuffer(2048, number_of_readings_per_sample, 0, number_of_channels);
+    dma1_channel1_isr();
+    assert_int_equal(ADC_GetVoltage(0), 1650);
+
+    ClearSampleBuffer();
+    FillSampleBuffer(4096, number_of_readings_per_sample / 2, 0, number_of_channels);
+    dma1_channel1_isr();
+    assert_int_equal(ADC_GetVoltage(0), 1650);
+
+    /* Two channels */
+    number_of_channels = 2;
+    ExpectADCConversionStart(channels, number_of_channels);
+    ADC_Start(channels, number_of_channels);
+
+    ClearSampleBuffer();
+    FillSampleBuffer(2048, number_of_readings_per_sample, 0, number_of_channels);
+    FillSampleBuffer(4096, number_of_readings_per_sample, 1, number_of_channels);
+    dma1_channel1_isr();
+    assert_int_equal(ADC_GetVoltage(0), 1650);
+    assert_int_equal(ADC_GetVoltage(1), 3300);
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -117,6 +217,10 @@ int main(int argc, char *argv[])
     const struct CMUnitTest test_ADC[] =
     {
         cmocka_unit_test(test_ADC_Init),
+        cmocka_unit_test_setup(test_ADC_Start_Invalid, Setup),
+        cmocka_unit_test_setup(test_ADC_Start, Setup),
+        cmocka_unit_test_setup(test_ADC_GetVoltage_Invalid, Setup),
+        cmocka_unit_test_setup(test_ADC_GetVoltage, Setup),
     };
 
     if (argc >= 2)
