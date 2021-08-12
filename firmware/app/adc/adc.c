@@ -55,8 +55,8 @@ struct module_t
 {
     logging_logger_t *logger;
     volatile uint32_t sample_buffer[NUMBER_OF_READINGS_PER_SAMPLE * MAX_NUMBER_OF_CHANNELS];
-    volatile uint32_t samples[MAX_NUMBER_OF_CHANNELS];
     size_t number_of_channels;
+    struct adc_input_t *channels[MAX_NUMBER_OF_CHANNELS];
 };
 
 //////////////////////////////////////////////////////////////////////////
@@ -92,24 +92,39 @@ void ADC_Init(void)
     Logging_Info(module.logger, "ADC initialized");
 }
 
-void ADC_Start(uint8_t *channels_p, size_t number_of_channels)
+void ADC_InitChannel(struct adc_input_t *self_p, uint8_t channel)
 {
-    assert(channels_p != NULL);
-    assert(number_of_channels <= ElementsIn(module.samples));
+    assert(self_p != NULL);
+    assert(module.number_of_channels < ElementsIn(module.channels));
 
-    module.number_of_channels = number_of_channels;
+    *self_p = (__typeof__(*self_p)) {0};
+    self_p->channel = channel;
 
-    adc_set_regular_sequence(ADC1, (uint8_t)number_of_channels, channels_p);
-    adc_start_conversion_regular(ADC1);
+    module.channels[module.number_of_channels] = self_p;
+    ++module.number_of_channels;
 
-    Logging_Debug(module.logger, "Started scanning %u channel(s).", number_of_channels);
+    Logging_Info(module.logger, "Initialized ADC channel %u", channel);
 }
 
-uint32_t ADC_GetVoltage(size_t channel)
+void ADC_Start(void)
 {
-    assert(channel < ElementsIn(module.samples));
+    uint8_t channels[ElementsIn(module.channels)];
+    for (size_t i = 0; i < module.number_of_channels; ++i)
+    {
+        channels[i] = module.channels[i]->channel;
+    }
 
-    return SampleToVoltage(module.samples[channel]);
+    adc_set_regular_sequence(ADC1, (uint8_t)module.number_of_channels, channels);
+    adc_start_conversion_regular(ADC1);
+
+    Logging_Info(module.logger, "Scanning on %u channel(s).", module.number_of_channels);
+}
+
+uint32_t ADC_GetVoltage(const struct adc_input_t *self_p)
+{
+    assert(self_p != NULL);
+
+    return SampleToVoltage(self_p->value);
 }
 
 #ifdef UNIT_TEST
@@ -203,7 +218,7 @@ static inline void UpdateSamples(void)
             sample_sum += module.sample_buffer[i] & 0xFF00;
         }
 
-        module.samples[channel_index] = sample_sum / NUMBER_OF_READINGS_PER_SAMPLE;
+        module.channels[channel_index]->value = sample_sum / NUMBER_OF_READINGS_PER_SAMPLE;
     }
 }
 
