@@ -36,6 +36,7 @@ along with CANDrive firmware.  If not, see <http://www.gnu.org/licenses/>.
 #include "logging.h"
 #include "can_interface.h"
 #include "adc.h"
+#include "systime.h"
 
 //////////////////////////////////////////////////////////////////////////
 //DEFINES
@@ -63,9 +64,6 @@ along with CANDrive firmware.  If not, see <http://www.gnu.org/licenses/>.
 
 static void SetupClock(void);
 static void SetupGPIO(void);
-static inline void Nop(void);
-static void Delay(void);
-static uint32_t GetTimestamp(void);
 
 //////////////////////////////////////////////////////////////////////////
 //FUNCTIONS
@@ -76,8 +74,9 @@ int main(void)
     SetupClock();
     SetupGPIO();
 
+    SysTime_Init();
     Serial_Init(BAUD_RATE);
-    Logging_Init(GetTimestamp);
+    Logging_Init(SysTime_GetSystemTime);
     CANInterface_Init();
     ADC_Init();
 
@@ -85,10 +84,14 @@ int main(void)
     Logging_SetLevel(logger_p, MAIN_LOGGER_DEBUG_LEVEL);
     Logging_Info(logger_p, "Application ready");
 
+    uint32_t time = SysTime_GetSystemTime();
     while (1)
     {
-        gpio_toggle(GPIO_LED_PORT, GPIO_LED);
-        Delay();
+        if (SysTime_GetDifference(time) >= 1000)
+        {
+            gpio_toggle(GPIO_LED_PORT, GPIO_LED);
+            time = SysTime_GetSystemTime();
+        }
     }
 
     return 0;
@@ -110,22 +113,4 @@ static void SetupGPIO(void)
 {
     gpio_set(GPIO_LED_PORT, GPIO_LED);
     gpio_set_mode(GPIO_LED_PORT, GPIO_MODE_OUTPUT_50_MHZ, GPIO_CNF_OUTPUT_PUSHPULL, GPIO5);
-}
-
-static inline void Nop(void)
-{
-    __asm__("nop");
-}
-
-static void Delay(void)
-{
-    for (size_t i = 0; i < 800000; ++i)
-    {
-        Nop();
-    }
-}
-
-static uint32_t GetTimestamp(void)
-{
-    return 0;
 }
