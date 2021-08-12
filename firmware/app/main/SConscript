@@ -28,6 +28,7 @@ env.Append(CPPPATH=[
     '../motor',
     '../pwm',
     '../adc',
+    '../systime'
 ])
 
 OBJECTS = env.Object(SOURCE)
