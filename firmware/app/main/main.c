@@ -84,13 +84,13 @@ int main(void)
     Logging_SetLevel(logger_p, MAIN_LOGGER_DEBUG_LEVEL);
     Logging_Info(logger_p, "Application ready");
 
-    uint32_t time = SysTime_GetSystemTime();
+    uint32_t led_time = SysTime_GetSystemTime();
     while (1)
     {
-        if (SysTime_GetDifference(time) >= 1000)
+        if (SysTime_GetDifference(led_time) >= 1000)
         {
             gpio_toggle(GPIO_LED_PORT, GPIO_LED);
-            time = SysTime_GetSystemTime();
+            led_time = SysTime_GetSystemTime();
         }
     }
 
