@@ -96,20 +96,20 @@ static void ExpectADCSetup(void)
     expect_value(adc_power_on, adc, adc);
 }
 
-static void ExpectADCConversionStart(uint8_t *channels_p, size_t number_of_channels)
+static void ExpectADCConversionStart(const uint8_t *channels_p, size_t number_of_channels)
 {
     const uint32_t adc = ADC1;
 
     expect_value(adc_set_regular_sequence, adc, adc);
     expect_value(adc_set_regular_sequence, length, number_of_channels);
-    expect_value(adc_set_regular_sequence, channel, channels_p);
+    expect_memory(adc_set_regular_sequence, channel, channels_p, number_of_channels);
     expect_value(adc_start_conversion_regular, adc, adc);
 }
 
 static void ClearSampleBuffer()
 {
     const size_t number_of_readings_per_sample = 16;
-    uint32_t *sample_buffer_p = ADC_GetSampleBuffer();
+    volatile uint32_t *sample_buffer_p = ADC_GetSampleBuffer();
 
     for (size_t i = 0; i < number_of_readings_per_sample; ++i)
     {
@@ -120,7 +120,7 @@ static void ClearSampleBuffer()
 static void FillSampleBuffer(uint32_t value, size_t number_of_samples, uint8_t offset, uint8_t step)
 {
     const size_t number_of_readings_per_sample = 16;
-    uint32_t *sample_buffer_p = ADC_GetSampleBuffer();
+    volatile uint32_t *sample_buffer_p = ADC_GetSampleBuffer();
 
     for (size_t i = offset; i < number_of_samples * step; i += step)
     {
@@ -149,63 +149,74 @@ static void test_ADC_Init(void **state)
     ADC_Init();
 }
 
-static void test_ADC_Start_Invalid(void **state)
+static void test_ADC_InitChannel_Invalid(void **state)
 {
-    uint8_t channels[3];
+    expect_assert_failure(ADC_InitChannel(NULL, 0));
 
-    expect_assert_failure(ADC_Start(NULL, 0));
-    expect_assert_failure(ADC_Start(channels, ElementsIn(channels)));
+    struct adc_input_t adc_channel;
+    ADC_InitChannel(&adc_channel, 0);
+    ADC_InitChannel(&adc_channel, 1);
+    expect_assert_failure(ADC_InitChannel(&adc_channel, 3));
 }
 
 static void test_ADC_Start(void **state)
 {
-    uint8_t channels[2] = {0, 1};
+    const uint8_t adc_channels[2] = {10, 11};
 
-    ExpectADCConversionStart(channels, ElementsIn(channels));
-    ADC_Start(channels, ElementsIn(channels));
+    struct adc_input_t channels[ElementsIn(adc_channels)];
+    for (size_t i = 0; i < ElementsIn(adc_channels); ++i)
+    {
+        ADC_InitChannel(&channels[i], adc_channels[i]);
+    }
+
+    ExpectADCConversionStart(adc_channels, ElementsIn(adc_channels));
+    ADC_Start();
 }
 
 static void test_ADC_GetVoltage_Invalid(void **state)
 {
-    expect_assert_failure(ADC_GetVoltage(3));
+    expect_assert_failure(ADC_GetVoltage(NULL));
 }
 
 static void test_ADC_GetVoltage(void **state)
 {
     const size_t number_of_readings_per_sample = 16;
-    uint8_t channels[2] = {2, 3};
+    const uint8_t channels[2] = {2, 3};
+    struct adc_input_t inputs[ElementsIn(channels)];
 
     /* One channel */
     uint8_t number_of_channels = 1;
+    ADC_InitChannel(&inputs[0], channels[0]);
     ExpectADCConversionStart(channels, number_of_channels);
-    ADC_Start(channels, number_of_channels);
+    ADC_Start();
 
     ClearSampleBuffer();
     FillSampleBuffer(4096, number_of_readings_per_sample, 0, number_of_channels);
     dma1_channel1_isr();
-    assert_int_equal(ADC_GetVoltage(0), 3300);
+    assert_int_equal(ADC_GetVoltage(&inputs[0]), 3300);
 
     ClearSampleBuffer();
     FillSampleBuffer(2048, number_of_readings_per_sample, 0, number_of_channels);
     dma1_channel1_isr();
-    assert_int_equal(ADC_GetVoltage(0), 1650);
+    assert_int_equal(ADC_GetVoltage(&inputs[0]), 1650);
 
     ClearSampleBuffer();
     FillSampleBuffer(4096, number_of_readings_per_sample / 2, 0, number_of_channels);
     dma1_channel1_isr();
-    assert_int_equal(ADC_GetVoltage(0), 1650);
+    assert_int_equal(ADC_GetVoltage(&inputs[0]), 1650);
 
     /* Two channels */
     number_of_channels = 2;
+    ADC_InitChannel(&inputs[1], channels[1]);
     ExpectADCConversionStart(channels, number_of_channels);
-    ADC_Start(channels, number_of_channels);
+    ADC_Start();
 
     ClearSampleBuffer();
     FillSampleBuffer(2048, number_of_readings_per_sample, 0, number_of_channels);
     FillSampleBuffer(4096, number_of_readings_per_sample, 1, number_of_channels);
     dma1_channel1_isr();
-    assert_int_equal(ADC_GetVoltage(0), 1650);
-    assert_int_equal(ADC_GetVoltage(1), 3300);
+    assert_int_equal(ADC_GetVoltage(&inputs[0]), 1650);
+    assert_int_equal(ADC_GetVoltage(&inputs[1]), 3300);
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -217,7 +228,7 @@ int main(int argc, char *argv[])
     const struct CMUnitTest test_ADC[] =
     {
         cmocka_unit_test(test_ADC_Init),
-        cmocka_unit_test_setup(test_ADC_Start_Invalid, Setup),
+        cmocka_unit_test_setup(test_ADC_InitChannel_Invalid, Setup),
         cmocka_unit_test_setup(test_ADC_Start, Setup),
         cmocka_unit_test_setup(test_ADC_GetVoltage_Invalid, Setup),
         cmocka_unit_test_setup(test_ADC_GetVoltage, Setup),

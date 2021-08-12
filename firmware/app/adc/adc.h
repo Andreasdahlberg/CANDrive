@@ -39,31 +39,41 @@ along with CANDrive firmware.  If not, see <http://www.gnu.org/licenses/>.
 //TYPE DEFINITIONS
 //////////////////////////////////////////////////////////////////////////
 
+struct adc_input_t
+{
+    uint8_t channel;
+    volatile uint32_t value;
+};
 
 //////////////////////////////////////////////////////////////////////////
 //FUNCTION PROTOTYPES
 //////////////////////////////////////////////////////////////////////////
 /**
- * Initialize the ADC.
+ * Initialize the ADC peripheral.
  */
 void ADC_Init(void);
 
 /**
- * Start scanning conversions on the selected channels.
+ * Initialize the ADC channel struct.
  *
- * @param channels_p Array with channel indexes.
- * @param number_of_channels Number of channel indexes.
+ * @param self_p Pointer to ADC channel struct.
+ * @param channel ADC channel.
  */
-void ADC_Start(uint8_t *channels_p, size_t number_of_channels);
+void ADC_InitChannel(struct adc_input_t *self_p, uint8_t channel);
 
 /**
- * Get the voltage for the selected channel.
+ * Start scanning conversions on the initialized channels.
+ */
+void ADC_Start(void);
+
+/**
+ * Get the voltage on the supplied channel.
  *
- * @param  channel Channel index.
+ * @param self_p Pointer to ADC channel struct.
  *
  * @return Voltage in mV.
  */
-uint32_t ADC_GetVoltage(size_t channel);
+uint32_t ADC_GetVoltage(const struct adc_input_t *self_p);
 
 #ifdef UNIT_TEST
 /**

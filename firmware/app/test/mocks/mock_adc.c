@@ -184,7 +184,7 @@ __attribute__((weak)) void adc_set_regular_sequence(uint32_t adc, uint8_t length
 {
     check_expected(adc);
     check_expected(length);
-    check_expected_ptr(channel);
+    check_expected(channel);
 }
 
 __attribute__((weak)) void adc_set_injected_sequence(uint32_t adc, uint8_t length, uint8_t channel[])
