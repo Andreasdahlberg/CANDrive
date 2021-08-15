@@ -32,6 +32,7 @@ along with CANDrive firmware.  If not, see <http://www.gnu.org/licenses/>.
 #include <libopencm3/cm3/nvic.h>
 #include <stdio.h>
 #include <string.h>
+#include "board.h"
 #include "serial.h"
 #include "logging.h"
 #include "can_interface.h"
@@ -62,7 +63,6 @@ along with CANDrive firmware.  If not, see <http://www.gnu.org/licenses/>.
 //LOCAL FUNCTION PROTOTYPES
 //////////////////////////////////////////////////////////////////////////
 
-static void SetupClock(void);
 static void SetupGPIO(void);
 
 //////////////////////////////////////////////////////////////////////////
@@ -71,7 +71,7 @@ static void SetupGPIO(void);
 
 int main(void)
 {
-    SetupClock();
+    Board_Init();
     SetupGPIO();
 
     SysTime_Init();
@@ -82,6 +82,15 @@ int main(void)
 
     logging_logger_t *logger_p = Logging_GetLogger(MAIN_LOGGER_NAME);
     Logging_SetLevel(logger_p, MAIN_LOGGER_DEBUG_LEVEL);
+
+    struct board_id_t device_id = Board_GetId();
+    Logging_Info(logger_p, "Id=%x%x%x HW=%u SW=%u",
+                 device_id.offset_0,
+                 device_id.offset_4,
+                 device_id.offset_8,
+                 Board_GetHardwareRevision(),
+                 Board_GetSoftwareRevision()
+                );
     Logging_Info(logger_p, "Application ready");
 
     uint32_t led_time = SysTime_GetSystemTime();
@@ -101,16 +110,11 @@ int main(void)
 //LOCAL FUNCTIONS
 //////////////////////////////////////////////////////////////////////////
 
-static void SetupClock(void)
-{
-    rcc_clock_setup_pll(&rcc_hse_configs[RCC_CLOCK_HSE8_72MHZ]);
-
-    /* Enable GPIO clock, for LED GPIO. */
-    rcc_periph_clock_enable(RCC_GPIOA);
-}
-
 static void SetupGPIO(void)
 {
+    /* Enable GPIO clock, for LED GPIO. */
+    rcc_periph_clock_enable(RCC_GPIOA);
+
     gpio_set(GPIO_LED_PORT, GPIO_LED);
     gpio_set_mode(GPIO_LED_PORT, GPIO_MODE_OUTPUT_50_MHZ, GPIO_CNF_OUTPUT_PUSHPULL, GPIO5);
 }
