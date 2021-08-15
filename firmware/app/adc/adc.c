@@ -56,7 +56,7 @@ struct module_t
     logging_logger_t *logger;
     volatile uint32_t sample_buffer[NUMBER_OF_READINGS_PER_SAMPLE * MAX_NUMBER_OF_CHANNELS];
     size_t number_of_channels;
-    struct adc_input_t *channels[MAX_NUMBER_OF_CHANNELS];
+    adc_input_t *channels[MAX_NUMBER_OF_CHANNELS];
 };
 
 //////////////////////////////////////////////////////////////////////////
@@ -92,7 +92,7 @@ void ADC_Init(void)
     Logging_Info(module.logger, "ADC initialized");
 }
 
-void ADC_InitChannel(struct adc_input_t *self_p, uint8_t channel)
+void ADC_InitChannel(adc_input_t *self_p, uint8_t channel)
 {
     assert(self_p != NULL);
     assert(module.number_of_channels < ElementsIn(module.channels));
@@ -120,7 +120,7 @@ void ADC_Start(void)
     Logging_Info(module.logger, "Scanning on %u channel(s).", module.number_of_channels);
 }
 
-uint32_t ADC_GetVoltage(const struct adc_input_t *self_p)
+uint32_t ADC_GetVoltage(const adc_input_t *self_p)
 {
     assert(self_p != NULL);
 

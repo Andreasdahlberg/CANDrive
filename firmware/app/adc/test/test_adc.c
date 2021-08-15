@@ -153,7 +153,7 @@ static void test_ADC_InitChannel_Invalid(void **state)
 {
     expect_assert_failure(ADC_InitChannel(NULL, 0));
 
-    struct adc_input_t adc_channel;
+    adc_input_t adc_channel;
     ADC_InitChannel(&adc_channel, 0);
     ADC_InitChannel(&adc_channel, 1);
     expect_assert_failure(ADC_InitChannel(&adc_channel, 3));
@@ -163,7 +163,7 @@ static void test_ADC_Start(void **state)
 {
     const uint8_t adc_channels[2] = {10, 11};
 
-    struct adc_input_t channels[ElementsIn(adc_channels)];
+    adc_input_t channels[ElementsIn(adc_channels)];
     for (size_t i = 0; i < ElementsIn(adc_channels); ++i)
     {
         ADC_InitChannel(&channels[i], adc_channels[i]);
@@ -182,7 +182,7 @@ static void test_ADC_GetVoltage(void **state)
 {
     const size_t number_of_readings_per_sample = 16;
     const uint8_t channels[2] = {2, 3};
-    struct adc_input_t inputs[ElementsIn(channels)];
+    adc_input_t inputs[ElementsIn(channels)];
 
     /* One channel */
     uint8_t number_of_channels = 1;

@@ -45,21 +45,24 @@ struct adc_input_t
     volatile uint32_t value;
 };
 
+typedef struct adc_input_t adc_input_t;
+
 //////////////////////////////////////////////////////////////////////////
 //FUNCTION PROTOTYPES
 //////////////////////////////////////////////////////////////////////////
+
 /**
  * Initialize the ADC peripheral.
  */
 void ADC_Init(void);
 
 /**
- * Initialize the ADC channel struct.
+ * Initialize the ADC channel instance.
  *
- * @param self_p Pointer to ADC channel struct.
+ * @param self_p Pointer to ADC channel instance.
  * @param channel ADC channel.
  */
-void ADC_InitChannel(struct adc_input_t *self_p, uint8_t channel);
+void ADC_InitChannel(adc_input_t *self_p, uint8_t channel);
 
 /**
  * Start scanning conversions on the initialized channels.
@@ -69,11 +72,11 @@ void ADC_Start(void);
 /**
  * Get the voltage on the supplied channel.
  *
- * @param self_p Pointer to ADC channel struct.
+ * @param self_p Pointer to ADC channel instance.
  *
  * @return Voltage in mV.
  */
-uint32_t ADC_GetVoltage(const struct adc_input_t *self_p);
+uint32_t ADC_GetVoltage(const adc_input_t *self_p);
 
 #ifdef UNIT_TEST
 /**
