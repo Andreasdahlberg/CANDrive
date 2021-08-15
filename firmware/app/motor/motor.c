@@ -71,19 +71,25 @@ static inline void SetGpio(uint16_t gpio, bool state);
 static inline void SetDirection(enum motor_direction_t direction);
 static inline uint32_t GetPosition(void);
 static inline void ResetPosition(void);
+static inline int16_t SenseVoltageToCurrent(const struct motor_t *self_p, uint32_t sense_voltage);
 
 //////////////////////////////////////////////////////////////////////////
 //FUNCTIONS
 //////////////////////////////////////////////////////////////////////////
 
-void Motor_Init(struct motor_t *self_p, const char *name, struct pwm_output_t *pwm_output_p)
+void Motor_Init(struct motor_t *self_p,
+                const char *name,
+                pwm_output_t *pwm_output_p,
+                adc_input_t *adc_input_p)
 {
     assert(self_p != NULL);
     assert(name != NULL);
     assert(pwm_output_p != NULL);
+    assert(adc_input_p != NULL);
 
     *self_p = (__typeof__(*self_p)) {0};
     self_p->pwm_output_p = pwm_output_p;
+    self_p->adc_input_p = adc_input_p;
     self_p->logger_p = Logging_GetLogger(name);
     Logging_SetLevel(self_p->logger_p, MOTOR_LOGGER_DEBUG_LEVEL);
 
@@ -108,7 +114,9 @@ int16_t Motor_GetRPM(const struct motor_t *self_p)
 int16_t Motor_GetCurrent(const struct motor_t *self_p)
 {
     assert(self_p != NULL);
-    return 0;
+
+    const uint32_t current_sense_voltage = ADC_GetVoltage(self_p->adc_input_p);
+    return SenseVoltageToCurrent(self_p, current_sense_voltage);
 }
 
 void Motor_SetSpeed(struct motor_t *self_p, int16_t speed)
@@ -279,4 +287,18 @@ static inline void ResetPosition(void)
 static inline uint32_t GetPosition(void)
 {
     return timer_get_counter(ENCODER_TIMER_PERIPHERAL);
+}
+
+static inline int16_t SenseVoltageToCurrent(const struct motor_t *self_p, uint32_t sense_voltage)
+{
+    assert(sense_voltage < INT16_MAX);
+
+    int16_t current = (int16_t)sense_voltage;
+
+    if (Motor_GetDirection(self_p) == MOTOR_DIR_CCW)
+    {
+        current *= -1;
+    }
+
+    return current;
 }

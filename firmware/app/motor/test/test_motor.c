@@ -37,6 +37,7 @@ along with CANDrive firmware.  If not, see <http://www.gnu.org/licenses/>.
 #include "utility.h"
 #include "motor.h"
 #include "pwm.h"
+#include "adc.h"
 
 //////////////////////////////////////////////////////////////////////////
 //DEFINES
@@ -62,7 +63,8 @@ struct motor_t motor;
 static int Setup(void **state)
 {
     const char motor_name[] = "TM1";
-    struct pwm_output_t pwm;
+    pwm_output_t pwm;
+    adc_input_t adc;
 
     motor = (__typeof__(motor)) {0};
 
@@ -74,7 +76,7 @@ static int Setup(void **state)
     expect_value(PWM_SetFrequency, frequency, DEFAULT_PWM_FREQUENCY);
     expect_value(PWM_SetDuty, duty, 0);
 
-    Motor_Init(&motor, motor_name, &pwm);
+    Motor_Init(&motor, motor_name, &pwm, &adc);
 
     return 0;
 }
@@ -86,17 +88,20 @@ static int Setup(void **state)
 static void test_Motor_Init_Error(void **state)
 {
     const char motor_name[] = "TM1";
-    struct pwm_output_t pwm;
+    pwm_output_t pwm;
+    adc_input_t adc;
 
-    expect_assert_failure(Motor_Init(NULL, motor_name, &pwm));
-    expect_assert_failure(Motor_Init(&motor, NULL, &pwm));
-    expect_assert_failure(Motor_Init(&motor, motor_name, NULL));
+    expect_assert_failure(Motor_Init(NULL, motor_name, &pwm, &adc));
+    expect_assert_failure(Motor_Init(&motor, NULL, &pwm, &adc));
+    expect_assert_failure(Motor_Init(&motor, motor_name, NULL, &adc));
+    expect_assert_failure(Motor_Init(&motor, motor_name, &pwm, NULL));
 }
 
 static void test_Motor_Init(void **state)
 {
     const char motor_name[] = "TM1";
-    struct pwm_output_t pwm;
+    pwm_output_t pwm;
+    adc_input_t adc;
 
     will_return(Logging_GetLogger, dummy_logger);
     expect_value(timer_set_period, timer_peripheral, TIM4);
@@ -106,7 +111,7 @@ static void test_Motor_Init(void **state)
     expect_value(PWM_SetFrequency, frequency, DEFAULT_PWM_FREQUENCY);
     expect_value(PWM_SetDuty, duty, 0);
 
-    Motor_Init(&motor, motor_name, &pwm);
+    Motor_Init(&motor, motor_name, &pwm, &adc);
 }
 
 static void test_Motor_GetRPM_Invalid(void **state)
@@ -126,7 +131,29 @@ static void test_Motor_GetCurrent_Invalid(void **state)
 
 static void test_Motor_GetCurrent(void **state)
 {
-    assert_int_equal(Motor_GetCurrent(&motor), 0);
+    const uint32_t current_sense_voltages[] = {0, 1, 2000, INT16_MAX - 1};
+
+    /* Clockwise -> positive current */
+    for (size_t i = 0; i < ElementsIn(current_sense_voltages); ++i)
+    {
+        will_return(ADC_GetVoltage, current_sense_voltages[i]);
+        expect_value(timer_get_direction, timer_peripheral, TIM4);
+        will_return(timer_get_direction, TIM_CR1_DIR_UP);
+
+        int16_t current = current_sense_voltages[i];
+        assert_int_equal(Motor_GetCurrent(&motor), current);
+    }
+
+    /* Counter clockwise -> negative current */
+    for (size_t i = 0; i < ElementsIn(current_sense_voltages); ++i)
+    {
+        will_return(ADC_GetVoltage, current_sense_voltages[i]);
+        expect_value(timer_get_direction, timer_peripheral, TIM4);
+        will_return(timer_get_direction, TIM_CR1_DIR_DOWN);
+
+        int16_t current = current_sense_voltages[i] * -1;
+        assert_int_equal(Motor_GetCurrent(&motor), current);
+    }
 }
 
 static void test_Motor_SetSpeed_Invalid(void **state)

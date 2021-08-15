@@ -33,6 +33,7 @@ along with CANDrive firmware.  If not, see <http://www.gnu.org/licenses/>.
 #include <stdbool.h>
 #include "logging.h"
 #include "pwm.h"
+#include "adc.h"
 
 //////////////////////////////////////////////////////////////////////////
 //DEFINES
@@ -48,10 +49,10 @@ enum motor_direction_t
     MOTOR_DIR_CCW
 };
 
-
 struct motor_t
 {
     pwm_output_t *pwm_output_p;
+    adc_input_t *adc_input_p;
     logging_logger_t *logger_p;
     int16_t speed;
     enum motor_direction_t direction;
@@ -77,9 +78,12 @@ enum motor_status_t
  * @param self_p Pointer to motor instance.
  * @param name Name of the motor instance, used for logging.
  * @param pwm_p Pointer to PWM output instance(must be initialized).
+ * @param adc_p Pointer to ADC input instance(must be initialized).
  */
-void Motor_Init(struct motor_t *self_p, const char *name, struct pwm_output_t *pwm_p);
-
+void Motor_Init(struct motor_t *self_p,
+                const char *name,
+                pwm_output_t *pwm_output_p,
+                adc_input_t *adc_input_p);
 /**
  * Get the motor RPM.
  *
