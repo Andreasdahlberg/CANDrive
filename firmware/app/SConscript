@@ -19,7 +19,23 @@ import os
 
 Import(['*'])
 
-MODULES = ['main', 'fault_handler', 'syscalls', 'logging', 'candb', 'can_interface', 'fifo', 'utility', 'serial', 'pwm', 'motor', 'adc', 'systime']
+MODULES = [
+    'main',
+    'fault_handler',
+    'syscalls',
+    'logging',
+    'candb',
+    'can_interface',
+    'fifo',
+    'utility',
+    'serial',
+    'pwm',
+    'motor',
+    'adc',
+    'systime',
+    'board'
+]
+
 module_objects = []
 
 env.Append(CPPPATH=[
