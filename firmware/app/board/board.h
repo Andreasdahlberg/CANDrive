@@ -25,14 +25,19 @@ along with CANDrive firmware.  If not, see <http://www.gnu.org/licenses/>.
 //INCLUDES
 //////////////////////////////////////////////////////////////////////////
 
-#ifndef Board_H_
-#define Board_H_
+#ifndef BOARD_H_
+#define BOARD_H_
 
 //////////////////////////////////////////////////////////////////////////
 //INCLUDES
 //////////////////////////////////////////////////////////////////////////
 
+#include <libopencm3/stm32/timer.h>
+#include <libopencm3/stm32/rcc.h>
+#include "pwm.h"
+#include "motor.h"
 #include <stdint.h>
+#include <stddef.h>
 
 //////////////////////////////////////////////////////////////////////////
 //DEFINES
@@ -42,7 +47,8 @@ along with CANDrive firmware.  If not, see <http://www.gnu.org/licenses/>.
 //TYPE DEFINITIONS
 //////////////////////////////////////////////////////////////////////////
 
-struct board_id_t {
+struct board_id_t
+{
     uint32_t offset_0;
     uint32_t offset_4;
     uint32_t offset_8;
@@ -77,5 +83,7 @@ uint32_t Board_GetSoftwareRevision(void);
  * @return 96-bit device id.
  */
 struct board_id_t Board_GetId(void);
+
+const struct motor_config_t *Board_GetMotorConfig(size_t index);
 
 #endif
