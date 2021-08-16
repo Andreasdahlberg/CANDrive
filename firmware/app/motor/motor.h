@@ -49,10 +49,45 @@ enum motor_direction_t
     MOTOR_DIR_CCW
 };
 
+struct motor_driver_config_t
+{
+    uint32_t port;
+    uint16_t sel;
+    uint16_t cs;
+    uint16_t ina;
+    uint16_t inb;
+    enum rcc_periph_clken gpio_clock;
+};
+
+struct motor_encoder_config_t
+{
+    uint32_t port;
+    uint16_t a;
+    uint16_t b;
+    enum rcc_periph_clken gpio_clock;
+    uint32_t timer;
+    enum rcc_periph_clken timer_clock;
+    enum rcc_periph_rst timer_rst;
+};
+
+struct motor_adc_config_t
+{
+    uint8_t channel;
+};
+
+struct motor_config_t
+{
+    struct pwm_config_t pwm;
+    struct motor_driver_config_t driver;
+    struct motor_encoder_config_t encoder;
+    struct motor_adc_config_t adc;
+};
+
 struct motor_t
 {
-    pwm_output_t *pwm_output_p;
-    adc_input_t *adc_input_p;
+    pwm_output_t pwm_output;
+    adc_input_t adc_input;
+    const struct motor_config_t *config_p;
     logging_logger_t *logger_p;
     int16_t speed;
     enum motor_direction_t direction;
@@ -77,13 +112,11 @@ enum motor_status_t
  *
  * @param self_p Pointer to motor instance.
  * @param name Name of the motor instance, used for logging.
- * @param pwm_p Pointer to PWM output instance(must be initialized).
- * @param adc_p Pointer to ADC input instance(must be initialized).
+ * @param config_p Pointer to motor configuration struct.
  */
 void Motor_Init(struct motor_t *self_p,
                 const char *name,
-                pwm_output_t *pwm_output_p,
-                adc_input_t *adc_input_p);
+                const struct motor_config_t *config_p);
 /**
  * Get the motor RPM.
  *
