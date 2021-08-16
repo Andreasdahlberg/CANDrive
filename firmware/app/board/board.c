@@ -26,20 +26,65 @@ along with CANDrive firmware.  If not, see <http://www.gnu.org/licenses/>.
 //////////////////////////////////////////////////////////////////////////
 
 #include <libopencm3/cm3/common.h>
-#include <libopencm3/stm32/rcc.h>
+#include <libopencm3/stm32/gpio.h>
+#include <assert.h>
+#include "utility.h"
 #include "board.h"
 
 //////////////////////////////////////////////////////////////////////////
 //DEFINES
 //////////////////////////////////////////////////////////////////////////
 
+#define NUMBER_OF_MOTORS 2
+
 //////////////////////////////////////////////////////////////////////////
 //TYPE DEFINITIONS
 //////////////////////////////////////////////////////////////////////////
 
+struct module_t
+{
+    struct motor_config_t motor_configs[NUMBER_OF_MOTORS];
+};
+
 //////////////////////////////////////////////////////////////////////////
 //VARIABLES
 //////////////////////////////////////////////////////////////////////////
+
+static const struct module_t module =
+{
+    .motor_configs = {
+        {
+            .pwm = {
+                .timer_peripheral = TIM3,
+                .remap = AFIO_MAPR_TIM3_REMAP_FULL_REMAP,
+                .gpio_port = GPIOC,
+                .gpio = GPIO8,
+                .oc_id = TIM_OC3,
+                .peripheral_clocks = {RCC_GPIOC, RCC_TIM3, RCC_AFIO}
+            },
+            .driver = {
+                .port = GPIOC,
+                .sel = GPIO0,
+                .cs = GPIO1,
+                .ina = GPIO2,
+                .inb = GPIO3,
+                .gpio_clock = RCC_GPIOC
+            },
+            .encoder = {
+                .port = GPIOB,
+                .a = GPIO6,
+                .b = GPIO7,
+                .gpio_clock = RCC_GPIOB,
+                .timer = TIM4,
+                .timer_clock = RCC_TIM4,
+                .timer_rst = RST_TIM4
+            },
+            .adc = {
+                .channel = 11
+            }
+        },
+    }
+};
 
 //////////////////////////////////////////////////////////////////////////
 //LOCAL FUNCTION PROTOTYPES
@@ -76,6 +121,13 @@ struct board_id_t Board_GetId(void)
     id.offset_8 = MMIO32(uid_base_address + 8);
 
     return id;
+}
+
+const struct motor_config_t *Board_GetMotorConfig(size_t index)
+{
+    assert(index < ElementsIn(module.motor_configs));
+
+    return &module.motor_configs[index];
 }
 
 //////////////////////////////////////////////////////////////////////////
