@@ -53,8 +53,9 @@ along with CANDrive firmware.  If not, see <http://www.gnu.org/licenses/>.
 //FUNCTIONS
 //////////////////////////////////////////////////////////////////////////
 
-__attribute__((weak)) void PWM_Init(pwm_output_t *self_p, size_t channel)
+__attribute__((weak)) void PWM_Init(pwm_output_t *self_p, const struct pwm_config_t *config_p)
 {
+    check_expected_ptr(config_p);
 }
 
 __attribute__((weak)) void PWM_SetFrequency(pwm_output_t *self_p, uint32_t frequency)

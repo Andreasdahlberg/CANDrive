@@ -25,9 +25,7 @@ along with CANDrive firmware.  If not, see <http://www.gnu.org/licenses/>.
 //INCLUDES
 //////////////////////////////////////////////////////////////////////////
 
-#include <libopencm3/stm32/rcc.h>
 #include <libopencm3/stm32/gpio.h>
-#include <libopencm3/stm32/timer.h>
 #include <libopencm3/cm3/nvic.h>
 #include <libopencm3/stm32/exti.h>
 
@@ -43,58 +41,29 @@ along with CANDrive firmware.  If not, see <http://www.gnu.org/licenses/>.
 //TYPE DEFINITIONS
 //////////////////////////////////////////////////////////////////////////
 
-struct pwm_channel_config_t
-{
-    uint32_t timer_peripheral;
-    uint32_t remap;
-    uint32_t gpio_port;
-    uint16_t gpio;
-    enum tim_oc_id oc_id;
-    enum rcc_periph_clken peripheral_clocks[3];
-};
-
-struct module_t
-{
-    const struct pwm_channel_config_t pwm_channel_configurations[1];
-};
-
 //////////////////////////////////////////////////////////////////////////
 //VARIABLES
 //////////////////////////////////////////////////////////////////////////
-
-static struct module_t module =
-{
-    .pwm_channel_configurations = {
-        {
-            .timer_peripheral = TIM3,
-            .remap = AFIO_MAPR_TIM3_REMAP_FULL_REMAP,
-            .gpio_port = GPIOC,
-            .gpio = GPIO8,
-            .oc_id = TIM_OC3,
-            .peripheral_clocks = {RCC_GPIOC, RCC_TIM3, RCC_AFIO}
-        }
-    }
-};
 
 //////////////////////////////////////////////////////////////////////////
 //LOCAL FUNCTION PROTOTYPES
 //////////////////////////////////////////////////////////////////////////
 
-static inline void EnablePeripheralClocks(const struct pwm_channel_config_t *config_p);
-static inline void SetupGPIO(const struct pwm_channel_config_t *config_p);
-static inline void SetupTimer(const struct pwm_channel_config_t *config_p);
+static inline void EnablePeripheralClocks(const struct pwm_config_t *config_p);
+static inline void SetupGPIO(const struct pwm_config_t *config_p);
+static inline void SetupTimer(const struct pwm_config_t *config_p);
 static inline uint32_t DutyToOutputCompareValue(const pwm_output_t *self_p);
 
 //////////////////////////////////////////////////////////////////////////
 //FUNCTIONS
 //////////////////////////////////////////////////////////////////////////
 
-void PWM_Init(pwm_output_t *self_p, size_t channel)
+void PWM_Init(pwm_output_t *self_p, const struct pwm_config_t *config_p)
 {
     assert(self_p != NULL);
-    assert(channel < ElementsIn(module.pwm_channel_configurations));
+    assert(config_p != NULL);
 
-    self_p->config_p = &module.pwm_channel_configurations[channel];
+    self_p->config_p = config_p;
 
     EnablePeripheralClocks(self_p->config_p);
     SetupGPIO(self_p->config_p);
@@ -144,7 +113,7 @@ void PWM_Disable(const pwm_output_t *self_p)
 //LOCAL FUNCTIONS
 //////////////////////////////////////////////////////////////////////////
 
-static void EnablePeripheralClocks(const struct pwm_channel_config_t *config_p)
+static void EnablePeripheralClocks(const struct pwm_config_t *config_p)
 {
     assert(config_p != NULL);
 
@@ -154,7 +123,7 @@ static void EnablePeripheralClocks(const struct pwm_channel_config_t *config_p)
     }
 }
 
-static void SetupGPIO(const struct pwm_channel_config_t *config_p)
+static void SetupGPIO(const struct pwm_config_t *config_p)
 {
     assert(config_p != NULL);
 
@@ -166,7 +135,7 @@ static void SetupGPIO(const struct pwm_channel_config_t *config_p)
     gpio_primary_remap(config_p->remap, 0);
 }
 
-static void SetupTimer(const struct pwm_channel_config_t *config_p)
+static void SetupTimer(const struct pwm_config_t *config_p)
 {
     assert(config_p != NULL);
 

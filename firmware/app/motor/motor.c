@@ -33,8 +33,6 @@ along with CANDrive firmware.  If not, see <http://www.gnu.org/licenses/>.
 #include "utility.h"
 #include "motor.h"
 
-#include <stdio.h>
-
 //////////////////////////////////////////////////////////////////////////
 //DEFINES
 //////////////////////////////////////////////////////////////////////////
@@ -52,25 +50,18 @@ along with CANDrive firmware.  If not, see <http://www.gnu.org/licenses/>.
 //////////////////////////////////////////////////////////////////////////
 
 static const uint32_t PWM_FREQUENCY = 20000;
-static const uint32_t GPIO_PORT = GPIOC;
-static const uint16_t GPIO_SEL = GPIO0;
-static const uint16_t GPIO_CS = GPIO1;
-static const uint16_t GPIO_INA = GPIO2;
-static const uint16_t GPIO_INB = GPIO3;
-static const enum rcc_periph_clken ENCODER_CLKEN = RCC_TIM4;
-static const uint32_t ENCODER_TIMER_PERIPHERAL = TIM4;
 
 //////////////////////////////////////////////////////////////////////////
 //LOCAL FUNCTION PROTOTYPES
 //////////////////////////////////////////////////////////////////////////
 
-static inline void SetupGPIO(void);
-static inline void SetupTimer(void);
+static inline void SetupGPIO(const struct motor_t *self_p);
+static inline void SetupTimer(const struct motor_t *self_p);
 static inline uint16_t SpeedToDutyCycle(int16_t speed);
-static inline void SetGpio(uint16_t gpio, bool state);
-static inline void SetDirection(enum motor_direction_t direction);
-static inline uint32_t GetPosition(void);
-static inline void ResetPosition(void);
+static inline void SetGpio(const struct motor_t *self_p, uint16_t gpio, bool state);
+static inline void SetDirection(const struct motor_t *self_p);
+static inline uint32_t GetPosition(const struct motor_t *self_p);
+static inline void ResetPosition(const struct motor_t *self_p);
 static inline int16_t SenseVoltageToCurrent(const struct motor_t *self_p, uint32_t sense_voltage);
 
 //////////////////////////////////////////////////////////////////////////
@@ -79,28 +70,29 @@ static inline int16_t SenseVoltageToCurrent(const struct motor_t *self_p, uint32
 
 void Motor_Init(struct motor_t *self_p,
                 const char *name,
-                pwm_output_t *pwm_output_p,
-                adc_input_t *adc_input_p)
+                const struct motor_config_t *config_p)
 {
     assert(self_p != NULL);
     assert(name != NULL);
-    assert(pwm_output_p != NULL);
-    assert(adc_input_p != NULL);
+    assert(config_p != NULL);
 
     *self_p = (__typeof__(*self_p)) {0};
-    self_p->pwm_output_p = pwm_output_p;
-    self_p->adc_input_p = adc_input_p;
+    self_p->config_p = config_p;
+
     self_p->logger_p = Logging_GetLogger(name);
     Logging_SetLevel(self_p->logger_p, MOTOR_LOGGER_DEBUG_LEVEL);
 
-    SetupGPIO();
-    SetupTimer();
+    SetupGPIO(self_p);
+    SetupTimer(self_p);
 
-    ResetPosition();
+    ResetPosition(self_p);
 
-    PWM_Disable(self_p->pwm_output_p);
-    PWM_SetFrequency(self_p->pwm_output_p, PWM_FREQUENCY);
-    PWM_SetDuty(self_p->pwm_output_p, 0);
+    ADC_InitChannel(&self_p->adc_input, self_p->config_p->adc.channel);
+
+    PWM_Init(&self_p->pwm_output, &config_p->pwm);
+    PWM_Disable(&self_p->pwm_output);
+    PWM_SetFrequency(&self_p->pwm_output, PWM_FREQUENCY);
+    PWM_SetDuty(&self_p->pwm_output, 0);
 
     Logging_Info(self_p->logger_p, "Motor(%s) initialized", name);
 }
@@ -115,7 +107,7 @@ int16_t Motor_GetCurrent(const struct motor_t *self_p)
 {
     assert(self_p != NULL);
 
-    const uint32_t current_sense_voltage = ADC_GetVoltage(self_p->adc_input_p);
+    const uint32_t current_sense_voltage = ADC_GetVoltage(&self_p->adc_input);
     return SenseVoltageToCurrent(self_p, current_sense_voltage);
 }
 
@@ -129,10 +121,10 @@ void Motor_SetSpeed(struct motor_t *self_p, int16_t speed)
 
     const uint16_t duty_cycle = SpeedToDutyCycle(speed);
 
-    PWM_Disable(self_p->pwm_output_p);
-    SetDirection(self_p->direction);
-    PWM_SetDuty(self_p->pwm_output_p, duty_cycle);
-    PWM_Enable(self_p->pwm_output_p);
+    PWM_Disable(&self_p->pwm_output);
+    SetDirection(self_p);
+    PWM_SetDuty(&self_p->pwm_output, duty_cycle);
+    PWM_Enable(&self_p->pwm_output);
 
     Logging_Debug(self_p->logger_p, "{speed: %i, duty: %u}", speed, duty_cycle);
 }
@@ -146,7 +138,7 @@ void Motor_Coast(struct motor_t *self_p)
 {
     assert(self_p != NULL);
 
-    PWM_SetDuty(self_p->pwm_output_p, 0);
+    PWM_SetDuty(&self_p->pwm_output, 0);
 
     Logging_Debug(self_p->logger_p, "Coasting enabled");
 }
@@ -155,14 +147,14 @@ void Motor_Brake(struct motor_t *self_p)
 {
     assert(self_p != NULL);
 
-    PWM_Disable(self_p->pwm_output_p);
+    PWM_Disable(&self_p->pwm_output);
 
-    SetGpio(GPIO_INA, false);
-    SetGpio(GPIO_INB, false);
+    SetGpio(self_p, self_p->config_p->driver.ina, false);
+    SetGpio(self_p, self_p->config_p->driver.inb, false);
 
     const uint32_t max_duty = 100;
-    PWM_SetDuty(self_p->pwm_output_p, max_duty);
-    PWM_Enable(self_p->pwm_output_p);
+    PWM_SetDuty(&self_p->pwm_output, max_duty);
+    PWM_Enable(&self_p->pwm_output);
 
     Logging_Debug(self_p->logger_p, "Braking enabled");
 }
@@ -177,13 +169,13 @@ enum motor_direction_t Motor_GetDirection(const struct motor_t *self_p)
 {
     assert(self_p != NULL);
 
-    return timer_get_direction(ENCODER_TIMER_PERIPHERAL) == 0 ? MOTOR_DIR_CW : MOTOR_DIR_CCW;
+    return timer_get_direction(self_p->config_p->encoder.timer) == 0 ? MOTOR_DIR_CW : MOTOR_DIR_CCW;
 }
 
 uint32_t Motor_GetPosition(const struct motor_t *self_p)
 {
     assert(self_p != NULL);
-    return (GetPosition() * 360) / 30;
+    return (GetPosition(self_p) * 360) / 30;
 }
 
 const char *Motor_DirectionToString(const struct motor_t *self_p, enum motor_direction_t direction)
@@ -206,38 +198,37 @@ const char *Motor_DirectionToString(const struct motor_t *self_p, enum motor_dir
 //LOCAL FUNCTIONS
 //////////////////////////////////////////////////////////////////////////
 
-static inline void SetupGPIO(void)
+static inline void SetupGPIO(const struct motor_t *self_p)
 {
-    rcc_periph_clock_enable(RCC_GPIOC);
+    const uint16_t gpios = self_p->config_p->driver.sel | self_p->config_p->driver.ina | self_p->config_p->driver.inb;
+    rcc_periph_clock_enable(self_p->config_p->driver.gpio_clock);
+    gpio_clear(self_p->config_p->driver.port, gpios);
+    gpio_set_mode(self_p->config_p->driver.port, GPIO_MODE_OUTPUT_50_MHZ, GPIO_CNF_OUTPUT_PUSHPULL, gpios);
+    gpio_set_mode(self_p->config_p->driver.port, GPIO_MODE_INPUT, GPIO_CNF_INPUT_ANALOG, self_p->config_p->driver.cs);
 
-    const uint16_t gpios = GPIO_SEL | GPIO_INA | GPIO_INB;
-    gpio_clear(GPIO_PORT, gpios);
-    gpio_set_mode(GPIO_PORT, GPIO_MODE_OUTPUT_50_MHZ, GPIO_CNF_OUTPUT_PUSHPULL, gpios);
-    gpio_set_mode(GPIO_PORT, GPIO_MODE_INPUT, GPIO_CNF_INPUT_ANALOG, GPIO_CS);
-
-    gpio_set_mode(GPIOB, GPIO_MODE_INPUT, GPIO_CNF_INPUT_PULL_UPDOWN, GPIO6);
-    gpio_set_mode(GPIOB, GPIO_MODE_INPUT, GPIO_CNF_INPUT_PULL_UPDOWN, GPIO7);
-    gpio_clear(GPIOB, GPIO6 | GPIO7);
+    rcc_periph_clock_enable(self_p->config_p->encoder.gpio_clock);
+    gpio_set_mode(self_p->config_p->encoder.port, GPIO_MODE_INPUT, GPIO_CNF_INPUT_PULL_UPDOWN, self_p->config_p->encoder.a);
+    gpio_set_mode(self_p->config_p->encoder.port, GPIO_MODE_INPUT, GPIO_CNF_INPUT_PULL_UPDOWN, self_p->config_p->encoder.b);
+    gpio_clear(self_p->config_p->encoder.port, self_p->config_p->encoder.a | self_p->config_p->encoder.b);
 }
 
-static inline void SetupTimer(void)
+static inline void SetupTimer(const struct motor_t *self_p)
 {
     const uint8_t encoder_mode = TIM_SMCR_SMS_EM1;
     const uint32_t counts_per_revolution = 29;
 
-    rcc_periph_clock_enable(ENCODER_CLKEN);
-    rcc_periph_reset_pulse(RST_TIM4);
+    rcc_periph_clock_enable(self_p->config_p->encoder.timer_clock);
+    rcc_periph_reset_pulse(self_p->config_p->encoder.timer_rst);
 
-    timer_set_period(ENCODER_TIMER_PERIPHERAL, counts_per_revolution);
-    timer_slave_set_mode(ENCODER_TIMER_PERIPHERAL, encoder_mode);
-    timer_ic_disable(ENCODER_TIMER_PERIPHERAL, TIM_IC1);
-    timer_ic_disable(ENCODER_TIMER_PERIPHERAL, TIM_IC2);
-    timer_ic_set_input(ENCODER_TIMER_PERIPHERAL, TIM_IC1, TIM_IC_IN_TI1);
-    timer_ic_set_input(ENCODER_TIMER_PERIPHERAL, TIM_IC2, TIM_IC_IN_TI2);
-    timer_ic_enable(ENCODER_TIMER_PERIPHERAL, TIM_IC1);
-    timer_ic_enable(ENCODER_TIMER_PERIPHERAL, TIM_IC2);
-
-    timer_enable_counter(ENCODER_TIMER_PERIPHERAL);
+    timer_set_period(self_p->config_p->encoder.timer, counts_per_revolution);
+    timer_slave_set_mode(self_p->config_p->encoder.timer, encoder_mode);
+    timer_ic_disable(self_p->config_p->encoder.timer, TIM_IC1);
+    timer_ic_disable(self_p->config_p->encoder.timer, TIM_IC2);
+    timer_ic_set_input(self_p->config_p->encoder.timer, TIM_IC1, TIM_IC_IN_TI1);
+    timer_ic_set_input(self_p->config_p->encoder.timer, TIM_IC2, TIM_IC_IN_TI2);
+    timer_ic_enable(self_p->config_p->encoder.timer, TIM_IC1);
+    timer_ic_enable(self_p->config_p->encoder.timer, TIM_IC2);
+    timer_enable_counter(self_p->config_p->encoder.timer);
 }
 
 static inline uint16_t SpeedToDutyCycle(int16_t speed)
@@ -251,42 +242,42 @@ static inline uint16_t SpeedToDutyCycle(int16_t speed)
     return duty_cycle;
 }
 
-static void SetGpio(uint16_t gpio, bool state)
+static inline void SetGpio(const struct motor_t *self_p, uint16_t gpio, bool state)
 {
     if (state)
     {
-        gpio_set(GPIO_PORT, gpio);
+        gpio_set(self_p->config_p->driver.port, gpio);
     }
     else
     {
-        gpio_clear(GPIO_PORT, gpio);
+        gpio_clear(self_p->config_p->driver.port, gpio);
     }
 }
 
-static inline void SetDirection(enum motor_direction_t direction)
+static inline void SetDirection(const struct motor_t *self_p)
 {
-    if (direction == MOTOR_DIR_CW)
+    if (self_p->direction == MOTOR_DIR_CW)
     {
-        SetGpio(GPIO_INA, true);
-        SetGpio(GPIO_INB, false);
-        SetGpio(GPIO_SEL, true);
+        SetGpio(self_p, self_p->config_p->driver.ina, true);
+        SetGpio(self_p, self_p->config_p->driver.inb, false);
+        SetGpio(self_p, self_p->config_p->driver.sel, true);
     }
     else
     {
-        SetGpio(GPIO_INA, false);
-        SetGpio(GPIO_INB, true);
-        SetGpio(GPIO_SEL, false);
+        SetGpio(self_p, self_p->config_p->driver.ina, false);
+        SetGpio(self_p, self_p->config_p->driver.inb, true);
+        SetGpio(self_p, self_p->config_p->driver.sel, false);
     }
 }
 
-static inline void ResetPosition(void)
+static inline void ResetPosition(const struct motor_t *self_p)
 {
-    timer_set_counter(ENCODER_TIMER_PERIPHERAL, 0);
+    timer_set_counter(self_p->config_p->encoder.timer, 0);
 }
 
-static inline uint32_t GetPosition(void)
+static inline uint32_t GetPosition(const struct motor_t *self_p)
 {
-    return timer_get_counter(ENCODER_TIMER_PERIPHERAL);
+    return timer_get_counter(self_p->config_p->encoder.timer);
 }
 
 static inline int16_t SenseVoltageToCurrent(const struct motor_t *self_p, uint32_t sense_voltage)

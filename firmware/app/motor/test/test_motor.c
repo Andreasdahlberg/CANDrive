@@ -33,6 +33,7 @@ along with CANDrive firmware.  If not, see <http://www.gnu.org/licenses/>.
 #include <stdio.h>
 #include <stdbool.h>
 #include <stdlib.h>
+#include <libopencm3/stm32/gpio.h>
 #include <libopencm3/stm32/timer.h>
 #include "utility.h"
 #include "motor.h"
@@ -52,6 +53,38 @@ along with CANDrive firmware.  If not, see <http://www.gnu.org/licenses/>.
 //VARIABLES
 //////////////////////////////////////////////////////////////////////////
 
+const static struct motor_config_t motor_config =
+{
+    .pwm = {
+        .timer_peripheral = TIM3,
+        .remap = AFIO_MAPR_TIM3_REMAP_FULL_REMAP,
+        .gpio_port = GPIOC,
+        .gpio = GPIO8,
+        .oc_id = TIM_OC3,
+        .peripheral_clocks = {RCC_GPIOC, RCC_TIM3, RCC_AFIO}
+    },
+    .driver = {
+        .port = GPIOC,
+        .sel = GPIO0,
+        .cs = GPIO1,
+        .ina = GPIO2,
+        .inb = GPIO3,
+        .gpio_clock = RCC_GPIOC
+    },
+    .encoder = {
+        .port = GPIOB,
+        .a = GPIO6,
+        .b = GPIO7,
+        .gpio_clock = RCC_GPIOB,
+        .timer = TIM4,
+        .timer_clock = RCC_TIM4,
+        .timer_rst = RST_TIM4
+    },
+    .adc = {
+        .channel = 11
+    }
+};
+
 static struct logging_logger_t *dummy_logger;
 const uint32_t DEFAULT_PWM_FREQUENCY = 20000;
 struct motor_t motor;
@@ -63,21 +96,18 @@ struct motor_t motor;
 static int Setup(void **state)
 {
     const char motor_name[] = "TM1";
-    pwm_output_t pwm;
-    adc_input_t adc;
-
     motor = (__typeof__(motor)) {0};
 
     will_return(Logging_GetLogger, dummy_logger);
-    expect_value(timer_set_period, timer_peripheral, TIM4);
+    expect_value(timer_set_period, timer_peripheral, motor_config.encoder.timer);
     expect_value(timer_set_period, period, 29);
-    expect_value(timer_enable_counter, timer_peripheral, TIM4);
+    expect_value(timer_enable_counter, timer_peripheral, motor_config.encoder.timer);
+    expect_value(PWM_Init, config_p, &motor_config.pwm);
     expect_function_call(PWM_Disable);
     expect_value(PWM_SetFrequency, frequency, DEFAULT_PWM_FREQUENCY);
     expect_value(PWM_SetDuty, duty, 0);
 
-    Motor_Init(&motor, motor_name, &pwm, &adc);
-
+    Motor_Init(&motor, motor_name, &motor_config);
     return 0;
 }
 
@@ -88,13 +118,10 @@ static int Setup(void **state)
 static void test_Motor_Init_Error(void **state)
 {
     const char motor_name[] = "TM1";
-    pwm_output_t pwm;
-    adc_input_t adc;
 
-    expect_assert_failure(Motor_Init(NULL, motor_name, &pwm, &adc));
-    expect_assert_failure(Motor_Init(&motor, NULL, &pwm, &adc));
-    expect_assert_failure(Motor_Init(&motor, motor_name, NULL, &adc));
-    expect_assert_failure(Motor_Init(&motor, motor_name, &pwm, NULL));
+    expect_assert_failure(Motor_Init(NULL, motor_name, &motor_config));
+    expect_assert_failure(Motor_Init(&motor, NULL, &motor_config));
+    expect_assert_failure(Motor_Init(&motor, motor_name, NULL));
 }
 
 static void test_Motor_Init(void **state)
@@ -104,14 +131,15 @@ static void test_Motor_Init(void **state)
     adc_input_t adc;
 
     will_return(Logging_GetLogger, dummy_logger);
-    expect_value(timer_set_period, timer_peripheral, TIM4);
+    expect_value(timer_set_period, timer_peripheral, motor_config.encoder.timer);
     expect_value(timer_set_period, period, 29);
-    expect_value(timer_enable_counter, timer_peripheral, TIM4);
+    expect_value(timer_enable_counter, timer_peripheral, motor_config.encoder.timer);
+    expect_value(PWM_Init, config_p, &motor_config.pwm);
     expect_function_call(PWM_Disable);
     expect_value(PWM_SetFrequency, frequency, DEFAULT_PWM_FREQUENCY);
     expect_value(PWM_SetDuty, duty, 0);
 
-    Motor_Init(&motor, motor_name, &pwm, &adc);
+    Motor_Init(&motor, motor_name, &motor_config);
 }
 
 static void test_Motor_GetRPM_Invalid(void **state)
@@ -137,7 +165,7 @@ static void test_Motor_GetCurrent(void **state)
     for (size_t i = 0; i < ElementsIn(current_sense_voltages); ++i)
     {
         will_return(ADC_GetVoltage, current_sense_voltages[i]);
-        expect_value(timer_get_direction, timer_peripheral, TIM4);
+        expect_value(timer_get_direction, timer_peripheral, motor_config.encoder.timer);
         will_return(timer_get_direction, TIM_CR1_DIR_UP);
 
         int16_t current = current_sense_voltages[i];
@@ -148,7 +176,7 @@ static void test_Motor_GetCurrent(void **state)
     for (size_t i = 0; i < ElementsIn(current_sense_voltages); ++i)
     {
         will_return(ADC_GetVoltage, current_sense_voltages[i]);
-        expect_value(timer_get_direction, timer_peripheral, TIM4);
+        expect_value(timer_get_direction, timer_peripheral, motor_config.encoder.timer);
         will_return(timer_get_direction, TIM_CR1_DIR_DOWN);
 
         int16_t current = current_sense_voltages[i] * -1;
@@ -244,11 +272,11 @@ static void test_Motor_GetDirection_Invalid(void **state)
 
 static void test_Motor_GetDirection(void **state)
 {
-    expect_value(timer_get_direction, timer_peripheral, TIM4);
+    expect_value(timer_get_direction, timer_peripheral, motor_config.encoder.timer);
     will_return(timer_get_direction, TIM_CR1_DIR_UP);
     assert_int_equal(Motor_GetDirection(&motor), MOTOR_DIR_CW);
 
-    expect_value(timer_get_direction, timer_peripheral, TIM4);
+    expect_value(timer_get_direction, timer_peripheral, motor_config.encoder.timer);
     will_return(timer_get_direction, TIM_CR1_DIR_DOWN);
     assert_int_equal(Motor_GetDirection(&motor), MOTOR_DIR_CCW);
 }
@@ -264,7 +292,7 @@ static void test_Motor_GetPosition(void **state)
 
     for (size_t i = 0; i < ElementsIn(counter_data); ++i)
     {
-        expect_value(timer_get_counter, timer_peripheral, TIM4);
+        expect_value(timer_get_counter, timer_peripheral, motor_config.encoder.timer);
         will_return(timer_get_counter, counter_data[i]);
 
         uint32_t expect_position = (counter_data[i] * 360) / 30;
