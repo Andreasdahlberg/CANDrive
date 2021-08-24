@@ -72,6 +72,19 @@ void Serial_Send(const void *data_p, size_t size)
     }
 }
 
+size_t Serial_Read(void *buffer_p, size_t size)
+{
+    size_t result = 0;
+
+    if (size > 0 && usart_get_flag(USART2, USART_SR_RXNE))
+    {
+        *((uint8_t *)buffer_p) = (uint8_t)usart_recv(USART2);
+        result = 1;
+    }
+
+    return result;
+}
+
 //////////////////////////////////////////////////////////////////////////
 //LOCAL FUNCTIONS
 //////////////////////////////////////////////////////////////////////////
@@ -97,6 +110,6 @@ static inline void USARTSetup(uint32_t baud_rate)
     usart_set_stopbits(USART2, USART_STOPBITS_1);
     usart_set_parity(USART2, USART_PARITY_NONE);
     usart_set_flow_control(USART2, USART_FLOWCONTROL_NONE);
-    usart_set_mode(USART2, USART_MODE_TX);
+    usart_set_mode(USART2, USART_MODE_TX_RX);
     usart_enable(USART2);
 }

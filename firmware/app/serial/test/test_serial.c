@@ -102,6 +102,24 @@ void test_Serial_Send(void **state)
     Serial_Send(data, strlen(data));
 }
 
+static void test_Serial_Read(void **state)
+{
+    uint8_t buffer[8] = {0};
+
+    /* Read zero bytes. */
+    assert_int_equal(Serial_Read(buffer, 0), 0);
+
+    /* No data available */
+    will_return(usart_get_flag, false);
+    assert_int_equal(Serial_Read(buffer, 1), 0);
+
+    /* Data available */
+    will_return(usart_get_flag, true);
+    will_return(usart_recv, 0xAD);
+    assert_int_equal(Serial_Read(buffer, 1), 1);
+    assert_int_equal(buffer[0], 0xAD);
+}
+
 //////////////////////////////////////////////////////////////////////////
 //FUNCTIONS
 //////////////////////////////////////////////////////////////////////////
@@ -111,7 +129,8 @@ int main(int argc, char *argv[])
     const struct CMUnitTest test_FIFO[] =
     {
         cmocka_unit_test(test_Serial_Init),
-        cmocka_unit_test_setup(test_Serial_Send, Setup)
+        cmocka_unit_test_setup(test_Serial_Send, Setup),
+        cmocka_unit_test_setup(test_Serial_Read, Setup)
     };
 
     if (argc >= 2)
