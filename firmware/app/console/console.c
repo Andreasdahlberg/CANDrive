@@ -134,8 +134,7 @@ void Console_Process(void)
 
 bool Console_GetInt32Argument(int32_t *argument_p)
 {
-    char *argument_token;
-    argument_token = strtok(NULL, CONSOLE_DELIMITER);
+    const char *argument_token = strtok(NULL, CONSOLE_DELIMITER);
 
     bool status = false;
     if (argument_token != NULL)
@@ -143,11 +142,11 @@ bool Console_GetInt32Argument(int32_t *argument_p)
         errno = 0;
 
         char *end_p = NULL;
-        long int result = strtol(argument_token, &end_p, 0);
+        int32_t result = strtol(argument_token, &end_p, 0);
 
-        if (argument_token != end_p || errno == 0)
+        if ((argument_token != end_p) || (errno == 0))
         {
-            *argument_p = (int32_t)result;
+            *argument_p = result;
             status = true;
         }
     }
@@ -193,8 +192,7 @@ static inline void ClearLineBuffer(void)
 
 static bool ParseLineBuffer(void)
 {
-    char *command_token;
-    command_token = strtok(self.line_buffer, CONSOLE_DELIMITER);
+    const char *command_token = strtok(self.line_buffer, CONSOLE_DELIMITER);
 
     bool status = false;
     if (command_token != NULL)

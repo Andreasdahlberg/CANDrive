@@ -76,7 +76,7 @@ size_t Serial_Read(void *buffer_p, size_t size)
 {
     size_t result = 0;
 
-    if (size > 0 && usart_get_flag(USART2, USART_SR_RXNE))
+    if ((size > 0) && usart_get_flag(USART2, USART_SR_RXNE))
     {
         *((uint8_t *)buffer_p) = (uint8_t)usart_recv(USART2);
         result = 1;
