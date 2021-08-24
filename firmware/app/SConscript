@@ -33,7 +33,8 @@ MODULES = [
     'motor',
     'adc',
     'systime',
-    'board'
+    'board',
+    'console'
 ]
 
 module_objects = []
