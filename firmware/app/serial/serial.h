@@ -60,4 +60,14 @@ void Serial_Init(uint32_t baud_rate);
  */
 void Serial_Send(const void *data_p, size_t size);
 
+/**
+ * Read serial data.
+ *
+ * @param  buffer_p Pointer to destination buffer.
+ * @param  size Max number of bytes to read.
+ *
+ * @return Number of bytes received.
+ */
+size_t Serial_Read(void *buffer_p, size_t size);
+
 #endif

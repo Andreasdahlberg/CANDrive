@@ -102,7 +102,7 @@ __attribute__((weak)) void usart_send(uint32_t usart, uint16_t data)
 
 __attribute__((weak)) uint16_t usart_recv(uint32_t usart)
 {
-
+    return mock_type(uint16_t);
 }
 
 __attribute__((weak)) void usart_wait_send_ready(uint32_t usart)
@@ -198,7 +198,7 @@ __attribute__((weak)) void usart_disable_error_interrupt(uint32_t usart)
 
 __attribute__((weak)) bool usart_get_flag(uint32_t usart, uint32_t flag)
 {
-    mock_type(bool);
+    return mock_type(bool);
 }
 
 //////////////////////////////////////////////////////////////////////////
