@@ -188,23 +188,50 @@ static void test_Console(void **state)
     Console_RegisterCommand("mock_command", MockCommandHandler);
     Console_RegisterCommand("mock_command_args", MockCommandHandlerWithArgs);
 
-    ExpectCommand("invalid_command");
-    ExpectEndOfCommand(false);
-
     will_return(MockCommandHandler, true);
     ExpectCommand("mock_command");
     ExpectEndOfCommand(true);
-
-    will_return(MockCommandHandler, false);
-    ExpectCommand("mock_command");
-    ExpectEndOfCommand(false);
 
     expect_string(MockCommandHandlerWithArgs, arg_string, "foobar");
     expect_value(MockCommandHandlerWithArgs, arg_int32, 512);
     expect_value(MockCommandHandlerWithArgs, arg_bool, true);
     ExpectCommand("mock_command_args foobar 512 1");
     ExpectEndOfCommand(true);
+}
 
+static void test_Console_InvalidCommand(void **state)
+{
+    Console_RegisterCommand("mock_command", MockCommandHandler);
+    Console_RegisterCommand("mock_command_args", MockCommandHandlerWithArgs);
+
+    ExpectCommand("invalid_command");
+    ExpectEndOfCommand(false);
+
+    will_return(MockCommandHandler, false);
+    ExpectCommand("mock_command");
+    ExpectEndOfCommand(false);
+}
+
+static void test_Console_CommandTooLong(void **state)
+{
+    ExpectCommand("very___long___invalid___command");
+    ExpectRead("a");
+    ExpectWrite("\r> ");
+    ExpectWrite("very___long___invalid___command");
+    ExpectEndOfCommand(false);
+    Console_Process();
+}
+
+static void test_Console_NonPrintableChar(void **state)
+{
+    char cmd[] = {0x7F, 0x00};
+    ExpectRead(cmd);
+    Console_Process();
+
+    char end_of_command[] = "\r";
+    ExpectRead(end_of_command);
+    ExpectWrite("\r\n> ");
+    Console_Process();
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -219,6 +246,9 @@ int main(int argc, char *argv[])
         cmocka_unit_test(test_Console_Init),
         cmocka_unit_test_setup(test_Console_RegisterCommand_Invalid, Setup),
         cmocka_unit_test_setup(test_Console, Setup),
+        cmocka_unit_test_setup(test_Console_InvalidCommand, Setup),
+        cmocka_unit_test_setup(test_Console_CommandTooLong, Setup),
+        cmocka_unit_test_setup(test_Console_NonPrintableChar, Setup),
     };
 
     if (argc >= 2)
