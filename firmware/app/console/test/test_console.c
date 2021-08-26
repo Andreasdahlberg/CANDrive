@@ -211,6 +211,26 @@ static void test_Console_InvalidCommand(void **state)
     ExpectEndOfCommand(false);
 }
 
+static void test_Console_InvalidArguments(void **state)
+{
+    Console_RegisterCommand("mock_command", MockCommandHandler);
+
+    ExpectCommand("mock_command");
+    int32_t int32_arg;
+    bool arg_bool;
+    char *arg_string;
+    assert_false(Console_GetArgument(&int32_arg));
+    assert_false(Console_GetArgument(&arg_bool));
+    assert_false(Console_GetArgument(&arg_string));
+    will_return(MockCommandHandler, false);
+    ExpectEndOfCommand(false);
+
+    ExpectCommand("mock_command foo");
+    assert_false(Console_GetArgument(&int32_arg));
+    will_return(MockCommandHandler, false);
+    ExpectEndOfCommand(false);
+}
+
 static void test_Console_CommandTooLong(void **state)
 {
     ExpectCommand("very___long___invalid___command");
@@ -278,10 +298,11 @@ int main(int argc, char *argv[])
         cmocka_unit_test_setup(test_Console_RegisterCommand_Invalid, Setup),
         cmocka_unit_test_setup(test_Console, Setup),
         cmocka_unit_test_setup(test_Console_InvalidCommand, Setup),
+        cmocka_unit_test_setup(test_Console_InvalidArguments, Setup),
         cmocka_unit_test_setup(test_Console_CommandTooLong, Setup),
         cmocka_unit_test_setup(test_Console_NonPrintableChar, Setup),
         cmocka_unit_test_setup(test_Console_Backspace, Setup),
-        cmocka_unit_test_setup(test_Console_NoInput, Setup),
+        cmocka_unit_test_setup(test_Console_NoInput, Setup)
     };
 
     if (argc >= 2)
