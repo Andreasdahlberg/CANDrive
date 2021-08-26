@@ -144,7 +144,7 @@ bool Console_GetInt32Argument(int32_t *argument_p)
         char *end_p = NULL;
         int32_t result = strtol(argument_token, &end_p, 0);
 
-        if ((argument_token != end_p) || (errno == 0))
+        if ((argument_token != end_p) && (errno == 0))
         {
             *argument_p = result;
             status = true;
