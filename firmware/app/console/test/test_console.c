@@ -234,6 +234,29 @@ static void test_Console_NonPrintableChar(void **state)
     Console_Process();
 }
 
+static void test_Console_Backspace(void **state)
+{
+    ExpectCommand("ab");
+
+    char backspace[] = "\b";
+    ExpectRead(backspace);
+    ExpectWrite("\r> ");
+    ExpectWrite("a ");
+    ExpectWrite("\r> ");
+    ExpectWrite("a");
+    Console_Process();
+
+    ExpectRead(backspace);
+    ExpectWrite("\r> ");
+    ExpectWrite(" ");
+    ExpectWrite("\r> ");
+    ExpectWrite("");
+    Console_Process();
+
+    ExpectRead(backspace);
+    Console_Process();
+}
+
 //////////////////////////////////////////////////////////////////////////
 //FUNCTIONS
 //////////////////////////////////////////////////////////////////////////
@@ -249,6 +272,7 @@ int main(int argc, char *argv[])
         cmocka_unit_test_setup(test_Console_InvalidCommand, Setup),
         cmocka_unit_test_setup(test_Console_CommandTooLong, Setup),
         cmocka_unit_test_setup(test_Console_NonPrintableChar, Setup),
+        cmocka_unit_test_setup(test_Console_Backspace, Setup)
     };
 
     if (argc >= 2)
