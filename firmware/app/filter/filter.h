@@ -50,7 +50,7 @@ along with CANDrive firmware.  If not, see <http://www.gnu.org/licenses/>.
 
 struct filter_t
 {
-    int32_t value;
+    uint32_t value;
     uint32_t alpha;
 };
 
