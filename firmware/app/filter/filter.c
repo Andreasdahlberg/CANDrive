@@ -62,7 +62,7 @@ void Filter_Process(struct filter_t *self_p, uint32_t sample)
 
     /* Use 64-bits to prevent overflow. */
     uint64_t tmp = (uint64_t)self_p->alpha * (uint64_t)sample +
-                   (uint64_t)(UINT32_MAX - self_p->alpha) * (uint64_t)self_p->value;
+                   (UINT32_MAX - self_p->alpha) * (uint64_t)self_p->value;
 
     /* Scale back to 32-bit. */
     self_p->value = (uint32_t)((tmp + UINT32_MAX / 2) / UINT32_MAX);
