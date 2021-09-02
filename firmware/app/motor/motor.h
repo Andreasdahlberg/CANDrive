@@ -90,7 +90,6 @@ struct motor_t
     const struct motor_config_t *config_p;
     logging_logger_t *logger_p;
     int16_t speed;
-    enum motor_direction_t direction;
 };
 
 enum motor_status_t

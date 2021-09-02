@@ -116,9 +116,7 @@ void Motor_SetSpeed(struct motor_t *self_p, int16_t speed)
     assert(self_p != NULL);
     assert(speed >= -100 && speed <= 100);
 
-    self_p->direction = speed >= 0 ? MOTOR_DIR_CW : MOTOR_DIR_CCW;
     self_p->speed = speed;
-
     const uint16_t duty_cycle = SpeedToDutyCycle(speed);
 
     PWM_Disable(&self_p->pwm_output);
@@ -256,17 +254,21 @@ static inline void SetGpio(const struct motor_t *self_p, uint16_t gpio, bool sta
 
 static inline void SetDirection(const struct motor_t *self_p)
 {
-    if (self_p->direction == MOTOR_DIR_CW)
+    if (self_p->speed > 0)
     {
         SetGpio(self_p, self_p->config_p->driver.ina, true);
         SetGpio(self_p, self_p->config_p->driver.inb, false);
         SetGpio(self_p, self_p->config_p->driver.sel, true);
     }
-    else
+    else if (self_p->speed < 0)
     {
         SetGpio(self_p, self_p->config_p->driver.ina, false);
         SetGpio(self_p, self_p->config_p->driver.inb, true);
         SetGpio(self_p, self_p->config_p->driver.sel, false);
+    }
+    else
+    {
+        /*Do not update the direction when the speed is set to 0.*/
     }
 }
 
