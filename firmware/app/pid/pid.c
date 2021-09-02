@@ -139,6 +139,10 @@ static inline int32_t GetIntegral(const struct pid_t *self_p, int32_t error)
         {
             integral = 0;
         }
+        else
+        {
+            /* No need to update the integral if it's not saturated. */
+        }
     }
     else
     {
@@ -162,6 +166,10 @@ static inline uint32_t LimitCV(const struct pid_t *self_p, int64_t cv)
     else if (cv > self_p->parameters.cvmax)
     {
         cv = self_p->parameters.cvmax;
+    }
+    else
+    {
+        /* No need to update the control variable if it's not saturated. */
     }
 
     return (uint32_t)cv;
