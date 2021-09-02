@@ -48,13 +48,26 @@ along with CANDrive firmware.  If not, see <http://www.gnu.org/licenses/>.
 //VARIABLES
 //////////////////////////////////////////////////////////////////////////
 
-//////////////////////////////////////////////////////////////////////////
-//FUNCTION PROTOTYPES
-//////////////////////////////////////////////////////////////////////////
+static struct pid_t pid;
+static struct pid_parameters_t parameters;
 
 //////////////////////////////////////////////////////////////////////////
 //LOCAL FUNCTIONS
 //////////////////////////////////////////////////////////////////////////
+
+static int Setup(void **state)
+{
+    PID_Init(&pid);
+
+    parameters.kp = 10;
+    parameters.ki = 10;
+    parameters.kd = 1;
+    parameters.imax = 1000;
+    parameters.cvmax = 100;
+    parameters.scale = 100;
+
+    return 0;
+}
 
 //////////////////////////////////////////////////////////////////////////
 //TESTS
@@ -89,6 +102,19 @@ static void test_PID_GetParameters_Invalid(void **state)
     expect_assert_failure(PID_GetParameters(NULL));
 }
 
+static void test_PID_SetGetParameters(void **state)
+{
+    PID_SetParameters(&pid, &parameters);
+
+    struct pid_parameters_t *set_parameters = PID_GetParameters(&pid);
+    assert_int_equal(set_parameters->kp, parameters.kp);
+    assert_int_equal(set_parameters->ki, parameters.ki);
+    assert_int_equal(set_parameters->kd, parameters.kd);
+    assert_int_equal(set_parameters->imax, parameters.imax);
+    assert_int_equal(set_parameters->cvmax, parameters.cvmax);
+    assert_int_equal(set_parameters->scale, parameters.scale);
+}
+
 static void test_PID_GetOutput_Invalid(void **state)
 {
     expect_assert_failure(PID_GetOutput(NULL));
@@ -107,6 +133,7 @@ int main(int argc, char *argv[])
         cmocka_unit_test(test_PID_SetSetpoint_Invalid),
         cmocka_unit_test(test_PID_SetParameters_Invalid),
         cmocka_unit_test(test_PID_GetParameters_Invalid),
+        cmocka_unit_test_setup(test_PID_SetGetParameters, Setup),
         cmocka_unit_test(test_PID_GetOutput_Invalid),
     };
 
