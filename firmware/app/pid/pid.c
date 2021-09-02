@@ -159,20 +159,22 @@ static inline int32_t GetDerivative(const struct pid_t *self_p, int32_t error)
 
 static inline uint32_t LimitCV(const struct pid_t *self_p, int64_t cv)
 {
+    uint32_t limited_cv;
+
     if (cv < 0)
     {
-        cv = 0;
+        limited_cv = 0;
     }
     else if (cv > self_p->parameters.cvmax)
     {
-        cv = self_p->parameters.cvmax;
+        limited_cv = self_p->parameters.cvmax;
     }
     else
     {
-        /* No need to update the control variable if it's not saturated. */
+        limited_cv = (uint32_t)cv;
     }
 
-    return (uint32_t)cv;
+    return limited_cv;
 }
 
 static inline bool IsCVSaturated(const struct pid_t *self_p)
