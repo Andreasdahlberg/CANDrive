@@ -130,6 +130,11 @@ const struct motor_config_t *Board_GetMotorConfig(size_t index)
     return &module.motor_configs[index];
 }
 
+size_t Board_GetNumberOfMotors(void)
+{
+    return ElementsIn(module.motor_configs);
+}
+
 //////////////////////////////////////////////////////////////////////////
 //LOCAL FUNCTIONS
 //////////////////////////////////////////////////////////////////////////
