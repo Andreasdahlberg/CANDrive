@@ -35,7 +35,8 @@ MODULES = [
     'systime',
     'board',
     'console',
-    'filter'
+    'filter',
+    'pid'
 ]
 
 module_objects = []
