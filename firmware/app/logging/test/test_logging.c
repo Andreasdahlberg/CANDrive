@@ -96,7 +96,10 @@ void test_Logging_GetLogger_NoAvailableLoggers(void **state)
     assert_non_null(Logging_GetLogger("TestLoggerB"));
     assert_non_null(Logging_GetLogger("TestLoggerC"));
     assert_non_null(Logging_GetLogger("TestLoggerD"));
-    assert_null(Logging_GetLogger("TestLoggerE"));
+    assert_non_null(Logging_GetLogger("TestLoggerE"));
+    assert_non_null(Logging_GetLogger("TestLoggerF"));
+    assert_non_null(Logging_GetLogger("TestLoggerG"));
+    assert_null(Logging_GetLogger("TestLoggerI"));
     assert_non_null(Logging_GetLogger("TestLoggerA"));
 }
 
