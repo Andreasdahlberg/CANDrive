@@ -44,11 +44,11 @@ along with CANDrive firmware.  If not, see <http://www.gnu.org/licenses/>.
 //LOCAL FUNCTION PROTOTYPES
 //////////////////////////////////////////////////////////////////////////
 
-static inline int32_t GetError(struct pid_t *self_p, uint32_t pv);
-static inline int32_t GetIntegral(struct pid_t *self_p, int32_t error);
-static inline int32_t GetDerivative(struct pid_t *self_p, int32_t error);
-static inline uint32_t LimitCV(struct pid_t *self_p, int64_t cv);
-static inline bool IsCVSaturated(struct pid_t *self_p);
+static inline int32_t GetError(const struct pid_t *self_p, uint32_t pv);
+static inline int32_t GetIntegral(const struct pid_t *self_p, int32_t error);
+static inline int32_t GetDerivative(const struct pid_t *self_p, int32_t error);
+static inline uint32_t LimitCV(const struct pid_t *self_p, int64_t cv);
+static inline bool IsCVSaturated(const struct pid_t *self_p);
 
 //////////////////////////////////////////////////////////////////////////
 //FUNCTIONS
@@ -115,7 +115,7 @@ uint32_t PID_GetOutput(const struct pid_t *self_p)
 //LOCAL FUNCTIONS
 //////////////////////////////////////////////////////////////////////////
 
-static inline int32_t GetError(struct pid_t *self_p, uint32_t pv)
+static inline int32_t GetError(const struct pid_t *self_p, uint32_t pv)
 {
     assert(self_p->sp <= INT32_MAX);
     assert(pv <= INT32_MAX);
@@ -123,7 +123,7 @@ static inline int32_t GetError(struct pid_t *self_p, uint32_t pv)
     return (int32_t)self_p->sp - (int32_t)pv;
 }
 
-static inline int32_t GetIntegral(struct pid_t *self_p, int32_t error)
+static inline int32_t GetIntegral(const struct pid_t *self_p, int32_t error)
 {
     int32_t integral;
 
@@ -148,12 +148,12 @@ static inline int32_t GetIntegral(struct pid_t *self_p, int32_t error)
     return integral;
 }
 
-static inline int32_t GetDerivative(struct pid_t *self_p, int32_t error)
+static inline int32_t GetDerivative(const struct pid_t *self_p, int32_t error)
 {
     return error - self_p->last_error;
 }
 
-static inline uint32_t LimitCV(struct pid_t *self_p, int64_t cv)
+static inline uint32_t LimitCV(const struct pid_t *self_p, int64_t cv)
 {
     if (cv < 0)
     {
@@ -167,8 +167,7 @@ static inline uint32_t LimitCV(struct pid_t *self_p, int64_t cv)
     return (uint32_t)cv;
 }
 
-static inline bool IsCVSaturated(struct pid_t *self_p)
+static inline bool IsCVSaturated(const struct pid_t *self_p)
 {
     return self_p->cv >= self_p->parameters.cvmax;
 }
-
