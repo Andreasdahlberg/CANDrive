@@ -44,10 +44,10 @@ along with CANDrive firmware.  If not, see <http://www.gnu.org/licenses/>.
 //LOCAL FUNCTION PROTOTYPES
 //////////////////////////////////////////////////////////////////////////
 
-static inline int32_t GetError(const struct pid_t *self_p, uint32_t pv);
+static inline int32_t GetError(const struct pid_t *self_p, int32_t pv);
 static inline int32_t GetIntegral(const struct pid_t *self_p, int32_t error);
 static inline int32_t GetDerivative(const struct pid_t *self_p, int32_t error);
-static inline uint32_t LimitCV(const struct pid_t *self_p, int64_t cv);
+static inline int32_t LimitCV(const struct pid_t *self_p, int64_t cv);
 static inline bool IsCVSaturated(const struct pid_t *self_p);
 
 //////////////////////////////////////////////////////////////////////////
@@ -61,7 +61,7 @@ void PID_Init(struct pid_t *self_p)
     *self_p = (__typeof__(*self_p)) {0};
 }
 
-uint32_t PID_Update(struct pid_t *self_p, uint32_t input)
+int32_t PID_Update(struct pid_t *self_p, int32_t input)
 {
     assert(self_p != NULL);
 
@@ -82,7 +82,7 @@ uint32_t PID_Update(struct pid_t *self_p, uint32_t input)
     return self_p->cv;
 }
 
-void PID_SetSetpoint(struct pid_t *self_p, uint32_t setpoint)
+void PID_SetSetpoint(struct pid_t *self_p, int32_t setpoint)
 {
     assert(self_p != NULL);
 
@@ -104,7 +104,7 @@ struct pid_parameters_t *PID_GetParameters(struct pid_t *self_p)
     return &self_p->parameters;
 }
 
-uint32_t PID_GetOutput(const struct pid_t *self_p)
+int32_t PID_GetOutput(const struct pid_t *self_p)
 {
     assert(self_p != NULL);
 
@@ -115,12 +115,9 @@ uint32_t PID_GetOutput(const struct pid_t *self_p)
 //LOCAL FUNCTIONS
 //////////////////////////////////////////////////////////////////////////
 
-static inline int32_t GetError(const struct pid_t *self_p, uint32_t pv)
+static inline int32_t GetError(const struct pid_t *self_p, int32_t pv)
 {
-    assert(self_p->sp <= INT32_MAX);
-    assert(pv <= INT32_MAX);
-
-    return (int32_t)self_p->sp - (int32_t)pv;
+    return self_p->sp - pv;
 }
 
 static inline int32_t GetIntegral(const struct pid_t *self_p, int32_t error)
@@ -131,7 +128,7 @@ static inline int32_t GetIntegral(const struct pid_t *self_p, int32_t error)
     {
         integral = self_p->last_integral + error;
 
-        if (integral > (int32_t)self_p->parameters.imax)
+        if (integral > self_p->parameters.imax)
         {
             integral = self_p->parameters.imax;
         }
@@ -157,9 +154,9 @@ static inline int32_t GetDerivative(const struct pid_t *self_p, int32_t error)
     return error - self_p->last_error;
 }
 
-static inline uint32_t LimitCV(const struct pid_t *self_p, int64_t cv)
+static inline int32_t LimitCV(const struct pid_t *self_p, int64_t cv)
 {
-    uint32_t limited_cv;
+    int32_t limited_cv;
 
     if (cv < 0)
     {
@@ -171,7 +168,7 @@ static inline uint32_t LimitCV(const struct pid_t *self_p, int64_t cv)
     }
     else
     {
-        limited_cv = (uint32_t)cv;
+        limited_cv = cv;
     }
 
     return limited_cv;

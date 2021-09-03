@@ -42,20 +42,20 @@ along with CANDrive firmware.  If not, see <http://www.gnu.org/licenses/>.
 
 struct pid_parameters_t
 {
-    uint32_t kp;
-    uint32_t ki;
-    uint32_t kd;
-    uint32_t imax;
-    uint32_t cvmax;
-    uint32_t scale;
+    int32_t kp;
+    int32_t ki;
+    int32_t kd;
+    int32_t imax;
+    int32_t cvmax;
+    int32_t scale;
 };
 
 struct pid_t
 {
     int32_t last_error;
     int32_t last_integral;
-    uint32_t cv;
-    uint32_t sp;
+    int32_t cv;
+    int32_t sp;
     struct pid_parameters_t parameters;
 };
 
@@ -78,7 +78,7 @@ void PID_Init(struct pid_t *self_p);
  *
  * @return New output value(cv).
  */
-uint32_t PID_Update(struct pid_t *self_p, uint32_t input);
+int32_t PID_Update(struct pid_t *self_p, int32_t input);
 
 /**
  * Set the set point for the PID controller.
@@ -86,7 +86,7 @@ uint32_t PID_Update(struct pid_t *self_p, uint32_t input);
  * @param self_p Pointer to a PID controller instance.
  * @param setpoint Set point(sp).
  */
-void PID_SetSetpoint(struct pid_t *self_p, uint32_t setpoint);
+void PID_SetSetpoint(struct pid_t *self_p, int32_t setpoint);
 
 /**
  * Set the parameters for the PID controller.
@@ -112,6 +112,6 @@ struct pid_parameters_t *PID_GetParameters(struct pid_t *self_p);
  *
  * @return Output value(cv).
  */
-uint32_t PID_GetOutput(const struct pid_t *self_p);
+int32_t PID_GetOutput(const struct pid_t *self_p);
 
 #endif

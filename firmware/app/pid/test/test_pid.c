@@ -87,7 +87,7 @@ static void test_PID_Update_ControlVariableLimit(void **state)
 {
     assert_int_equal(PID_GetOutput(&pid), 0);
 
-    const uint32_t cv_limits[] = {0, 1, 100};
+    const int32_t cv_limits[] = {0, 1, 100};
     for (size_t i = 0; i < ElementsIn(cv_limits); ++i)
     {
         parameters.kp = cv_limits[i];
@@ -103,6 +103,14 @@ static void test_PID_Update_ControlVariableLimit(void **state)
 
         assert_int_equal(PID_GetOutput(&pid), parameters.cvmax);
     }
+}
+
+static void test_PID_Update_NegativeControlVariable(void **state)
+{
+    PID_SetParameters(&pid, &parameters);
+    PID_SetSetpoint(&pid, 1);
+    PID_Update(&pid, 1000);
+    assert_int_equal(PID_GetOutput(&pid), 0);
 }
 
 static void test_PID_SetSetpoint_Invalid(void **state)
@@ -153,6 +161,7 @@ int main(int argc, char *argv[])
         cmocka_unit_test(test_PID_Init_Invalid),
         cmocka_unit_test(test_PID_Update_Invalid),
         cmocka_unit_test_setup(test_PID_Update_ControlVariableLimit, Setup),
+        cmocka_unit_test_setup(test_PID_Update_NegativeControlVariable, Setup),
         cmocka_unit_test(test_PID_SetSetpoint_Invalid),
         cmocka_unit_test(test_PID_SetParameters_Invalid),
         cmocka_unit_test(test_PID_GetParameters_Invalid),
