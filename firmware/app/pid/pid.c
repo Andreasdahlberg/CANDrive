@@ -168,7 +168,7 @@ static inline int32_t LimitCV(const struct pid_t *self_p, int64_t cv)
     }
     else
     {
-        limited_cv = cv;
+        limited_cv = (int32_t)cv;
     }
 
     return limited_cv;
