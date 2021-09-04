@@ -100,7 +100,7 @@ static int Setup(void **state)
 
     will_return(Logging_GetLogger, dummy_logger);
     expect_value(timer_set_period, timer_peripheral, motor_config.encoder.timer);
-    expect_value(timer_set_period, period, 29);
+    expect_value(timer_set_period, period, MOTOR_COUNTS_PER_REVOLUTION - 1);
     expect_value(timer_enable_counter, timer_peripheral, motor_config.encoder.timer);
     expect_value(PWM_Init, config_p, &motor_config.pwm);
     expect_function_call(PWM_Disable);
@@ -132,7 +132,7 @@ static void test_Motor_Init(void **state)
 
     will_return(Logging_GetLogger, dummy_logger);
     expect_value(timer_set_period, timer_peripheral, motor_config.encoder.timer);
-    expect_value(timer_set_period, period, 29);
+    expect_value(timer_set_period, period, MOTOR_COUNTS_PER_REVOLUTION - 1);
     expect_value(timer_enable_counter, timer_peripheral, motor_config.encoder.timer);
     expect_value(PWM_Init, config_p, &motor_config.pwm);
     expect_function_call(PWM_Disable);
@@ -288,14 +288,14 @@ static void test_Motor_GetPosition_Invalid(void **state)
 
 static void test_Motor_GetPosition(void **state)
 {
-    uint32_t counter_data[] = {0, 1, 28, 29};
+    uint32_t counter_data[] = {0, 1, 4500, MOTOR_COUNTS_PER_REVOLUTION - 1};
 
     for (size_t i = 0; i < ElementsIn(counter_data); ++i)
     {
         expect_value(timer_get_counter, timer_peripheral, motor_config.encoder.timer);
         will_return(timer_get_counter, counter_data[i]);
 
-        uint32_t expect_position = (counter_data[i] * 360) / 30;
+        uint32_t expect_position = (counter_data[i] * 360) / MOTOR_COUNTS_PER_REVOLUTION;
         assert_int_equal(Motor_GetPosition(&motor), expect_position);
     }
 }
