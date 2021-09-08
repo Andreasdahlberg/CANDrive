@@ -36,7 +36,8 @@ MODULES = [
     'board',
     'console',
     'filter',
-    'pid'
+    'pid',
+    'motor_controller'
 ]
 
 module_objects = []
