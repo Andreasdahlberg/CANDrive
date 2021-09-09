@@ -105,6 +105,9 @@ struct motor_t
     logging_logger_t *logger_p;
     int16_t speed;
     enum motor_status_t status;
+    int32_t count;
+    int16_t rpm;
+    uint32_t timer;
 };
 
 //////////////////////////////////////////////////////////////////////////
@@ -121,6 +124,14 @@ struct motor_t
 void Motor_Init(struct motor_t *self_p,
                 const char *name,
                 const struct motor_config_t *config_p);
+
+/**
+ * Update the internal state of the motor instance.
+ *
+ * @param self_p Pointer to motor instance.
+ */
+void Motor_Update(struct motor_t *self_p);
+
 /**
  * Get the motor RPM.
  *

@@ -111,6 +111,25 @@ static int Setup(void **state)
     return 0;
 }
 
+static int16_t CountToRPM(uint32_t count)
+{
+    const uint32_t sample_frequency = 100;
+    return ((count * sample_frequency * 60) + (MOTOR_COUNTS_PER_REVOLUTION / 2)) /  MOTOR_COUNTS_PER_REVOLUTION;
+}
+
+static void ExpectUpdate(uint32_t time_difference, uint32_t count)
+{
+    will_return(SysTime_GetDifference, time_difference);
+    if (time_difference >= 10)
+    {
+        expect_value(timer_get_counter, timer_peripheral, motor_config.encoder.timer);
+        will_return(timer_get_counter, count);
+        expect_value(timer_get_direction, timer_peripheral, motor_config.encoder.timer);
+        will_return(timer_get_direction, TIM_CR1_DIR_UP);
+        will_return(SysTime_GetSystemTime, time_difference);
+    }
+}
+
 //////////////////////////////////////////////////////////////////////////
 //TESTS
 //////////////////////////////////////////////////////////////////////////
@@ -150,6 +169,45 @@ static void test_Motor_GetRPM_Invalid(void **state)
 static void test_Motor_GetRPM(void **state)
 {
     assert_int_equal(Motor_GetRPM(&motor), 0);
+}
+
+static void test_Motor_Update_Invalid(void **state)
+{
+    expect_assert_failure(Motor_Update(NULL));
+}
+
+static void test_Motor_Update(void **state)
+{
+    /* Not time for update */
+    ExpectUpdate(9, 0);
+    Motor_Update(&motor);
+    assert_int_equal(Motor_GetRPM(&motor), 0);
+
+    const uint32_t counts[] = {0, 0, 1, 51, 158};
+    for (size_t i = 1; i < ElementsIn(counts); ++i)
+    {
+        ExpectUpdate(10, counts[i]);
+        Motor_Update(&motor);
+        const uint32_t count_diff = counts[i] - counts[i - 1];
+        assert_int_equal(Motor_GetRPM(&motor), CountToRPM(count_diff));
+    }
+}
+
+static void test_Motor_Update_WrapAround(void **state)
+{
+    ExpectUpdate(10, 9550);
+    Motor_Update(&motor);
+    ExpectUpdate(10, 49);
+    Motor_Update(&motor);
+    assert_int_equal(Motor_GetRPM(&motor), CountToRPM(100));
+
+    /* TODO: test reverse wrap around */
+}
+
+static void test_Motor_Update_NegativeDiff(void **state)
+{
+    /* TODO: Implement */
+    skip();
 }
 
 static void test_Motor_GetCurrent_Invalid(void **state)
@@ -332,6 +390,10 @@ int main(int argc, char *argv[])
         cmocka_unit_test(test_Motor_Init),
         cmocka_unit_test_setup(test_Motor_GetRPM_Invalid, Setup),
         cmocka_unit_test_setup(test_Motor_GetRPM, Setup),
+        cmocka_unit_test_setup(test_Motor_Update_Invalid, Setup),
+        cmocka_unit_test_setup(test_Motor_Update, Setup),
+        cmocka_unit_test_setup(test_Motor_Update_WrapAround, Setup),
+        cmocka_unit_test_setup(test_Motor_Update_NegativeDiff, Setup),
         cmocka_unit_test_setup(test_Motor_GetCurrent_Invalid, Setup),
         cmocka_unit_test_setup(test_Motor_GetCurrent, Setup),
         cmocka_unit_test_setup(test_Motor_SetSpeed_Invalid, Setup),
