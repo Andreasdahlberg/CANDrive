@@ -31,6 +31,7 @@ along with CANDrive firmware.  If not, see <http://www.gnu.org/licenses/>.
 #include <libopencm3/cm3/nvic.h>
 #include <assert.h>
 #include "utility.h"
+#include "systime.h"
 #include "motor.h"
 
 //////////////////////////////////////////////////////////////////////////
@@ -50,6 +51,7 @@ along with CANDrive firmware.  If not, see <http://www.gnu.org/licenses/>.
 //////////////////////////////////////////////////////////////////////////
 
 static const uint32_t PWM_FREQUENCY = 20000;
+static const uint32_t RPM_SAMPLE_FREQUENCY = 100;
 
 //////////////////////////////////////////////////////////////////////////
 //LOCAL FUNCTION PROTOTYPES
@@ -63,6 +65,8 @@ static inline void SetDirection(const struct motor_t *self_p);
 static inline uint32_t GetPosition(const struct motor_t *self_p);
 static inline void ResetPosition(const struct motor_t *self_p);
 static inline int16_t SenseVoltageToCurrent(const struct motor_t *self_p, uint32_t sense_voltage);
+static inline int32_t GetCountDifference(struct motor_t *self_p, int32_t count);
+static inline int32_t CountToRPM(int32_t count);
 
 //////////////////////////////////////////////////////////////////////////
 //FUNCTIONS
@@ -98,10 +102,32 @@ void Motor_Init(struct motor_t *self_p,
     Logging_Info(self_p->logger_p, "Motor(%s) initialized", name);
 }
 
+void Motor_Update(struct motor_t *self_p)
+{
+    assert(self_p != NULL);
+    const uint32_t update_period_ms = 1000 / RPM_SAMPLE_FREQUENCY;
+
+    if (SysTime_GetDifference(self_p->timer) >= update_period_ms)
+    {
+        const int32_t count = GetPosition(self_p);
+        const int32_t difference = GetCountDifference(self_p, count);
+
+        /* TODO: Check direction here! */
+        if (difference >= 0)
+        {
+            self_p->rpm = CountToRPM(difference);
+        }
+
+        self_p->count = count;
+        Logging_Debug(self_p->logger_p, "RPM: %i, Speed: %i, Diff: %i, Cnt: %i", self_p->rpm, self_p->speed, difference, count);
+        self_p->timer = SysTime_GetSystemTime();
+    }
+}
+
 int16_t Motor_GetRPM(const struct motor_t *self_p)
 {
     assert(self_p != NULL);
-    return 0;
+    return self_p->rpm;
 }
 
 int16_t Motor_GetCurrent(const struct motor_t *self_p)
@@ -300,4 +326,33 @@ static inline int16_t SenseVoltageToCurrent(const struct motor_t *self_p, uint32
     }
 
     return current;
+}
+
+static inline int32_t GetCountDifference(struct motor_t *self_p, int32_t count)
+{
+    const uint32_t dir = timer_get_direction(self_p->config_p->encoder.timer);
+    const bool wrap_around = dir ? self_p->count <count : self_p->count> count;
+    int32_t difference;
+    if (wrap_around)
+    {
+        if (dir)
+        {
+            difference = (count - MOTOR_COUNTS_PER_REVOLUTION) - self_p->count - 1;
+        }
+        else
+        {
+            difference = (MOTOR_COUNTS_PER_REVOLUTION - self_p->count) + count + 1;
+        }
+    }
+    else
+    {
+        difference = count - self_p->count;
+    }
+
+    return difference;
+}
+
+static inline int32_t CountToRPM(int32_t count)
+{
+    return (count * RPM_SAMPLE_FREQUENCY * 60 + (MOTOR_COUNTS_PER_REVOLUTION / 2)) / MOTOR_COUNTS_PER_REVOLUTION;
 }
