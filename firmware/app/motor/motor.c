@@ -78,6 +78,7 @@ void Motor_Init(struct motor_t *self_p,
 
     *self_p = (__typeof__(*self_p)) {0};
     self_p->config_p = config_p;
+    self_p->status = MOTOR_RUN;
 
     self_p->logger_p = Logging_GetLogger(name);
     Logging_SetLevel(self_p->logger_p, MOTOR_LOGGER_DEBUG_LEVEL);
@@ -116,20 +117,24 @@ void Motor_SetSpeed(struct motor_t *self_p, int16_t speed)
     assert(self_p != NULL);
     assert(speed >= -100 && speed <= 100);
 
-    self_p->speed = speed;
-    const uint16_t duty_cycle = SpeedToDutyCycle(speed);
+    if (self_p->status != MOTOR_RUN || speed != self_p->speed)
+    {
+        self_p->speed = speed;
+        const uint16_t duty_cycle = SpeedToDutyCycle(speed);
 
-    PWM_Disable(&self_p->pwm_output);
-    SetDirection(self_p);
-    PWM_SetDuty(&self_p->pwm_output, duty_cycle);
-    PWM_Enable(&self_p->pwm_output);
+        PWM_Disable(&self_p->pwm_output);
+        SetDirection(self_p);
+        PWM_SetDuty(&self_p->pwm_output, duty_cycle);
+        PWM_Enable(&self_p->pwm_output);
 
-    Logging_Debug(self_p->logger_p, "{speed: %i, duty: %u}", speed, duty_cycle);
+        Logging_Debug(self_p->logger_p, "{speed: %i, duty: %u}", speed, duty_cycle);
+    }
 }
 
 void Motor_Run(struct motor_t *self_p)
 {
     Motor_SetSpeed(self_p, self_p->speed);
+    self_p->status = MOTOR_RUN;
 }
 
 void Motor_Coast(struct motor_t *self_p)
@@ -137,6 +142,7 @@ void Motor_Coast(struct motor_t *self_p)
     assert(self_p != NULL);
 
     PWM_SetDuty(&self_p->pwm_output, 0);
+    self_p->status = MOTOR_COAST;
 
     Logging_Debug(self_p->logger_p, "Coasting enabled");
 }
@@ -153,6 +159,7 @@ void Motor_Brake(struct motor_t *self_p)
     const uint32_t max_duty = 100;
     PWM_SetDuty(&self_p->pwm_output, max_duty);
     PWM_Enable(&self_p->pwm_output);
+    self_p->status = MOTOR_BRAKE;
 
     Logging_Debug(self_p->logger_p, "Braking enabled");
 }
@@ -160,7 +167,7 @@ void Motor_Brake(struct motor_t *self_p)
 enum motor_status_t Motor_GetStatus(const struct motor_t *self_p)
 {
     assert(self_p != NULL);
-    return MOTOR_UNKNOWN;
+    return self_p->status;
 }
 
 enum motor_direction_t Motor_GetDirection(const struct motor_t *self_p)

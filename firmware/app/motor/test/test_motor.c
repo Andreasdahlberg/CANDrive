@@ -210,6 +210,16 @@ static void test_Motor_SetSpeed(void **state)
     }
 }
 
+static void test_Motor_GetStatus_Invalid(void **state)
+{
+    expect_assert_failure(Motor_GetStatus(NULL));
+}
+
+static void test_Motor_GetStatus(void **state)
+{
+    assert_int_equal(Motor_GetStatus(&motor), MOTOR_RUN);
+}
+
 static void test_Motor_Coast_Invalid(void **state)
 {
     expect_assert_failure(Motor_Coast(NULL));
@@ -219,8 +229,22 @@ static void test_Motor_Coast(void **state)
 {
     expect_value(PWM_SetDuty, duty, 0);
     Motor_Coast(&motor);
+    assert_int_equal(Motor_GetStatus(&motor), MOTOR_COAST);
 }
 
+static void test_Motor_Brake_Invalid(void **state)
+{
+    expect_assert_failure(Motor_Brake(NULL));
+}
+
+static void test_Motor_Brake(void **state)
+{
+    expect_function_call(PWM_Disable);
+    expect_value(PWM_SetDuty, duty, 100);
+    expect_function_call(PWM_Enable);
+    Motor_Brake(&motor);
+    assert_int_equal(Motor_GetStatus(&motor), MOTOR_BRAKE);
+}
 static void test_Motor_Run(void **state)
 {
     const int16_t speed = 75;
@@ -240,29 +264,18 @@ static void test_Motor_Run(void **state)
     expect_value(PWM_SetDuty, duty, speed);
     expect_function_call(PWM_Enable);
     Motor_Run(&motor);
-}
 
-static void test_Motor_Brake_Invalid(void **state)
-{
-    expect_assert_failure(Motor_Brake(NULL));
-}
-
-static void test_Motor_Brake(void **state)
-{
+    /* Brake */
     expect_function_call(PWM_Disable);
     expect_value(PWM_SetDuty, duty, 100);
     expect_function_call(PWM_Enable);
     Motor_Brake(&motor);
-}
 
-static void test_Motor_GetStatus_Invalid(void **state)
-{
-    expect_assert_failure(Motor_GetStatus(NULL));
-}
-
-static void test_Motor_GetStatus(void **state)
-{
-    assert_int_equal(Motor_GetStatus(&motor), MOTOR_UNKNOWN);
+    /*Run motor again and expect the set speed again. */
+    expect_function_call(PWM_Disable);
+    expect_value(PWM_SetDuty, duty, speed);
+    expect_function_call(PWM_Enable);
+    Motor_Run(&motor);
 }
 
 static void test_Motor_GetDirection_Invalid(void **state)
@@ -313,7 +326,7 @@ static void test_Motor_DirectionToString(void **state)
 
 int main(int argc, char *argv[])
 {
-    const struct CMUnitTest test_FIFO[] =
+    const struct CMUnitTest test_motor[] =
     {
         cmocka_unit_test(test_Motor_Init_Error),
         cmocka_unit_test(test_Motor_Init),
@@ -323,13 +336,13 @@ int main(int argc, char *argv[])
         cmocka_unit_test_setup(test_Motor_GetCurrent, Setup),
         cmocka_unit_test_setup(test_Motor_SetSpeed_Invalid, Setup),
         cmocka_unit_test_setup(test_Motor_SetSpeed, Setup),
-        cmocka_unit_test_setup(test_Motor_Coast_Invalid, Setup),
-        cmocka_unit_test_setup(test_Motor_Coast, Setup),
-        cmocka_unit_test_setup(test_Motor_Run, Setup),
-        cmocka_unit_test_setup(test_Motor_Brake_Invalid, Setup),
-        cmocka_unit_test_setup(test_Motor_Brake, Setup),
         cmocka_unit_test_setup(test_Motor_GetStatus_Invalid, Setup),
         cmocka_unit_test_setup(test_Motor_GetStatus, Setup),
+        cmocka_unit_test_setup(test_Motor_Coast_Invalid, Setup),
+        cmocka_unit_test_setup(test_Motor_Coast, Setup),
+        cmocka_unit_test_setup(test_Motor_Brake_Invalid, Setup),
+        cmocka_unit_test_setup(test_Motor_Brake, Setup),
+        cmocka_unit_test_setup(test_Motor_Run, Setup),
         cmocka_unit_test_setup(test_Motor_GetDirection_Invalid, Setup),
         cmocka_unit_test_setup(test_Motor_GetDirection, Setup),
         cmocka_unit_test_setup(test_Motor_GetPosition_Invalid, Setup),
@@ -343,5 +356,5 @@ int main(int argc, char *argv[])
         cmocka_set_test_filter(argv[1]);
     }
 
-    return cmocka_run_group_tests(test_FIFO, NULL, NULL);
+    return cmocka_run_group_tests(test_motor, NULL, NULL);
 }
