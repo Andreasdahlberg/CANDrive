@@ -51,6 +51,18 @@ enum motor_direction_t
     MOTOR_DIR_CCW
 };
 
+enum motor_status_t
+{
+    MOTOR_RUN = 0,
+    MOTOR_COAST,
+    MOTOR_BRAKE,
+    MOTOR_UNKNOWN,
+    MOTOR_SHORT_TO_GROUND,
+    MOTOR_SHORT_TO_VCC,
+    MOTOR_OPEN_LOAD,
+    MOTOR_THERMAL_SHUTDOWN
+};
+
 struct motor_driver_config_t
 {
     uint32_t port;
@@ -92,16 +104,7 @@ struct motor_t
     const struct motor_config_t *config_p;
     logging_logger_t *logger_p;
     int16_t speed;
-};
-
-enum motor_status_t
-{
-    MOTOR_OK = 0,
-    MOTOR_UNKNOWN,
-    MOTOR_SHORT_TO_GROUND,
-    MOTOR_SHORT_TO_VCC,
-    MOTOR_OPEN_LOAD,
-    MOTOR_THERMAL_SHUTDOWN
+    enum motor_status_t status;
 };
 
 //////////////////////////////////////////////////////////////////////////
