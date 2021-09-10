@@ -77,7 +77,7 @@ __attribute__((weak)) void PID_SetParameters(struct pid_t *self_p, const struct 
 __attribute__((weak)) struct pid_parameters_t *PID_GetParameters(struct pid_t *self_p)
 {
     assert_non_null(self_p);
-    return mock_type(struct pid_parameters_t*);
+    return mock_type(struct pid_parameters_t *);
 }
 
 __attribute__((weak)) int32_t PID_GetOutput(const struct pid_t *self_p)
