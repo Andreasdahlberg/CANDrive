@@ -130,6 +130,13 @@ static void ExpectUpdate(uint32_t time_difference, uint32_t count)
     }
 }
 
+static void ExpectNewDuty(uint32_t duty)
+{
+    expect_function_call(PWM_Disable);
+    expect_value(PWM_SetDuty, duty, duty);
+    expect_function_call(PWM_Enable);
+}
+
 //////////////////////////////////////////////////////////////////////////
 //TESTS
 //////////////////////////////////////////////////////////////////////////
@@ -259,11 +266,13 @@ static void test_Motor_SetSpeed(void **state)
     for (size_t i = 0; i < ElementsIn(speeds); ++i)
     {
         const int16_t speed = speeds[i];
+        ExpectNewDuty(abs(speed));
+        Motor_SetSpeed(&motor, speed);
 
-        expect_function_call(PWM_Disable);
-        expect_value(PWM_SetDuty, duty, abs(speed));
-        expect_function_call(PWM_Enable);
-
+        /**
+         * Call Motor_SetSpeed() again to make sure that PWM duty is not updated
+         * if the speed is the same.
+         */
         Motor_SetSpeed(&motor, speed);
     }
 }
@@ -297,9 +306,7 @@ static void test_Motor_Brake_Invalid(void **state)
 
 static void test_Motor_Brake(void **state)
 {
-    expect_function_call(PWM_Disable);
-    expect_value(PWM_SetDuty, duty, 100);
-    expect_function_call(PWM_Enable);
+    ExpectNewDuty(100);
     Motor_Brake(&motor);
     assert_int_equal(Motor_GetStatus(&motor), MOTOR_BRAKE);
 }
@@ -308,9 +315,7 @@ static void test_Motor_Run(void **state)
     const int16_t speed = 75;
 
     /* Set speed */
-    expect_function_call(PWM_Disable);
-    expect_value(PWM_SetDuty, duty, speed);
-    expect_function_call(PWM_Enable);
+    ExpectNewDuty(speed);
     Motor_SetSpeed(&motor, speed);
 
     /* Coast */
@@ -318,21 +323,15 @@ static void test_Motor_Run(void **state)
     Motor_Coast(&motor);
 
     /*Run motor again and expect the set speed again. */
-    expect_function_call(PWM_Disable);
-    expect_value(PWM_SetDuty, duty, speed);
-    expect_function_call(PWM_Enable);
+    ExpectNewDuty(speed);
     Motor_Run(&motor);
 
     /* Brake */
-    expect_function_call(PWM_Disable);
-    expect_value(PWM_SetDuty, duty, 100);
-    expect_function_call(PWM_Enable);
+    ExpectNewDuty(100);
     Motor_Brake(&motor);
 
     /*Run motor again and expect the set speed again. */
-    expect_function_call(PWM_Disable);
-    expect_value(PWM_SetDuty, duty, speed);
-    expect_function_call(PWM_Enable);
+    ExpectNewDuty(speed);
     Motor_Run(&motor);
 }
 
