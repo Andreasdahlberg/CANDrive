@@ -331,11 +331,11 @@ static inline int16_t SenseVoltageToCurrent(const struct motor_t *self_p, uint32
 static inline int32_t GetCountDifference(const struct motor_t *self_p, int32_t count)
 {
     const uint32_t dir = timer_get_direction(self_p->config_p->encoder.timer);
-    const bool wrap_around = dir ? self_p->count <count : self_p->count> count;
+    const bool wrap_around = (dir != 0) ? self_p->count < count : self_p->count > count;
     int32_t difference;
     if (wrap_around)
     {
-        if (dir)
+        if (dir != 0)
         {
             difference = (count - MOTOR_COUNTS_PER_REVOLUTION) - self_p->count - 1;
         }

@@ -50,8 +50,11 @@ along with CANDrive firmware.  If not, see <http://www.gnu.org/licenses/>.
 //////////////////////////////////////////////////////////////////////////
 
 static bool GetIndex(size_t *index_p);
+static bool IsIndexArgValid(int32_t arg);
 static bool GetRPM(int16_t *rpm_p);
+static bool IsRPMArgValid(int32_t arg);
 static bool GetCurrent(int16_t *current_p);
+static bool IsCurrentArgValid(int32_t arg);
 
 //////////////////////////////////////////////////////////////////////////
 //FUNCTIONS
@@ -120,16 +123,18 @@ static bool GetIndex(size_t *index_p)
     bool status = false;
 
     int32_t arg;
-    if (Console_GetArgument(&arg))
+    if (Console_GetArgument(&arg) && IsIndexArgValid(arg))
     {
-        if (arg >= 0 && (size_t)arg < Board_GetNumberOfMotors())
-        {
-            *index_p = (size_t)arg;
-            status = true;
-        }
+        *index_p = (size_t)arg;
+        status = true;
     }
 
     return status;
+}
+
+static bool IsIndexArgValid(int32_t arg)
+{
+    return (arg >= 0) && ((size_t)arg < Board_GetNumberOfMotors());
 }
 
 static bool GetRPM(int16_t *rpm_p)
@@ -137,16 +142,18 @@ static bool GetRPM(int16_t *rpm_p)
     bool status = false;
 
     int32_t arg;
-    if (Console_GetArgument(&arg))
+    if (Console_GetArgument(&arg) && IsRPMArgValid(arg))
     {
-        if (arg >= INT16_MIN && arg <= INT16_MAX)
-        {
-            *rpm_p = (int16_t)arg;
-            status = true;
-        }
+        *rpm_p = (int16_t)arg;
+        status = true;
     }
 
     return status;
+}
+
+static bool IsRPMArgValid(int32_t arg)
+{
+    return (arg >= INT16_MIN) && (arg <= INT16_MAX);
 }
 
 static bool GetCurrent(int16_t *current_p)
@@ -154,14 +161,16 @@ static bool GetCurrent(int16_t *current_p)
     bool status = false;
 
     int32_t arg;
-    if (Console_GetArgument(&arg))
+    if (Console_GetArgument(&arg) && IsCurrentArgValid(arg))
     {
-        if (arg >= INT16_MIN && arg <= INT16_MAX)
-        {
-            *current_p = (int16_t)arg;
-            status = true;
-        }
+        *current_p = (int16_t)arg;
+        status = true;
     }
 
     return status;
+}
+
+static bool IsCurrentArgValid(int32_t arg)
+{
+    return (arg >= INT16_MIN) && (arg <= INT16_MAX);
 }
