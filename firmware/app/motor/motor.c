@@ -65,7 +65,7 @@ static inline void SetDirection(const struct motor_t *self_p);
 static inline uint32_t GetPosition(const struct motor_t *self_p);
 static inline void ResetPosition(const struct motor_t *self_p);
 static inline int16_t SenseVoltageToCurrent(const struct motor_t *self_p, uint32_t sense_voltage);
-static inline int32_t GetCountDifference(struct motor_t *self_p, int32_t count);
+static inline int32_t GetCountDifference(const struct motor_t *self_p, int32_t count);
 static inline int32_t CountToRPM(int32_t count);
 
 //////////////////////////////////////////////////////////////////////////
@@ -109,13 +109,13 @@ void Motor_Update(struct motor_t *self_p)
 
     if (SysTime_GetDifference(self_p->timer) >= update_period_ms)
     {
-        const int32_t count = GetPosition(self_p);
+        const int32_t count = (int32_t)GetPosition(self_p);
         const int32_t difference = GetCountDifference(self_p, count);
 
         /* TODO: Check direction here! */
         if (difference >= 0)
         {
-            self_p->rpm = CountToRPM(difference);
+            self_p->rpm = (int16_t)CountToRPM(difference);
         }
 
         self_p->count = count;
@@ -143,7 +143,7 @@ void Motor_SetSpeed(struct motor_t *self_p, int16_t speed)
     assert(self_p != NULL);
     assert(speed >= -100 && speed <= 100);
 
-    if (self_p->status != MOTOR_RUN || speed != self_p->speed)
+    if ((self_p->status != MOTOR_RUN) || (speed != self_p->speed))
     {
         self_p->speed = speed;
         const uint16_t duty_cycle = SpeedToDutyCycle(speed);
@@ -328,7 +328,7 @@ static inline int16_t SenseVoltageToCurrent(const struct motor_t *self_p, uint32
     return current;
 }
 
-static inline int32_t GetCountDifference(struct motor_t *self_p, int32_t count)
+static inline int32_t GetCountDifference(const struct motor_t *self_p, int32_t count)
 {
     const uint32_t dir = timer_get_direction(self_p->config_p->encoder.timer);
     const bool wrap_around = dir ? self_p->count <count : self_p->count> count;

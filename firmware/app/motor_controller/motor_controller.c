@@ -174,7 +174,8 @@ static inline void InitializeMotors(void)
 
 static inline void UpdateMotors(void)
 {
-    for (size_t i = 0; i < Board_GetNumberOfMotors(); ++i)
+    const size_t number_of_motors = Board_GetNumberOfMotors();
+    for (size_t i = 0; i < number_of_motors; ++i)
     {
         Motor_Update(&module.instances[i].motor);
     }
@@ -182,12 +183,13 @@ static inline void UpdateMotors(void)
 
 static inline void UpdateMotorSpeeds(void)
 {
-    for (size_t i = 0; i < Board_GetNumberOfMotors(); ++i)
+    const size_t number_of_motors = Board_GetNumberOfMotors();
+    for (size_t i = 0; i < number_of_motors; ++i)
     {
         struct motor_instance_t *instance_p = &module.instances[i];
-        const uint32_t rpm_cv = PID_Update(&instance_p->rpm_pid, Motor_GetRPM(&instance_p->motor));
-        const uint32_t current_cv = PID_Update(&instance_p->current_pid, Motor_GetCurrent(&instance_p->motor));
-        const uint32_t cv = (current_cv < rpm_cv) ? current_cv : rpm_cv;
-        Motor_SetSpeed(&instance_p->motor, cv);
+        const int32_t rpm_cv = PID_Update(&instance_p->rpm_pid, Motor_GetRPM(&instance_p->motor));
+        const int32_t current_cv = PID_Update(&instance_p->current_pid, Motor_GetCurrent(&instance_p->motor));
+        const int32_t cv = (current_cv < rpm_cv) ? current_cv : rpm_cv;
+        Motor_SetSpeed(&instance_p->motor, (int16_t)cv);
     }
 }
