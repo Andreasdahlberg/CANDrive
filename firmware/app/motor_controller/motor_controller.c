@@ -165,6 +165,8 @@ static inline void InitializeMotors(void)
         snprintf(name, sizeof(name), "M%u", i);
         Motor_Init(&module.instances[i].motor, name, Board_GetMotorConfig(i));
 
+        assert(default_parameters.cvmax >= INT16_MIN && default_parameters.cvmax <= INT16_MAX &&
+               "Invalid PID parameter cvmax");
         PID_Init(&module.instances[i].rpm_pid);
         PID_SetParameters(&module.instances[i].rpm_pid, &default_parameters);
         PID_Init(&module.instances[i].current_pid);
