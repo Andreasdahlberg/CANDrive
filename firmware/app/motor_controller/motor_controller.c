@@ -43,7 +43,7 @@ along with CANDrive firmware.  If not, see <http://www.gnu.org/licenses/>.
 #define MOTOR_CONTROLLER_LOGGER_DEBUG_LEVEL LOGGING_DEBUG
 #endif
 
-#define MAX_NUMBER_OF_MOTORS 1
+#define MAX_NUMBER_OF_MOTORS 2
 #define UPDATE_TIME_MS 100
 
 //////////////////////////////////////////////////////////////////////////
