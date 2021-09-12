@@ -67,6 +67,7 @@ __attribute__((weak)) int32_t PID_Update(struct pid_t *self_p, int32_t input)
 __attribute__((weak)) void PID_SetSetpoint(struct pid_t *self_p, int32_t setpoint)
 {
     assert_non_null(self_p);
+    check_expected(setpoint);
 }
 
 __attribute__((weak)) void PID_SetParameters(struct pid_t *self_p, const struct pid_parameters_t *parameters_p)
