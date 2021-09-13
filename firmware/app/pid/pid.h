@@ -114,4 +114,11 @@ struct pid_parameters_t *PID_GetParameters(struct pid_t *self_p);
  */
 int32_t PID_GetOutput(const struct pid_t *self_p);
 
+/**
+ * Reset the PID controller.
+ *
+ * @param self_p Pointer to a PID controller instance.
+ */
+void PID_Reset(struct pid_t *self_p);
+
 #endif
