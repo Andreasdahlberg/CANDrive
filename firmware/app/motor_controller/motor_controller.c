@@ -72,10 +72,10 @@ struct motor_controller_t
 static struct motor_controller_t module;
 static struct pid_parameters_t default_parameters =
 {
-    .kp = 10,
-    .ki = 20,
-    .kd = 10,
-    .imax = 100,
+    .kp = 50,
+    .ki = 50,
+    .kd = 50,
+    .imax = 200,
     .cvmax = 100,
     .scale = 100
 };
