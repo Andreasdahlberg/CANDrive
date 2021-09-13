@@ -57,6 +57,13 @@ bool MotorControllerCmd_SetRPM(void);
 bool MotorControllerCmd_SetCurrent(void);
 
 /**
+ * Run motor after brake/coast.
+ *
+ * @return Command status.
+ */
+bool MotorControllerCmd_Run(void);
+
+/**
  * Coast motor.
  *
  * @return Command status.

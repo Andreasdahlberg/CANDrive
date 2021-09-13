@@ -61,6 +61,7 @@ void MotorController_Update(void);
 
 /**
  * Set the target RPM for the selected motor.
+ *
  * @param index Motor index.
  * @param rpm Target RPM:
  */
@@ -68,10 +69,20 @@ void MotorController_SetRPM(size_t index, int16_t rpm);
 
 /**
  * Set the target CURRENT for the selected motor.
+ *
  * @param index Motor index.
  * @param current Target CURRENT:
  */
 void MotorController_SetCurrent(size_t index, int16_t current);
+
+/**
+ * Resume running after coast/brake.
+ *
+ * @param index Motor index.
+ *
+ * The speed set before coast/brake will be used.
+ */
+void MotorController_Run(size_t index);
 
 /**
  * Stop the selected motor without braking.
