@@ -87,6 +87,12 @@ __attribute__((weak)) int32_t PID_GetOutput(const struct pid_t *self_p)
     return mock_type(int32_t);
 }
 
+__attribute__((weak)) void PID_Reset(struct pid_t *self_p)
+{
+    assert_non_null(self_p);
+    function_called();
+}
+
 //////////////////////////////////////////////////////////////////////////
 //LOCAL FUNCTIONS
 //////////////////////////////////////////////////////////////////////////
