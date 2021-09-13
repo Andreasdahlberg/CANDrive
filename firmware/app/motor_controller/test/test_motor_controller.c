@@ -36,6 +36,7 @@ along with CANDrive firmware.  If not, see <http://www.gnu.org/licenses/>.
 #include "utility.h"
 #include "motor.h"
 #include "motor_controller.h"
+#include "motor_controller_cmd.h"
 
 //////////////////////////////////////////////////////////////////////////
 //DEFINES
@@ -214,6 +215,221 @@ static void test_MotorController_GetPosition(void **state)
     }
 }
 
+static void test_MotorControllerCmd_SetRPM_InvalidFormat(void **state)
+{
+    will_return_maybe(Board_GetNumberOfMotors, NUMBER_OF_MOTORS);
+
+    /* Invalid format on index */
+    will_return(Console_GetInt32Argument, false);
+    assert_false(MotorControllerCmd_SetRPM());
+
+    /* Invalid format on rpm */
+    const int32_t index = 0;
+    will_return(Console_GetInt32Argument, true);
+    will_return(Console_GetInt32Argument, index);
+
+    will_return(Console_GetInt32Argument, false);
+    assert_false(MotorControllerCmd_SetRPM());
+}
+
+static void test_MotorControllerCmd_SetRPM_InvalidIndex(void **state)
+{
+    will_return_always(Board_GetNumberOfMotors, NUMBER_OF_MOTORS);
+
+    const int32_t data[] = {INT32_MIN, NUMBER_OF_MOTORS + 1, INT32_MAX};
+    for (size_t i = 0; i < ElementsIn(data); ++i)
+    {
+        /* Index */
+        will_return(Console_GetInt32Argument, true);
+        will_return(Console_GetInt32Argument, data[i]);
+
+        assert_false(MotorControllerCmd_SetRPM());
+    }
+}
+
+static void test_MotorControllerCmd_SetRPM_InvalidRPM(void **state)
+{
+    will_return_maybe(Board_GetNumberOfMotors, NUMBER_OF_MOTORS);
+
+    const int32_t data[] = {INT32_MIN, INT16_MIN - 1, INT16_MAX + 1, INT32_MAX};
+    for (size_t i = 0; i < ElementsIn(data); ++i)
+    {
+        /* Index */
+        const int32_t index = 0;
+        will_return(Console_GetInt32Argument, true);
+        will_return(Console_GetInt32Argument, index);
+
+        /* RPM */
+        will_return(Console_GetInt32Argument, true);
+        will_return(Console_GetInt32Argument, data[i]);
+        assert_false(MotorControllerCmd_SetRPM());
+    }
+}
+
+static void test_MotorControllerCmd_SetRPM(void **state)
+{
+    will_return_maybe(Board_GetNumberOfMotors, NUMBER_OF_MOTORS);
+
+    const int32_t data[] = {INT16_MIN, 0, 50, INT16_MAX};
+    for (size_t i = 0; i < ElementsIn(data); ++i)
+    {
+        /* Index */
+        const int32_t index = 0;
+        will_return(Console_GetInt32Argument, true);
+        will_return(Console_GetInt32Argument, index);
+
+        /* RPM */
+        will_return(Console_GetInt32Argument, true);
+        will_return(Console_GetInt32Argument, data[i]);
+
+        expect_value(PID_SetSetpoint, setpoint, data[i]);
+        assert_true(MotorControllerCmd_SetRPM());
+    }
+}
+
+static void test_MotorControllerCmd_SetCurrent_InvalidFormat(void **state)
+{
+    will_return_maybe(Board_GetNumberOfMotors, NUMBER_OF_MOTORS);
+
+    /* Invalid format on index */
+    will_return(Console_GetInt32Argument, false);
+    assert_false(MotorControllerCmd_SetCurrent());
+
+    /* Invalid format on current */
+    const int32_t index = 0;
+    will_return(Console_GetInt32Argument, true);
+    will_return(Console_GetInt32Argument, index);
+
+    will_return(Console_GetInt32Argument, false);
+    assert_false(MotorControllerCmd_SetCurrent());
+}
+
+static void test_MotorControllerCmd_SetCurrent_InvalidIndex(void **state)
+{
+    will_return_always(Board_GetNumberOfMotors, NUMBER_OF_MOTORS);
+
+    const int32_t data[] = {INT32_MIN, NUMBER_OF_MOTORS + 1, INT32_MAX};
+    for (size_t i = 0; i < ElementsIn(data); ++i)
+    {
+        /* Index */
+        will_return(Console_GetInt32Argument, true);
+        will_return(Console_GetInt32Argument, data[i]);
+
+        assert_false(MotorControllerCmd_SetCurrent());
+    }
+}
+
+static void test_MotorControllerCmd_SetCurrent_InvalidCurrent(void **state)
+{
+    will_return_maybe(Board_GetNumberOfMotors, NUMBER_OF_MOTORS);
+
+    const int32_t data[] = {INT32_MIN, INT16_MIN - 1, INT16_MAX + 1, INT32_MAX};
+    for (size_t i = 0; i < ElementsIn(data); ++i)
+    {
+        /* Index */
+        const int32_t index = 0;
+        will_return(Console_GetInt32Argument, true);
+        will_return(Console_GetInt32Argument, index);
+
+        /* Current */
+        will_return(Console_GetInt32Argument, true);
+        will_return(Console_GetInt32Argument, data[i]);
+
+        assert_false(MotorControllerCmd_SetCurrent());
+    }
+}
+
+static void test_MotorControllerCmd_SetCurrent(void **state)
+{
+    will_return_maybe(Board_GetNumberOfMotors, NUMBER_OF_MOTORS);
+
+    const int32_t data[] = {INT16_MIN, 0, 2000, INT16_MAX};
+    for (size_t i = 0; i < ElementsIn(data); ++i)
+    {
+        /* Index */
+        const int32_t index = 0;
+        will_return(Console_GetInt32Argument, true);
+        will_return(Console_GetInt32Argument, index);
+
+        /* Current */
+        will_return(Console_GetInt32Argument, true);
+        will_return(Console_GetInt32Argument, data[i]);
+
+        expect_value(PID_SetSetpoint, setpoint, data[i]);
+        assert_true(MotorControllerCmd_SetCurrent());
+    }
+}
+
+static void test_MotorControllerCmd_Coast_InvalidFormat(void **state)
+{
+    will_return_maybe(Board_GetNumberOfMotors, NUMBER_OF_MOTORS);
+
+    /* Invalid format on index */
+    will_return(Console_GetInt32Argument, false);
+    assert_false(MotorControllerCmd_Coast());
+}
+
+static void test_MotorControllerCmd_Coast_InvalidIndex(void **state)
+{
+    will_return_always(Board_GetNumberOfMotors, NUMBER_OF_MOTORS);
+
+    const int32_t data[] = {INT32_MIN, NUMBER_OF_MOTORS + 1, INT32_MAX};
+    for (size_t i = 0; i < ElementsIn(data); ++i)
+    {
+        will_return(Console_GetInt32Argument, true);
+        will_return(Console_GetInt32Argument, data[i]);
+
+        assert_false(MotorControllerCmd_Coast());
+    }
+}
+
+static void test_MotorControllerCmd_Coast(void **state)
+{
+    will_return_always(Board_GetNumberOfMotors, NUMBER_OF_MOTORS);
+
+    const int32_t index = 0;
+    will_return(Console_GetInt32Argument, true);
+    will_return(Console_GetInt32Argument, index);
+
+    /* Expect assert failure since coast is not yet implemented. */
+    expect_assert_failure(MotorControllerCmd_Coast());
+}
+
+static void test_MotorControllerCmd_Brake_InvalidFormat(void **state)
+{
+    will_return_maybe(Board_GetNumberOfMotors, NUMBER_OF_MOTORS);
+
+    /* Invalid format on index */
+    will_return(Console_GetInt32Argument, false);
+    assert_false(MotorControllerCmd_Brake());
+}
+
+static void test_MotorControllerCmd_Brake_InvalidIndex(void **state)
+{
+    will_return_always(Board_GetNumberOfMotors, NUMBER_OF_MOTORS);
+
+    const int32_t data[] = {INT32_MIN, NUMBER_OF_MOTORS + 1, INT32_MAX};
+    for (size_t i = 0; i < ElementsIn(data); ++i)
+    {
+        will_return(Console_GetInt32Argument, true);
+        will_return(Console_GetInt32Argument, data[i]);
+
+        assert_false(MotorControllerCmd_Brake());
+    }
+}
+
+static void test_MotorControllerCmd_Brake(void **state)
+{
+    will_return_always(Board_GetNumberOfMotors, NUMBER_OF_MOTORS);
+
+    const int32_t index = 0;
+    will_return(Console_GetInt32Argument, true);
+    will_return(Console_GetInt32Argument, index);
+
+    /* Expect assert failure since brake is not yet implemented. */
+    expect_assert_failure(MotorControllerCmd_Brake());
+}
+
 //////////////////////////////////////////////////////////////////////////
 //FUNCTIONS
 //////////////////////////////////////////////////////////////////////////
@@ -237,10 +453,31 @@ int main(int argc, char *argv[])
         cmocka_unit_test_setup(test_MotorController_GetPosition, Setup),
     };
 
+    const struct CMUnitTest test_motor_controller_cmd[] =
+    {
+        cmocka_unit_test(test_MotorControllerCmd_SetRPM_InvalidFormat),
+        cmocka_unit_test(test_MotorControllerCmd_SetRPM_InvalidIndex),
+        cmocka_unit_test(test_MotorControllerCmd_SetRPM_InvalidRPM),
+        cmocka_unit_test(test_MotorControllerCmd_SetRPM),
+        cmocka_unit_test(test_MotorControllerCmd_SetCurrent_InvalidFormat),
+        cmocka_unit_test(test_MotorControllerCmd_SetCurrent_InvalidIndex),
+        cmocka_unit_test(test_MotorControllerCmd_SetCurrent_InvalidCurrent),
+        cmocka_unit_test(test_MotorControllerCmd_SetCurrent),
+        cmocka_unit_test(test_MotorControllerCmd_Coast_InvalidFormat),
+        cmocka_unit_test(test_MotorControllerCmd_Coast_InvalidIndex),
+        cmocka_unit_test(test_MotorControllerCmd_Coast),
+        cmocka_unit_test(test_MotorControllerCmd_Brake_InvalidFormat),
+        cmocka_unit_test(test_MotorControllerCmd_Brake_InvalidIndex),
+        cmocka_unit_test(test_MotorControllerCmd_Brake),
+    };
+
     if (argc >= 2)
     {
         cmocka_set_test_filter(argv[1]);
     }
 
-    return cmocka_run_group_tests(test_motor_controller, NULL, NULL);
+    int status = 0;
+    status = cmocka_run_group_tests(test_motor_controller, NULL, NULL);
+    status += cmocka_run_group_tests(test_motor_controller_cmd, NULL, NULL);
+    return status;
 }
