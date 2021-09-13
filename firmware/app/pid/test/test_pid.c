@@ -150,13 +150,29 @@ static void test_PID_GetOutput_Invalid(void **state)
     expect_assert_failure(PID_GetOutput(NULL));
 }
 
+static void test_PID_Reset_Invalid(void **state)
+{
+    expect_assert_failure(PID_Reset(NULL));
+}
+
+static void test_PID_Reset(void **state)
+{
+    PID_SetParameters(&pid, &parameters);
+    PID_SetSetpoint(&pid, 100);
+    PID_Update(&pid, 0);
+    assert_int_not_equal(PID_GetOutput(&pid), 0);
+
+    PID_Reset(&pid);
+    assert_int_equal(PID_GetOutput(&pid), 0);
+}
+
 //////////////////////////////////////////////////////////////////////////
 //FUNCTIONS
 //////////////////////////////////////////////////////////////////////////
 
 int main(int argc, char *argv[])
 {
-    const struct CMUnitTest test_ADC[] =
+    const struct CMUnitTest test_PID[] =
     {
         cmocka_unit_test(test_PID_Init_Invalid),
         cmocka_unit_test(test_PID_Update_Invalid),
@@ -167,6 +183,8 @@ int main(int argc, char *argv[])
         cmocka_unit_test(test_PID_GetParameters_Invalid),
         cmocka_unit_test_setup(test_PID_SetGetParameters, Setup),
         cmocka_unit_test(test_PID_GetOutput_Invalid),
+        cmocka_unit_test(test_PID_Reset_Invalid),
+        cmocka_unit_test(test_PID_Reset),
     };
 
     if (argc >= 2)
@@ -174,5 +192,5 @@ int main(int argc, char *argv[])
         cmocka_set_test_filter(argv[1]);
     }
 
-    return cmocka_run_group_tests(test_ADC, NULL, NULL);
+    return cmocka_run_group_tests(test_PID, NULL, NULL);
 }

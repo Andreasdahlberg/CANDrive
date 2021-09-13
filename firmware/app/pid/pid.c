@@ -111,6 +111,15 @@ int32_t PID_GetOutput(const struct pid_t *self_p)
     return self_p->cv;
 }
 
+void PID_Reset(struct pid_t *self_p)
+{
+    assert(self_p != NULL);
+
+    self_p->cv = 0;
+    self_p->last_error = 0;
+    self_p->last_integral = 0;
+}
+
 //////////////////////////////////////////////////////////////////////////
 //LOCAL FUNCTIONS
 //////////////////////////////////////////////////////////////////////////
