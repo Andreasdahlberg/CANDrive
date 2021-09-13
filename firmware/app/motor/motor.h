@@ -159,15 +159,6 @@ int16_t Motor_GetCurrent(const struct motor_t *self_p);
 void Motor_SetSpeed(struct motor_t *self_p, int16_t speed);
 
 /**
- * Resume running after coast/brake.
- *
- * The speed set before coast/brake will be used.
- *
- * @param self_p Pointer to motor instance.
- */
-void Motor_Run(struct motor_t *self_p);
-
-/**
  * Stop the motor without braking.
  *
  * @param self_p Pointer to motor instance.

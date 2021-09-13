@@ -119,7 +119,7 @@ void Motor_Update(struct motor_t *self_p)
         }
 
         self_p->count = count;
-        Logging_Debug(self_p->logger_p, "RPM: %i, Speed: %i, Diff: %i, Cnt: %i", self_p->rpm, self_p->speed, difference, count);
+        //Logging_Debug(self_p->logger_p, "RPM: %i, Speed: %i, Diff: %i, Cnt: %i", self_p->rpm, self_p->speed, difference, count);
         self_p->timer = SysTime_GetSystemTime();
     }
 }
@@ -153,14 +153,9 @@ void Motor_SetSpeed(struct motor_t *self_p, int16_t speed)
         PWM_SetDuty(&self_p->pwm_output, duty_cycle);
         PWM_Enable(&self_p->pwm_output);
 
-        Logging_Debug(self_p->logger_p, "{speed: %i, duty: %u}", speed, duty_cycle);
+        self_p->status = MOTOR_RUN;
+        Logging_Debug(self_p->logger_p, "{rpm: % i, speed: %i}", self_p->rpm, speed);
     }
-}
-
-void Motor_Run(struct motor_t *self_p)
-{
-    Motor_SetSpeed(self_p, self_p->speed);
-    self_p->status = MOTOR_RUN;
 }
 
 void Motor_Coast(struct motor_t *self_p)

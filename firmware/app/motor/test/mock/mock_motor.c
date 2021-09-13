@@ -83,12 +83,6 @@ __attribute__((weak)) void Motor_SetSpeed(struct motor_t *self_p, int16_t speed)
     check_expected(speed);
 }
 
-__attribute__((weak)) void Motor_Run(struct motor_t *self_p)
-{
-    assert_non_null(self_p);
-    function_called();
-}
-
 __attribute__((weak)) void Motor_Coast(struct motor_t *self_p)
 {
     assert_non_null(self_p);

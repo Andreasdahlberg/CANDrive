@@ -310,30 +310,6 @@ static void test_Motor_Brake(void **state)
     Motor_Brake(&motor);
     assert_int_equal(Motor_GetStatus(&motor), MOTOR_BRAKE);
 }
-static void test_Motor_Run(void **state)
-{
-    const int16_t speed = 75;
-
-    /* Set speed */
-    ExpectNewDuty(speed);
-    Motor_SetSpeed(&motor, speed);
-
-    /* Coast */
-    expect_value(PWM_SetDuty, duty, 0);
-    Motor_Coast(&motor);
-
-    /*Run motor again and expect the set speed again. */
-    ExpectNewDuty(speed);
-    Motor_Run(&motor);
-
-    /* Brake */
-    ExpectNewDuty(100);
-    Motor_Brake(&motor);
-
-    /*Run motor again and expect the set speed again. */
-    ExpectNewDuty(speed);
-    Motor_Run(&motor);
-}
 
 static void test_Motor_GetDirection_Invalid(void **state)
 {
@@ -403,7 +379,6 @@ int main(int argc, char *argv[])
         cmocka_unit_test_setup(test_Motor_Coast, Setup),
         cmocka_unit_test_setup(test_Motor_Brake_Invalid, Setup),
         cmocka_unit_test_setup(test_Motor_Brake, Setup),
-        cmocka_unit_test_setup(test_Motor_Run, Setup),
         cmocka_unit_test_setup(test_Motor_GetDirection_Invalid, Setup),
         cmocka_unit_test_setup(test_Motor_GetDirection, Setup),
         cmocka_unit_test_setup(test_Motor_GetPosition_Invalid, Setup),
