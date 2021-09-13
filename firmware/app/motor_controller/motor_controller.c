@@ -55,7 +55,6 @@ struct motor_instance_t
     struct motor_t motor;
     struct pid_t rpm_pid;
     struct pid_t current_pid;
-
 };
 
 struct motor_controller_t
@@ -87,6 +86,7 @@ static struct pid_parameters_t default_parameters =
 static inline void InitializeMotors(void);
 static inline void UpdateMotors(void);
 static inline void UpdateMotorSpeeds(void);
+static void ResetPIDControllers(struct motor_instance_t *instance_p);
 
 //////////////////////////////////////////////////////////////////////////
 //FUNCTIONS
@@ -131,16 +131,27 @@ void MotorController_SetCurrent(size_t index, int16_t current)
     Logging_Debug(module.logger_p, "M%u sp: {current: %i}", index, current);
 }
 
+void MotorController_Run(size_t index)
+{
+    assert(index < Board_GetNumberOfMotors());
+    if (Motor_GetStatus(&module.instances[index].motor) != MOTOR_RUN)
+    {
+        Motor_SetSpeed(&module.instances[index].motor, 0);
+    }
+}
+
 void MotorController_Coast(size_t index)
 {
     assert(index < Board_GetNumberOfMotors());
-    assert(0 && "Not implemented!");
+    Motor_Coast(&module.instances[index].motor);
+    ResetPIDControllers(&module.instances[index]);
 }
 
 void MotorController_Brake(size_t index)
 {
     assert(index < Board_GetNumberOfMotors());
-    assert(0 && "Not implemented!");
+    Motor_Brake(&module.instances[index].motor);
+    ResetPIDControllers(&module.instances[index]);
 }
 
 uint32_t MotorController_GetPosition(size_t index)
@@ -189,9 +200,19 @@ static inline void UpdateMotorSpeeds(void)
     for (size_t i = 0; i < number_of_motors; ++i)
     {
         struct motor_instance_t *instance_p = &module.instances[i];
-        const int32_t rpm_cv = PID_Update(&instance_p->rpm_pid, Motor_GetRPM(&instance_p->motor));
-        const int32_t current_cv = PID_Update(&instance_p->current_pid, Motor_GetCurrent(&instance_p->motor));
-        const int32_t cv = (current_cv < rpm_cv) ? current_cv : rpm_cv;
-        Motor_SetSpeed(&instance_p->motor, (int16_t)cv);
+
+        if (Motor_GetStatus(&instance_p->motor) == MOTOR_RUN)
+        {
+            const int32_t rpm_cv = PID_Update(&instance_p->rpm_pid, Motor_GetRPM(&instance_p->motor));
+            const int32_t current_cv = PID_Update(&instance_p->current_pid, Motor_GetCurrent(&instance_p->motor));
+            const int32_t cv = (current_cv < rpm_cv) ? current_cv : rpm_cv;
+            Motor_SetSpeed(&instance_p->motor, (int16_t)cv);
+        }
     }
+}
+
+static void ResetPIDControllers(struct motor_instance_t *instance_p)
+{
+    PID_Reset(&instance_p->rpm_pid);
+    PID_Reset(&instance_p->current_pid);
 }

@@ -81,6 +81,7 @@ static void ExpectPIDUpdate(int32_t rpm_cv, int32_t current_cv, int32_t expected
 
     for (size_t i = 0; i < NUMBER_OF_MOTORS; ++i)
     {
+        will_return(Motor_GetStatus, MOTOR_RUN);
         will_return(Motor_GetRPM, 0);
         will_return(Motor_GetCurrent, 0);
 
@@ -124,6 +125,15 @@ static void test_MotorController_Update(void **state)
     /* No PID update */
     will_return(SysTime_GetDifference, 0);
     expect_function_calls(Motor_Update, NUMBER_OF_MOTORS);
+    MotorController_Update();
+
+    /* No PID update due to motor not running*/
+    const uint32_t pid_update_period = 100;
+    will_return(SysTime_GetDifference, pid_update_period);
+    expect_function_calls(Motor_Update, NUMBER_OF_MOTORS);
+    will_return(Motor_GetStatus, MOTOR_COAST);
+    will_return(Motor_GetStatus, MOTOR_BRAKE);
+    will_return(SysTime_GetSystemTime, 100);
     MotorController_Update();
 
     /* PID update */
@@ -180,8 +190,9 @@ static void test_MotorController_Coast_Invalid(void **state)
 static void test_MotorController_Coast(void **state)
 {
     will_return_maybe(Board_GetNumberOfMotors, NUMBER_OF_MOTORS);
-    /* Expect assert failure since it's not implemented yet. */
-    expect_assert_failure(MotorController_Coast(0));
+    expect_function_call(Motor_Coast);
+    expect_function_calls(PID_Reset, 2);
+    MotorController_Coast(0);
 }
 
 static void test_MotorController_Brake_Invalid(void **state)
@@ -193,8 +204,9 @@ static void test_MotorController_Brake_Invalid(void **state)
 static void test_MotorController_Brake(void **state)
 {
     will_return_maybe(Board_GetNumberOfMotors, NUMBER_OF_MOTORS);
-    /* Expect assert failure since it's not implemented yet. */
-    expect_assert_failure(MotorController_Brake(0));
+    expect_function_call(Motor_Brake);
+    expect_function_calls(PID_Reset, 2);
+    MotorController_Brake(0);
 }
 
 static void test_MotorController_GetPosition_Invalid(void **state)
@@ -391,8 +403,9 @@ static void test_MotorControllerCmd_Coast(void **state)
     will_return(Console_GetInt32Argument, true);
     will_return(Console_GetInt32Argument, index);
 
-    /* Expect assert failure since coast is not yet implemented. */
-    expect_assert_failure(MotorControllerCmd_Coast());
+    expect_function_call(Motor_Coast);
+    expect_function_calls(PID_Reset, 2);
+    MotorControllerCmd_Coast();
 }
 
 static void test_MotorControllerCmd_Brake_InvalidFormat(void **state)
@@ -426,8 +439,9 @@ static void test_MotorControllerCmd_Brake(void **state)
     will_return(Console_GetInt32Argument, true);
     will_return(Console_GetInt32Argument, index);
 
-    /* Expect assert failure since brake is not yet implemented. */
-    expect_assert_failure(MotorControllerCmd_Brake());
+    expect_function_call(Motor_Brake);
+    expect_function_calls(PID_Reset, 2);
+    MotorControllerCmd_Brake();
 }
 
 //////////////////////////////////////////////////////////////////////////

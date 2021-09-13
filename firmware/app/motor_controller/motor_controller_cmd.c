@@ -88,6 +88,19 @@ bool MotorControllerCmd_SetCurrent(void)
     return status;
 }
 
+bool MotorControllerCmd_Run(void)
+{
+    bool status = false;
+
+    size_t index;
+    if (GetIndex(&index))
+    {
+        MotorController_Run(index);
+        status = true;
+    }
+    return status;
+}
+
 bool MotorControllerCmd_Coast(void)
 {
     bool status = false;
