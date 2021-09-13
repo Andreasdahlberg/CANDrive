@@ -40,7 +40,7 @@ along with CANDrive firmware.  If not, see <http://www.gnu.org/licenses/>.
 #define CONSOLE_DELIMITER " "
 #define CONSOLE_MAX_LINE_LENGTH 32
 #define CONSOLE_MAX_COMMAND_LENGTH 32
-#define CONSOLE_MAX_NUMBER_OF_COMMANDS 4
+#define CONSOLE_MAX_NUMBER_OF_COMMANDS 8
 #define CARRIAGE_RETURN 0x0D
 #define BACKSPACE 0x08
 
