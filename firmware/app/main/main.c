@@ -38,6 +38,9 @@ along with CANDrive firmware.  If not, see <http://www.gnu.org/licenses/>.
 #include "can_interface.h"
 #include "adc.h"
 #include "systime.h"
+#include "console.h"
+#include "motor_controller.h"
+#include "motor_controller_cmd.h"
 
 //////////////////////////////////////////////////////////////////////////
 //DEFINES
@@ -64,6 +67,9 @@ along with CANDrive firmware.  If not, see <http://www.gnu.org/licenses/>.
 //////////////////////////////////////////////////////////////////////////
 
 static void SetupGPIO(void);
+static void ConsoleWrite(const char *str);
+static size_t ConsoleRead(char *str);
+static void RegisterConsoleCommands(void);
 
 //////////////////////////////////////////////////////////////////////////
 //FUNCTIONS
@@ -79,6 +85,7 @@ int main(void)
     Logging_Init(SysTime_GetSystemTime);
     CANInterface_Init();
     ADC_Init();
+    MotorController_Init();
 
     logging_logger_t *logger_p = Logging_GetLogger(MAIN_LOGGER_NAME);
     Logging_SetLevel(logger_p, MAIN_LOGGER_DEBUG_LEVEL);
@@ -93,10 +100,19 @@ int main(void)
                 );
     Logging_Info(logger_p, "Application ready");
 
+    Console_Init(ConsoleWrite, ConsoleRead);
+    RegisterConsoleCommands();
+
+    MotorController_SetRPM(0, 0);
+    MotorController_SetCurrent(0, 2000);
+
     uint32_t led_time = SysTime_GetSystemTime();
     while (1)
     {
-        if (SysTime_GetDifference(led_time) >= 1000)
+        MotorController_Update();
+        Console_Process();
+
+        if (SysTime_GetDifference(led_time) >= 500)
         {
             gpio_toggle(GPIO_LED_PORT, GPIO_LED);
             led_time = SysTime_GetSystemTime();
@@ -117,4 +133,23 @@ static void SetupGPIO(void)
 
     gpio_set(GPIO_LED_PORT, GPIO_LED);
     gpio_set_mode(GPIO_LED_PORT, GPIO_MODE_OUTPUT_50_MHZ, GPIO_CNF_OUTPUT_PUSHPULL, GPIO5);
+}
+
+static void ConsoleWrite(const char *str)
+{
+    Serial_Send(str, strlen(str));
+}
+
+static size_t ConsoleRead(char *str)
+{
+    return Serial_Read(str, 1);
+}
+
+static void RegisterConsoleCommands(void)
+{
+    Console_RegisterCommand("rpm", MotorControllerCmd_SetRPM);
+    Console_RegisterCommand("current", MotorControllerCmd_SetCurrent);
+    Console_RegisterCommand("run", MotorControllerCmd_Run);
+    Console_RegisterCommand("coast", MotorControllerCmd_Coast);
+    Console_RegisterCommand("brake", MotorControllerCmd_Brake);
 }
