@@ -275,6 +275,16 @@ static void test_Motor_SetSpeed(void **state)
          */
         Motor_SetSpeed(&motor, speed);
     }
+
+    const int16_t speed = 75;
+    ExpectNewDuty(abs(speed));
+    Motor_SetSpeed(&motor, speed);
+
+    expect_value(PWM_SetDuty, duty, 0);
+    Motor_Coast(&motor);
+
+    ExpectNewDuty(abs(speed));
+    Motor_SetSpeed(&motor, speed);
 }
 
 static void test_Motor_GetStatus_Invalid(void **state)
