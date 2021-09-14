@@ -119,7 +119,6 @@ void Motor_Update(struct motor_t *self_p)
         }
 
         self_p->count = count;
-        //Logging_Debug(self_p->logger_p, "RPM: %i, Speed: %i, Diff: %i, Cnt: %i", self_p->rpm, self_p->speed, difference, count);
         self_p->timer = SysTime_GetSystemTime();
     }
 }
@@ -349,5 +348,5 @@ static inline int32_t GetCountDifference(const struct motor_t *self_p, int32_t c
 
 static inline int32_t CountToRPM(int32_t count)
 {
-    return (count * RPM_SAMPLE_FREQUENCY * 60 + (MOTOR_COUNTS_PER_REVOLUTION / 2)) / MOTOR_COUNTS_PER_REVOLUTION;
+    return (count * (int32_t)RPM_SAMPLE_FREQUENCY * 60 + (MOTOR_COUNTS_PER_REVOLUTION / 2)) / MOTOR_COUNTS_PER_REVOLUTION;
 }
