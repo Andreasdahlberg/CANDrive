@@ -181,6 +181,25 @@ static void test_MotorController_SetCurrent(void **state)
     }
 }
 
+static void test_MotorController_Run_Invalid(void **state)
+{
+    will_return_maybe(Board_GetNumberOfMotors, NUMBER_OF_MOTORS);
+    expect_assert_failure(MotorController_Run(NUMBER_OF_MOTORS + 1));
+}
+
+static void test_MotorController_Run(void **state)
+{
+    will_return_maybe(Board_GetNumberOfMotors, NUMBER_OF_MOTORS);
+
+    /* Expect nothing if motor is already running. */
+    will_return(Motor_GetStatus, MOTOR_RUN);
+    MotorController_Run(0);
+
+    will_return(Motor_GetStatus, MOTOR_COAST);
+    expect_value(Motor_SetSpeed, speed, 0);
+    MotorController_Run(0);
+}
+
 static void test_MotorController_Coast_Invalid(void **state)
 {
     will_return_maybe(Board_GetNumberOfMotors, NUMBER_OF_MOTORS);
@@ -372,6 +391,40 @@ static void test_MotorControllerCmd_SetCurrent(void **state)
     }
 }
 
+static void test_MotorControllerCmd_Run_InvalidFormat(void **state)
+{
+    will_return_maybe(Board_GetNumberOfMotors, NUMBER_OF_MOTORS);
+
+    /* Invalid format on index */
+    will_return(Console_GetInt32Argument, false);
+    assert_false(MotorControllerCmd_Run());
+}
+
+static void test_MotorControllerCmd_Run_InvalidIndex(void **state)
+{
+    will_return_always(Board_GetNumberOfMotors, NUMBER_OF_MOTORS);
+
+    const int32_t data[] = {INT32_MIN, NUMBER_OF_MOTORS + 1, INT32_MAX};
+    for (size_t i = 0; i < ElementsIn(data); ++i)
+    {
+        will_return(Console_GetInt32Argument, true);
+        will_return(Console_GetInt32Argument, data[i]);
+
+        assert_false(MotorControllerCmd_Run());
+    }
+}
+
+static void test_MotorControllerCmd_Run(void **state)
+{
+    will_return_always(Board_GetNumberOfMotors, NUMBER_OF_MOTORS);
+
+    const int32_t index = 0;
+    will_return(Console_GetInt32Argument, true);
+    will_return(Console_GetInt32Argument, index);
+    will_return(Motor_GetStatus, MOTOR_RUN);
+    MotorControllerCmd_Run();
+}
+
 static void test_MotorControllerCmd_Coast_InvalidFormat(void **state)
 {
     will_return_maybe(Board_GetNumberOfMotors, NUMBER_OF_MOTORS);
@@ -459,6 +512,8 @@ int main(int argc, char *argv[])
         cmocka_unit_test_setup(test_MotorController_SetRpm, Setup),
         cmocka_unit_test_setup(test_MotorController_SetCurrent_Invalid, Setup),
         cmocka_unit_test_setup(test_MotorController_SetCurrent, Setup),
+        cmocka_unit_test_setup(test_MotorController_Run_Invalid, Setup),
+        cmocka_unit_test_setup(test_MotorController_Run, Setup),
         cmocka_unit_test_setup(test_MotorController_Coast_Invalid, Setup),
         cmocka_unit_test_setup(test_MotorController_Coast, Setup),
         cmocka_unit_test_setup(test_MotorController_Brake_Invalid, Setup),
@@ -477,6 +532,9 @@ int main(int argc, char *argv[])
         cmocka_unit_test(test_MotorControllerCmd_SetCurrent_InvalidIndex),
         cmocka_unit_test(test_MotorControllerCmd_SetCurrent_InvalidCurrent),
         cmocka_unit_test(test_MotorControllerCmd_SetCurrent),
+        cmocka_unit_test(test_MotorControllerCmd_Run_InvalidFormat),
+        cmocka_unit_test(test_MotorControllerCmd_Run_InvalidIndex),
+        cmocka_unit_test(test_MotorControllerCmd_Run),
         cmocka_unit_test(test_MotorControllerCmd_Coast_InvalidFormat),
         cmocka_unit_test(test_MotorControllerCmd_Coast_InvalidIndex),
         cmocka_unit_test(test_MotorControllerCmd_Coast),
