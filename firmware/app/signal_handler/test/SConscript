@@ -24,7 +24,7 @@ env.Append(CPPPATH=[
     '#app/utility',
     '#app/can_interface',
     '#app/logging',
-    '../../../candb',
+    '../test/candb', # Workaround, fix this!
     '#app/signal_handler',
     '#app/fifo'
     ])
@@ -44,7 +44,8 @@ candb_object = SConscript('#app/candb/SConscript',
 
 source = Glob('*.c')
 objects = env.Object(source=source)
-objects.append(fifo_object)
+env.Depends(target = objects, dependency = [candb_object])
 objects.append(candb_object)
+objects.append(fifo_object)
 
 Return('objects')
