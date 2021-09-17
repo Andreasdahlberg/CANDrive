@@ -19,23 +19,32 @@ import os
 
 Import(['*'])
 
-SOURCE = Glob('*.c')
 
 env.Append(CPPPATH=[
-    '../board',
-    '../logging',
-    '../can_interface',
-    '../serial',
-    '../motor',
-    '../pwm',
-    '../adc',
-    '../systime',
-    '../motor_controller',
-    '../console',
-    '../signal_handler'
+    '#app/utility',
+    '#app/can_interface',
+    '#app/logging',
+    '../../../candb',
+    '#app/signal_handler',
+    '#app/fifo'
+    ])
+
+env.Append(LINKFLAGS=[
 ])
 
-OBJECTS = env.Object(SOURCE)
+fifo_object = SConscript('#app/fifo/SConscript',
+    variant_dir='fifo',
+    duplicate=0,
+    exports={'env': env})
 
-Return('OBJECTS')
+candb_object = SConscript('#app/candb/SConscript',
+    variant_dir='candb',
+    duplicate=0,
+    exports={'env': env})
 
+source = Glob('*.c')
+objects = env.Object(source=source)
+objects.append(fifo_object)
+objects.append(candb_object)
+
+Return('objects')

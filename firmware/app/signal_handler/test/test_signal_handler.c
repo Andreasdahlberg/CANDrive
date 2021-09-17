@@ -1,0 +1,224 @@
+/**
+ * @file   test_signal_handler.c
+ * @Author Andreas Dahlberg (andreas.dahlberg90@gmail.com)
+ * @brief  Test suite for the signal handler.
+ */
+
+/*
+This file is part of CANDrive firmware.
+
+CANDrive firmware is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+CANDrive firmware is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with CANDrive firmware.  If not, see <http://www.gnu.org/licenses/>.
+*/
+
+//////////////////////////////////////////////////////////////////////////
+//INCLUDES
+//////////////////////////////////////////////////////////////////////////
+
+#include <stdarg.h>
+#include <stddef.h>
+#include <stdint.h>
+#include <setjmp.h>
+#include <cmocka.h>
+#include <stdio.h>
+#include <stdbool.h>
+#include <string.h>
+#include "utility.h"
+#include "candb.h"
+#include "signal_handler.h"
+#include "signal.h"
+
+//////////////////////////////////////////////////////////////////////////
+//DEFINES
+//////////////////////////////////////////////////////////////////////////
+
+//////////////////////////////////////////////////////////////////////////
+//TYPE DEFINITIONS
+//////////////////////////////////////////////////////////////////////////
+
+//////////////////////////////////////////////////////////////////////////
+//VARIABLES
+//////////////////////////////////////////////////////////////////////////
+
+static struct logging_logger_t *dummy_logger;
+
+//////////////////////////////////////////////////////////////////////////
+//LOCAL FUNCTIONS
+//////////////////////////////////////////////////////////////////////////
+
+static int Setup(void **state)
+{
+    will_return(Logging_GetLogger, dummy_logger);
+    SignalHandler_Init();
+    return 0;
+}
+
+static void SignalHandlerFunc1(struct signal_t *signal_p)
+{
+    assert_non_null(signal_p);
+    function_called();
+}
+
+static void SignalHandlerFunc2(struct signal_t *signal_p)
+{
+    assert_non_null(signal_p);
+    function_called();
+}
+
+//////////////////////////////////////////////////////////////////////////
+//TESTS
+//////////////////////////////////////////////////////////////////////////
+
+static void test_SignalHandler_Process(void **state)
+{
+    /* Expect nothing to happen since no frames are received. */
+    SignalHandler_Process();
+
+    struct can_frame_t frame;
+    frame.size = 8;
+    frame.id = CANDB_CONTROLLER_MSG_MOTOR_CONTROL_FRAME_ID;
+    SignalHandler_Listener(&frame);
+    /* Expect nothing to happen(frame is discarded) since no signal handlers are registered. */
+    SignalHandler_Process();
+
+    SignalHandler_RegisterHandler(SIGNAL_CONTROL_RPM1, SignalHandlerFunc1);
+    SignalHandler_RegisterHandler(SIGNAL_CONTROL_CURRENT1, SignalHandlerFunc2);
+
+    frame.id = 0x00;
+    SignalHandler_Listener(&frame);
+    /* Expect nothing to happen since the frame is unsupported. */
+    SignalHandler_Process();
+
+    frame.id = CANDB_CONTROLLER_MSG_MOTOR_CONTROL_FRAME_ID;
+    SignalHandler_Listener(&frame);
+    expect_function_call(SignalHandlerFunc1);
+    expect_function_call(SignalHandlerFunc2);
+    SignalHandler_Process();
+
+    /* Fill the frame buffer with unsupported frames. */
+    frame.id = 0x00;
+    const size_t max_number_of_frames = 5;
+    for (size_t i = 0; i < max_number_of_frames; ++i)
+    {
+        SignalHandler_Listener(&frame);
+    }
+
+    /* Send supported frame, expect it to be discarded since the buffer is full. */
+    frame.id = CANDB_CONTROLLER_MSG_MOTOR_CONTROL_FRAME_ID;
+    SignalHandler_Listener(&frame);
+    for (size_t i = 0; i < max_number_of_frames + 1; ++i)
+    {
+        SignalHandler_Process();
+    }
+}
+
+static void test_SignalHandler_Process_InvalidFrameSize(void **state)
+{
+    uint8_t sizes[] = {0, CANDB_MOTOR_MSG_STATUS_FRAME_ID - 1};
+
+    for (size_t i = 0; i < ElementsIn(sizes); ++i)
+    {
+        struct can_frame_t frame;
+        frame.size = sizes[i];
+        frame.id = CANDB_CONTROLLER_MSG_MOTOR_CONTROL_FRAME_ID;
+
+        SignalHandler_RegisterHandler(SIGNAL_CONTROL_RPM1, SignalHandlerFunc1);
+        SignalHandler_Listener(&frame);
+        expect_function_call(SignalHandlerFunc1);
+        /* Expect nothing to happen since the frame is invalid. */
+        SignalHandler_Process();
+    }
+}
+
+static void test_SignalHandler_RegisterHandler_Invalid(void **state)
+{
+    expect_assert_failure(SignalHandler_RegisterHandler(SIGNAL_END, SignalHandlerFunc1));
+    expect_assert_failure(SignalHandler_RegisterHandler(SIGNAL_CONTROL_RPM1, NULL));
+}
+
+static void test_SignalHandler_RegisterHandler_MaxNumberOfHandlers(void **state)
+{
+    const size_t max_number_of_handlers = 5;
+    for (size_t i = 0; i < max_number_of_handlers; ++i)
+    {
+        SignalHandler_RegisterHandler(SIGNAL_CONTROL_RPM1, SignalHandlerFunc1);
+    }
+
+    expect_assert_failure(SignalHandler_RegisterHandler(SIGNAL_CONTROL_RPM1, SignalHandlerFunc1));
+}
+
+static void test_SignalHandler_Listener_Invalid(void **state)
+{
+    expect_assert_failure(SignalHandler_Listener(NULL));
+}
+
+
+
+static void test_Signal_IsIDValid(void **state)
+{
+    for (size_t i = 0; i < SIGNAL_END; ++i)
+    {
+        assert_true(Signal_IsIDValid((enum signal_id_t)i));
+    }
+    assert_false(Signal_IsIDValid(SIGNAL_END));
+}
+
+
+static void test_Signal_IDToString(void **state)
+{
+    char *signal_names[] =
+    {
+        "SIGNAL_CONTROL_RPM1",
+        "SIGNAL_CONTROL_RPM2",
+        "SIGNAL_CONTROL_CURRENT1",
+        "SIGNAL_CONTROL_CURRENT2"
+    };
+
+    for (size_t i = 0; i < ElementsIn(signal_names); ++i)
+    {
+        assert_string_equal(Signal_IDToString((enum signal_id_t)i), signal_names[i]);
+    }
+    assert_string_equal(Signal_IDToString(SIGNAL_END), "INVALID");
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//FUNCTIONS
+//////////////////////////////////////////////////////////////////////////
+
+int main(int argc, char *argv[])
+{
+    const struct CMUnitTest test_SignalHandler[] =
+    {
+        cmocka_unit_test_setup(test_SignalHandler_Process, Setup),
+        cmocka_unit_test_setup(test_SignalHandler_Process_InvalidFrameSize, Setup),
+        cmocka_unit_test_setup(test_SignalHandler_RegisterHandler_Invalid, Setup),
+        cmocka_unit_test_setup(test_SignalHandler_RegisterHandler_MaxNumberOfHandlers, Setup),
+        cmocka_unit_test_setup(test_SignalHandler_Listener_Invalid, Setup)
+    };
+
+    const struct CMUnitTest test_Signal[] =
+    {
+        cmocka_unit_test(test_Signal_IsIDValid),
+        cmocka_unit_test(test_Signal_IDToString)
+    };
+
+    if (argc >= 2)
+    {
+        cmocka_set_test_filter(argv[1]);
+    }
+
+    int status = cmocka_run_group_tests(test_SignalHandler, NULL, NULL);
+    status += cmocka_run_group_tests(test_Signal, NULL, NULL);
+    return status;
+}

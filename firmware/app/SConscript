@@ -37,7 +37,8 @@ MODULES = [
     'console',
     'filter',
     'pid',
-    'motor_controller'
+    'motor_controller',
+    'signal_handler'
 ]
 
 module_objects = []
@@ -65,7 +66,7 @@ app = env.Program('application.elf', module_objects)
 hex = env.Hex('application.hex', app)
 
 test_env = Environment(
-    tools=['default', 'coverage', 'compilation_db'],
+    tools=['default', 'coverage', 'candb', 'compilation_db'],
     CC='gcc',
     CCFLAGS=['-g', '-O0', '-std=c17'],
     CPPPATH=['#libopencm3/include'],
