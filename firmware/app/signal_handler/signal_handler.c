@@ -74,7 +74,7 @@ static struct module_t module;
 //LOCAL FUNCTION PROTOTYPES
 //////////////////////////////////////////////////////////////////////////
 
-static void HandleMotorControlFrame(struct can_frame_t *frame_p);
+static void HandleMotorControlFrame(const struct can_frame_t *frame_p);
 static void DistributeSignal(struct signal_t *signal_p);
 
 //////////////////////////////////////////////////////////////////////////
@@ -139,12 +139,12 @@ void SignalHandler_Listener(const struct can_frame_t *frame_p)
 //LOCAL FUNCTIONS
 //////////////////////////////////////////////////////////////////////////
 
-static void HandleMotorControlFrame(struct can_frame_t *frame_p)
+static void HandleMotorControlFrame(const struct can_frame_t *frame_p)
 {
     Logging_Debug(module.logger, "Unpack: {id: 0x%02x, name: %s}", frame_p->id, STRINGIFY(CANDB_CONTROLLER_MSG_MOTOR_CONTROL_FRAME_ID));
 
     struct candb_controller_msg_motor_control_t msg;
-    const int status = candb_controller_msg_motor_control_unpack(&msg, frame_p->data, frame_p->size);
+    const int32_t status = candb_controller_msg_motor_control_unpack(&msg, frame_p->data, frame_p->size);
     if (status != -EINVAL)
     {
         struct signal_t signal;
