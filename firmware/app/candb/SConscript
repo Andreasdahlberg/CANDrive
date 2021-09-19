@@ -1,9 +1,8 @@
 
 Import(['*'])
 
-candb_source = env.CANDB(
-    source='#/../can_drive.dbc',
-    target='candb.c')
+env.CANDB([], source='#/../can_drive.dbc')
 
-objects = env.Object(source=candb_source)
-Return('objects')
+SOURCE = Glob('*.c')
+OBJECTS = env.Object(SOURCE)
+Return('OBJECTS')
