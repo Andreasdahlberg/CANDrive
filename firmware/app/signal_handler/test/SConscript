@@ -24,7 +24,7 @@ env.Append(CPPPATH=[
     '#app/utility',
     '#app/can_interface',
     '#app/logging',
-    '../test/candb', # Workaround, fix this!
+    '../test/candb',
     '#app/signal_handler',
     '#app/fifo'
     ])
