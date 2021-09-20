@@ -93,4 +93,9 @@ const struct motor_config_t *Board_GetMotorConfig(size_t index);
  */
 size_t Board_GetNumberOfMotors(void);
 
+/**
+ * Toggle the status LED.
+ */
+void Board_ToggleStatusLED(void);
+
 #endif
