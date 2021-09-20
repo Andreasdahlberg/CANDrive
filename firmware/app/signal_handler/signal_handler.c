@@ -147,23 +147,23 @@ static void HandleMotorControlFrame(const struct can_frame_t *frame_p)
     const int32_t status = candb_controller_msg_motor_control_unpack(&msg, frame_p->data, frame_p->size);
     if (status != -EINVAL)
     {
-        struct signal_t signal;
+        struct signal_t control_signal;
 
-        signal.id = SIGNAL_CONTROL_RPM1;
-        signal.data_p = &msg.controller_msg_motor_control_sig_rpm1;
-        DistributeSignal(&signal);
+        control_signal.id = SIGNAL_CONTROL_RPM1;
+        control_signal.data_p = &msg.controller_msg_motor_control_sig_rpm1;
+        DistributeSignal(&control_signal);
 
-        signal.id = SIGNAL_CONTROL_RPM2;
-        signal.data_p = &msg.controller_msg_motor_control_sig_rpm2;
-        DistributeSignal(&signal);
+        control_signal.id = SIGNAL_CONTROL_RPM2;
+        control_signal.data_p = &msg.controller_msg_motor_control_sig_rpm2;
+        DistributeSignal(&control_signal);
 
-        signal.id = SIGNAL_CONTROL_CURRENT1;
-        signal.data_p = &msg.controller_msg_motor_control_sig_current1;
-        DistributeSignal(&signal);
+        control_signal.id = SIGNAL_CONTROL_CURRENT1;
+        control_signal.data_p = &msg.controller_msg_motor_control_sig_current1;
+        DistributeSignal(&control_signal);
 
-        signal.id = SIGNAL_CONTROL_CURRENT2;
-        signal.data_p = &msg.controller_msg_motor_control_sig_current2;
-        DistributeSignal(&signal);
+        control_signal.id = SIGNAL_CONTROL_CURRENT2;
+        control_signal.data_p = &msg.controller_msg_motor_control_sig_current2;
+        DistributeSignal(&control_signal);
     }
     else
     {
