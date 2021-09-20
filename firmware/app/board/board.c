@@ -36,6 +36,9 @@ along with CANDrive firmware.  If not, see <http://www.gnu.org/licenses/>.
 //////////////////////////////////////////////////////////////////////////
 
 #define NUMBER_OF_MOTORS 1
+#define GPIO_STATUS_LED_CLOCK RCC_GPIOA
+#define GPIO_STATUS_LED_PORT GPIOA
+#define GPIO_STATUS_LED GPIO5
 
 //////////////////////////////////////////////////////////////////////////
 //TYPE DEFINITIONS
@@ -91,6 +94,7 @@ static const struct module_t module =
 //////////////////////////////////////////////////////////////////////////
 
 static void SetupClock(void);
+static void SetupGPIO(void);
 
 //////////////////////////////////////////////////////////////////////////
 //FUNCTIONS
@@ -99,6 +103,7 @@ static void SetupClock(void);
 void Board_Init(void)
 {
     SetupClock();
+    SetupGPIO();
 }
 
 uint32_t Board_GetHardwareRevision(void)
@@ -135,6 +140,11 @@ size_t Board_GetNumberOfMotors(void)
     return ElementsIn(module.motor_configs);
 }
 
+void Board_ToggleStatusLED(void)
+{
+    gpio_toggle(GPIO_STATUS_LED_PORT, GPIO_STATUS_LED);
+}
+
 //////////////////////////////////////////////////////////////////////////
 //LOCAL FUNCTIONS
 //////////////////////////////////////////////////////////////////////////
@@ -142,4 +152,11 @@ size_t Board_GetNumberOfMotors(void)
 static void SetupClock(void)
 {
     rcc_clock_setup_pll(&rcc_hse_configs[RCC_CLOCK_HSE8_72MHZ]);
+}
+
+static void SetupGPIO(void)
+{
+    rcc_periph_clock_enable(GPIO_STATUS_LED_CLOCK);
+    gpio_set(GPIO_STATUS_LED_PORT, GPIO_STATUS_LED);
+    gpio_set_mode(GPIO_STATUS_LED_PORT, GPIO_MODE_OUTPUT_50_MHZ, GPIO_CNF_OUTPUT_PUSHPULL, GPIO_STATUS_LED);
 }

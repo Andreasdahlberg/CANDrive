@@ -26,9 +26,6 @@ along with CANDrive firmware.  If not, see <http://www.gnu.org/licenses/>.
 //INCLUDES
 //////////////////////////////////////////////////////////////////////////
 
-#include <libopencm3/stm32/rcc.h>
-#include <libopencm3/stm32/gpio.h>
-#include <stdio.h>
 #include <string.h>
 #include "board.h"
 #include "serial.h"
@@ -49,9 +46,6 @@ along with CANDrive firmware.  If not, see <http://www.gnu.org/licenses/>.
 #define MAIN_LOGGER_DEBUG_LEVEL LOGGING_DEBUG
 #endif
 
-#define GPIO_LED_PORT GPIOA
-#define GPIO_LED GPIO5
-
 //////////////////////////////////////////////////////////////////////////
 //TYPE DEFINITIONS
 //////////////////////////////////////////////////////////////////////////
@@ -64,7 +58,6 @@ along with CANDrive firmware.  If not, see <http://www.gnu.org/licenses/>.
 //LOCAL FUNCTION PROTOTYPES
 //////////////////////////////////////////////////////////////////////////
 
-static void SetupGPIO(void);
 static void ConsoleWrite(const char *str);
 static size_t ConsoleRead(char *str);
 static void RegisterConsoleCommands(void);
@@ -76,8 +69,6 @@ static void RegisterConsoleCommands(void);
 int main(void)
 {
     Board_Init();
-    SetupGPIO();
-
     SysTime_Init();
     Serial_Init(BAUD_RATE);
     Logging_Init(SysTime_GetSystemTime);
@@ -104,16 +95,16 @@ int main(void)
     MotorController_SetRPM(0, 0);
     MotorController_SetCurrent(0, 2000);
 
-    uint32_t led_time = SysTime_GetSystemTime();
+    uint32_t status_led_time = SysTime_GetSystemTime();
     while (1)
     {
         MotorController_Update();
         Console_Process();
 
-        if (SysTime_GetDifference(led_time) >= 500)
+        if (SysTime_GetDifference(status_led_time) >= 500)
         {
-            gpio_toggle(GPIO_LED_PORT, GPIO_LED);
-            led_time = SysTime_GetSystemTime();
+            Board_ToggleStatusLED();
+            status_led_time = SysTime_GetSystemTime();
         }
     }
 
@@ -123,15 +114,6 @@ int main(void)
 //////////////////////////////////////////////////////////////////////////
 //LOCAL FUNCTIONS
 //////////////////////////////////////////////////////////////////////////
-
-static void SetupGPIO(void)
-{
-    /* Enable GPIO clock, for LED GPIO. */
-    rcc_periph_clock_enable(RCC_GPIOA);
-
-    gpio_set(GPIO_LED_PORT, GPIO_LED);
-    gpio_set_mode(GPIO_LED_PORT, GPIO_MODE_OUTPUT_50_MHZ, GPIO_CNF_OUTPUT_PUSHPULL, GPIO5);
-}
 
 static void ConsoleWrite(const char *str)
 {
