@@ -55,6 +55,7 @@ along with CANDrive firmware.  If not, see <http://www.gnu.org/licenses/>.
 
 __attribute__((weak)) void Board_Init(void)
 {
+    function_called();
 }
 
 __attribute__((weak)) uint32_t Board_GetHardwareRevision(void)
@@ -67,6 +68,12 @@ __attribute__((weak)) uint32_t Board_GetSoftwareRevision(void)
     return mock_type(uint32_t);
 }
 
+__attribute__((weak)) struct board_id_t Board_GetId(void)
+{
+    struct board_id_t id = {.offset_0 = 1, .offset_4 = 2, .offset_8 = 3};
+    return id;
+}
+
 __attribute__((weak)) const struct motor_config_t *Board_GetMotorConfig(size_t index)
 {
     return mock_type(struct motor_config_t *);
@@ -75,6 +82,11 @@ __attribute__((weak)) const struct motor_config_t *Board_GetMotorConfig(size_t i
 __attribute__((weak)) size_t Board_GetNumberOfMotors(void)
 {
     return mock_type(size_t);
+}
+
+__attribute__((weak)) void Board_ToggleStatusLED(void)
+{
+    function_called();
 }
 
 //////////////////////////////////////////////////////////////////////////

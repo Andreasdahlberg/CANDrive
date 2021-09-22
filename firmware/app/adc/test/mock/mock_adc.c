@@ -55,6 +55,7 @@ along with CANDrive firmware.  If not, see <http://www.gnu.org/licenses/>.
 
 __attribute__((weak)) void ADC_Init(void)
 {
+    function_called();
 }
 
 __attribute__((weak)) void ADC_InitChannel(adc_input_t *self_p, uint8_t channel)
