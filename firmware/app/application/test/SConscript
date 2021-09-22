@@ -19,13 +19,19 @@ import os
 
 Import(['*'])
 
-SOURCE = Glob('*.c')
 
 env.Append(CPPPATH=[
-    '../board',
-    '../application'
+    '#app/application',
+    ])
+
+env.Append(CPPDEFINES=[
+    'BAUD_RATE=921600'
+    ])
+
+env.Append(LINKFLAGS=[
 ])
 
-OBJECTS = env.Object(SOURCE)
+source = Glob('*.c')
+objects = env.Object(source=source)
 
-Return('OBJECTS')
+Return('objects')
