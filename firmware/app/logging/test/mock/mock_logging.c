@@ -55,6 +55,8 @@ along with CANDrive firmware.  If not, see <http://www.gnu.org/licenses/>.
 
 __attribute__((weak)) void Logging_Init(logging_time_cb_t time_callback)
 {
+    assert_non_null(time_callback);
+    function_called();
 }
 
 __attribute__((weak)) logging_logger_t *Logging_GetLogger(const char *name_p)
