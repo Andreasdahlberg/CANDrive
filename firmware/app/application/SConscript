@@ -22,8 +22,18 @@ Import(['*'])
 SOURCE = Glob('*.c')
 
 env.Append(CPPPATH=[
-    '../board',
-    '../application'
+    '#app/board',
+    '#app/utility',
+    '#app/logging',
+    '#app/can_interface',
+    '#app/serial',
+    '#app/motor',
+    '#app/pwm',
+    '#app/adc',
+    '#app/systime',
+    '#app/motor_controller',
+    '#app/console',
+    '#app/signal_handler'
 ])
 
 OBJECTS = env.Object(SOURCE)

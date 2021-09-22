@@ -21,6 +21,7 @@ Import(['*'])
 
 MODULES = [
     'main',
+    'application',
     'fault_handler',
     'syscalls',
     'logging',
