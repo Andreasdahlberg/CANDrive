@@ -36,6 +36,7 @@ along with CANDrive firmware.  If not, see <http://www.gnu.org/licenses/>.
 #include "console.h"
 #include "motor_controller.h"
 #include "motor_controller_cmd.h"
+#include "signal_handler.h"
 #include "application.h"
 
 //////////////////////////////////////////////////////////////////////////
@@ -70,6 +71,9 @@ static struct module_t module;
 static void ConsoleWrite(const char *str);
 static size_t ConsoleRead(char *str);
 static void RegisterConsoleCommands(void);
+static void ConfigureSignalHandler(void);
+static void HandleRPM1Signal(struct signal_t *signal_p);
+static void HandleCurrent1Signal(struct signal_t *signal_p);
 
 //////////////////////////////////////////////////////////////////////////
 //FUNCTIONS
@@ -85,9 +89,12 @@ void Application_Init(void)
     CANInterface_Init();
     ADC_Init();
     MotorController_Init();
+    SignalHandler_Init();
 
     module.logger = Logging_GetLogger(APPLICATION_LOGGER_NAME);
     Logging_SetLevel(module.logger, APPLICATION_LOGGER_DEBUG_LEVEL);
+
+    ConfigureSignalHandler();
 
     struct board_id_t device_id = Board_GetId();
     Logging_Info(module.logger, "Id=%x%x%x HW=%u SW=%u",
@@ -108,6 +115,7 @@ void Application_Init(void)
 
 void Application_Run(void)
 {
+    SignalHandler_Process();
     MotorController_Update();
     Console_Process();
 
@@ -140,4 +148,27 @@ static void RegisterConsoleCommands(void)
     Console_RegisterCommand("run", MotorControllerCmd_Run);
     Console_RegisterCommand("coast", MotorControllerCmd_Coast);
     Console_RegisterCommand("brake", MotorControllerCmd_Brake);
+}
+
+static void ConfigureSignalHandler(void)
+{
+    const uint32_t motor_control_frame_id = 0x09;
+    const uint32_t id_mask = 0xffff;
+
+    CANInterface_RegisterListener(SignalHandler_Listener);
+    CANInterface_AddFilter(motor_control_frame_id, id_mask);
+    SignalHandler_RegisterHandler(SIGNAL_CONTROL_RPM1, HandleRPM1Signal);
+    SignalHandler_RegisterHandler(SIGNAL_CONTROL_CURRENT1, HandleCurrent1Signal);
+}
+
+static void HandleRPM1Signal(struct signal_t *signal_p)
+{
+    Signal_Log(signal_p, module.logger);
+    MotorController_SetRPM(BOARD_M1_INDEX, *(uint16_t *)signal_p->data_p);
+}
+
+static void HandleCurrent1Signal(struct signal_t *signal_p)
+{
+    Signal_Log(signal_p, module.logger);
+    MotorController_SetCurrent(BOARD_M1_INDEX, *(uint16_t *)signal_p->data_p);
 }

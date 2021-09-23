@@ -1,7 +1,7 @@
 /**
- * @file   board.h
- * @Author Andreas Dahlberg (andreas.dahlberg90@gmail.com)
- * @brief  Board support module.
+ * @file   mock_signal.c
+ * @Author Andreas Dahlberg
+ * @brief  Mock functions for signal.
  */
 
 /*
@@ -25,79 +25,45 @@ along with CANDrive firmware.  If not, see <http://www.gnu.org/licenses/>.
 //INCLUDES
 //////////////////////////////////////////////////////////////////////////
 
-#ifndef BOARD_H_
-#define BOARD_H_
-
-//////////////////////////////////////////////////////////////////////////
-//INCLUDES
-//////////////////////////////////////////////////////////////////////////
-
-#include <libopencm3/stm32/timer.h>
-#include <libopencm3/stm32/rcc.h>
-#include "pwm.h"
-#include "motor.h"
-#include <stdint.h>
+#include <stdarg.h>
 #include <stddef.h>
+#include <stdbool.h>
+#include <stdint.h>
+#include <setjmp.h>
+#include <cmocka.h>
+#include <stdio.h>
+#include "signal.h"
 
 //////////////////////////////////////////////////////////////////////////
 //DEFINES
 //////////////////////////////////////////////////////////////////////////
 
-#define BOARD_M1_INDEX 0
-
 //////////////////////////////////////////////////////////////////////////
 //TYPE DEFINITIONS
 //////////////////////////////////////////////////////////////////////////
 
-struct board_id_t
+//////////////////////////////////////////////////////////////////////////
+//VARIABLES
+//////////////////////////////////////////////////////////////////////////
+
+//////////////////////////////////////////////////////////////////////////
+//LOCAL FUNCTION PROTOTYPES
+//////////////////////////////////////////////////////////////////////////
+
+//////////////////////////////////////////////////////////////////////////
+//FUNCTIONS
+//////////////////////////////////////////////////////////////////////////
+
+__attribute__((weak)) bool Signal_IsIDValid(enum signal_id_t id)
 {
-    uint32_t offset_0;
-    uint32_t offset_4;
-    uint32_t offset_8;
-};
+    mock_type(bool);
+}
+
+__attribute__((weak)) const char *Signal_IDToString(enum signal_id_t id)
+{
+    mock_ptr_type(char);
+}
 
 //////////////////////////////////////////////////////////////////////////
-//FUNCTION PROTOTYPES
+//LOCAL FUNCTIONS
 //////////////////////////////////////////////////////////////////////////
-
-/**
- * Initialize the board.
- */
-void Board_Init(void);
-
-/**
- * Get the hardware revision.
- *
- * @return Hardware revision.
- */
-uint32_t Board_GetHardwareRevision(void);
-
-/**
- * Get the software revision.
- *
- * @return software revision.
- */
-uint32_t Board_GetSoftwareRevision(void);
-
-/**
- * Get the device id.
- *
- * @return 96-bit device id.
- */
-struct board_id_t Board_GetId(void);
-
-const struct motor_config_t *Board_GetMotorConfig(size_t index);
-
-/**
- * Get the number of motors.
- *
- * @return Number of motors.
- */
-size_t Board_GetNumberOfMotors(void);
-
-/**
- * Toggle the status LED.
- */
-void Board_ToggleStatusLED(void);
-
-#endif
