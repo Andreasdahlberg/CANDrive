@@ -46,14 +46,15 @@ along with CANDrive firmware.  If not, see <http://www.gnu.org/licenses/>.
 
 struct module_t
 {
-    struct motor_config_t motor_configs[NUMBER_OF_MOTORS];
+    const struct motor_config_t motor_configs[NUMBER_OF_MOTORS];
+    uint32_t reset_flags;
 };
 
 //////////////////////////////////////////////////////////////////////////
 //VARIABLES
 //////////////////////////////////////////////////////////////////////////
 
-static const struct module_t module =
+static struct module_t module =
 {
     .motor_configs = {
         {
@@ -93,6 +94,8 @@ static const struct module_t module =
 //LOCAL FUNCTION PROTOTYPES
 //////////////////////////////////////////////////////////////////////////
 
+static void StoreResetFlags(void);
+static void ClearResetFlags(void);
 static void SetupClock(void);
 static void SetupGPIO(void);
 
@@ -102,6 +105,8 @@ static void SetupGPIO(void);
 
 void Board_Init(void)
 {
+    StoreResetFlags();
+    ClearResetFlags();
     SetupClock();
     SetupGPIO();
 }
@@ -145,9 +150,24 @@ void Board_ToggleStatusLED(void)
     gpio_toggle(GPIO_STATUS_LED_PORT, GPIO_STATUS_LED);
 }
 
+uint32_t Board_GetResetFlags(void)
+{
+    return module.reset_flags;
+}
+
 //////////////////////////////////////////////////////////////////////////
 //LOCAL FUNCTIONS
 //////////////////////////////////////////////////////////////////////////
+
+static void StoreResetFlags(void)
+{
+    module.reset_flags = RCC_CSR & RCC_CSR_RESET_FLAGS;
+}
+
+static void ClearResetFlags(void)
+{
+    RCC_CSR |= RCC_CSR_RMVF;
+}
 
 static void SetupClock(void)
 {

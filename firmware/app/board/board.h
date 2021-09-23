@@ -100,4 +100,11 @@ size_t Board_GetNumberOfMotors(void);
  */
 void Board_ToggleStatusLED(void);
 
+/**
+ * Get the MCU reset flags.
+ *
+ * @return Reset flags.
+ */
+uint32_t Board_GetResetFlags(void);
+
 #endif
