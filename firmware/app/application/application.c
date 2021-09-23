@@ -164,11 +164,11 @@ static void ConfigureSignalHandler(void)
 static void HandleRPM1Signal(struct signal_t *signal_p)
 {
     Signal_Log(signal_p, module.logger);
-    MotorController_SetRPM(BOARD_M1_INDEX, *(uint16_t *)signal_p->data_p);
+    MotorController_SetRPM(BOARD_M1_INDEX, *(int16_t *)signal_p->data_p);
 }
 
 static void HandleCurrent1Signal(struct signal_t *signal_p)
 {
     Signal_Log(signal_p, module.logger);
-    MotorController_SetCurrent(BOARD_M1_INDEX, *(uint16_t *)signal_p->data_p);
+    MotorController_SetCurrent(BOARD_M1_INDEX, *(int16_t *)signal_p->data_p);
 }
