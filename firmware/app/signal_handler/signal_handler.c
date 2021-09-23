@@ -135,6 +135,43 @@ void SignalHandler_Listener(const struct can_frame_t *frame_p)
     }
 }
 
+bool SignalHandler_SendMotorStatusMsg(int16_t rpm1, int16_t current1, int16_t rpm2, int16_t current2, uint8_t msg_status)
+{
+
+    const bool valid_values = (candb_motor_msg_status_motor_msg_status_sig_rpm1_is_in_range(rpm1) &&
+                               candb_motor_msg_status_motor_msg_status_sig_current1_is_in_range(current1 ) &&
+                               candb_motor_msg_status_motor_msg_status_sig_rpm2_is_in_range(rpm2) &&
+                               candb_motor_msg_status_motor_msg_status_sig_current2_is_in_range(current2));
+
+    bool status = true;
+    if (valid_values)
+    {
+        struct candb_motor_msg_status_t msg;
+        msg.motor_msg_status_sig_rpm1 = rpm1;
+        msg.motor_msg_status_sig_current1 = current1;
+        msg.motor_msg_status_sig_rpm2 = rpm2;
+        msg.motor_msg_status_sig_current2 = current2;
+        msg.motor_msg_status_sig_status = msg_status;
+
+        uint8_t data[CANDB_MOTOR_MSG_STATUS_LENGTH];
+        const int32_t pack_status = candb_motor_msg_status_pack(data, &msg, sizeof(data));
+        assert(pack_status != -EINVAL);
+
+        if (!CANInterface_Transmit(CANDB_MOTOR_MSG_STATUS_FRAME_ID, data, CANDB_MOTOR_MSG_STATUS_LENGTH))
+        {
+            Logging_Warning(module.logger, "Failed to send msg: {id: 0x%02x}", CANDB_MOTOR_MSG_STATUS_FRAME_ID);
+            status = false;
+        }
+    }
+    else
+    {
+        Logging_Warning(module.logger, "Value(s) out of range: {rpm1: %u, current1: %u, rpm2: %u, current2: %u}", rpm1, current1, rpm2, current2);
+        status = false;
+    }
+
+    return status;
+}
+
 //////////////////////////////////////////////////////////////////////////
 //LOCAL FUNCTIONS
 //////////////////////////////////////////////////////////////////////////

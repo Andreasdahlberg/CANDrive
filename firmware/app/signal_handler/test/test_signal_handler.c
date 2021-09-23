@@ -162,7 +162,26 @@ static void test_SignalHandler_Listener_Invalid(void **state)
     expect_assert_failure(SignalHandler_Listener(NULL));
 }
 
+static void test_SignalHandler_SendMotorStatusMsg_OutOfRange(void **state)
+{
+    /* Expect no calls to 'CANInterface_Transmit'. */
+    assert_false(SignalHandler_SendMotorStatusMsg(10000, 0, 0 , 0, 0));
+    assert_false(SignalHandler_SendMotorStatusMsg(0, 10000, 0 , 0, 0));
+    assert_false(SignalHandler_SendMotorStatusMsg(0, 0, 10000 , 0, 0));
+    assert_false(SignalHandler_SendMotorStatusMsg(0, 0, 0 , 10000, 0));
+}
 
+static void test_SignalHandler_SendMotorStatusMsg_TransmitFailed(void **state)
+{
+    will_return(CANInterface_Transmit, false);
+    assert_false(SignalHandler_SendMotorStatusMsg(1, 200, 0 , 0, 1));
+}
+
+static void test_SignalHandler_SendMotorStatusMsg(void **state)
+{
+    will_return(CANInterface_Transmit, true);
+    assert_true(SignalHandler_SendMotorStatusMsg(1, 200, 0 , 0, 1));
+}
 
 static void test_Signal_IsIDValid(void **state)
 {
@@ -172,7 +191,6 @@ static void test_Signal_IsIDValid(void **state)
     }
     assert_false(Signal_IsIDValid(SIGNAL_END));
 }
-
 
 static void test_Signal_IDToString(void **state)
 {
@@ -191,7 +209,6 @@ static void test_Signal_IDToString(void **state)
     assert_string_equal(Signal_IDToString(SIGNAL_END), "INVALID");
 }
 
-
 //////////////////////////////////////////////////////////////////////////
 //FUNCTIONS
 //////////////////////////////////////////////////////////////////////////
@@ -204,7 +221,10 @@ int main(int argc, char *argv[])
         cmocka_unit_test_setup(test_SignalHandler_Process_InvalidFrameSize, Setup),
         cmocka_unit_test_setup(test_SignalHandler_RegisterHandler_Invalid, Setup),
         cmocka_unit_test_setup(test_SignalHandler_RegisterHandler_MaxNumberOfHandlers, Setup),
-        cmocka_unit_test_setup(test_SignalHandler_Listener_Invalid, Setup)
+        cmocka_unit_test_setup(test_SignalHandler_Listener_Invalid, Setup),
+        cmocka_unit_test_setup(test_SignalHandler_SendMotorStatusMsg_OutOfRange, Setup),
+        cmocka_unit_test_setup(test_SignalHandler_SendMotorStatusMsg_TransmitFailed, Setup),
+        cmocka_unit_test_setup(test_SignalHandler_SendMotorStatusMsg, Setup)
     };
 
     const struct CMUnitTest test_Signal[] =

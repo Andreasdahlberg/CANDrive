@@ -73,4 +73,17 @@ void SignalHandler_Process(void);
  */
 void SignalHandler_RegisterHandler(enum signal_id_t id, signalhandler_handler_cb_t handler_cb);
 
+/**
+ * Send a motor status message.
+ *
+ * @param  rpm1 Motor 1 RPM.
+ * @param  current1 Motor 1 current.
+ * @param  rpm2 Motor 2 RPM.
+ * @param  current2 Motor 2 current.
+ * @param  status Motor 1 & 2 status.
+ *
+ * @return True if all values are in range and message was sent.
+ */
+bool SignalHandler_SendMotorStatusMsg(int16_t rpm1, int16_t current1, int16_t rpm2, int16_t current2, uint8_t status);
+
 #endif
