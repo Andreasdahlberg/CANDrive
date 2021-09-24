@@ -84,6 +84,6 @@ void SignalHandler_RegisterHandler(enum signal_id_t id, signalhandler_handler_cb
  *
  * @return True if all values are in range and message was sent.
  */
-bool SignalHandler_SendMotorStatusMsg(int16_t rpm1, int16_t current1, int16_t rpm2, int16_t current2, uint8_t status);
+bool SignalHandler_SendMotorStatus(int16_t rpm1, int16_t current1, int16_t rpm2, int16_t current2, uint8_t status);
 
 #endif

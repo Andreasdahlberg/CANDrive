@@ -87,7 +87,8 @@ static struct module_t module =
                 .channel = 11
             }
         },
-    }
+    },
+    0
 };
 
 //////////////////////////////////////////////////////////////////////////
@@ -161,7 +162,7 @@ uint32_t Board_GetResetFlags(void)
 
 static void StoreResetFlags(void)
 {
-    module.reset_flags = RCC_CSR & RCC_CSR_RESET_FLAGS;
+    module.reset_flags = RCC_CSR & (uint32_t)RCC_CSR_RESET_FLAGS;
 }
 
 static void ClearResetFlags(void)

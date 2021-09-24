@@ -135,7 +135,7 @@ void SignalHandler_Listener(const struct can_frame_t *frame_p)
     }
 }
 
-bool SignalHandler_SendMotorStatusMsg(int16_t rpm1, int16_t current1, int16_t rpm2, int16_t current2, uint8_t msg_status)
+bool SignalHandler_SendMotorStatus(int16_t rpm1, int16_t current1, int16_t rpm2, int16_t current2, uint8_t msg_status)
 {
 
     const bool valid_values = (candb_motor_msg_status_motor_msg_status_sig_rpm1_is_in_range(rpm1) &&
