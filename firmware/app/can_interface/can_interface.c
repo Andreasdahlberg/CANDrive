@@ -181,7 +181,7 @@ static void InitCANPeripheral(void)
     const bool no_automatic_retransmission = false;
     const bool receive_fifo_locked_mode = false;
     const bool transmit_fifo_priority = false;
-    const bool loopback = true;
+    const bool loopback = false;
     const bool silent = false;
 
     if (can_init(CAN1,
