@@ -39,7 +39,8 @@ MODULES = [
     'filter',
     'pid',
     'motor_controller',
-    'signal_handler'
+    'signal_handler',
+    'system_monitor'
 ]
 
 module_objects = []
