@@ -43,6 +43,7 @@ along with CANDrive firmware.  If not, see <http://www.gnu.org/licenses/>.
 //////////////////////////////////////////////////////////////////////////
 
 #define NUMBER_OF_MOTORS 2
+#define WATCHDOG_HANDLE 1
 
 //////////////////////////////////////////////////////////////////////////
 //TYPE DEFINITIONS
@@ -61,6 +62,7 @@ const static struct motor_config_t motor_configs[NUMBER_OF_MOTORS];
 
 static int Setup(void **state)
 {
+    will_return(SystemMonitor_GetWatchdogHandle, WATCHDOG_HANDLE);
     will_return_maybe(Logging_GetLogger, dummy_logger);
     will_return_maybe(Board_GetNumberOfMotors, NUMBER_OF_MOTORS);
     for (size_t i = 0; i < NUMBER_OF_MOTORS; ++i)
@@ -90,6 +92,7 @@ static void ExpectPIDUpdate(int32_t rpm_cv, int32_t current_cv, int32_t expected
 
         expect_value(Motor_SetSpeed, speed, expected_cv);
     }
+    expect_value(SystemMonitor_FeedWatchdog, handle, WATCHDOG_HANDLE);
     will_return(SysTime_GetSystemTime, 100);
 }
 
@@ -99,6 +102,7 @@ static void ExpectPIDUpdate(int32_t rpm_cv, int32_t current_cv, int32_t expected
 
 static void test_MotorController_Init_UnsupportedNumberOfMotors(void **state)
 {
+    will_return(SystemMonitor_GetWatchdogHandle, WATCHDOG_HANDLE);
     will_return_maybe(Logging_GetLogger, dummy_logger);
     will_return_maybe(Board_GetNumberOfMotors, NUMBER_OF_MOTORS + 1);
 
@@ -107,6 +111,7 @@ static void test_MotorController_Init_UnsupportedNumberOfMotors(void **state)
 
 static void test_MotorController_Init(void **state)
 {
+    will_return(SystemMonitor_GetWatchdogHandle, WATCHDOG_HANDLE);
     will_return_maybe(Logging_GetLogger, dummy_logger);
     will_return_maybe(Board_GetNumberOfMotors, NUMBER_OF_MOTORS);
     for (size_t i = 0; i < NUMBER_OF_MOTORS; ++i)
@@ -133,6 +138,7 @@ static void test_MotorController_Update(void **state)
     expect_function_calls(Motor_Update, NUMBER_OF_MOTORS);
     will_return(Motor_GetStatus, MOTOR_COAST);
     will_return(Motor_GetStatus, MOTOR_BRAKE);
+    expect_value(SystemMonitor_FeedWatchdog, handle, WATCHDOG_HANDLE);
     will_return(SysTime_GetSystemTime, 100);
     MotorController_Update();
 

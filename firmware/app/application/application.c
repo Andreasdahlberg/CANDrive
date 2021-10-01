@@ -37,6 +37,7 @@ along with CANDrive firmware.  If not, see <http://www.gnu.org/licenses/>.
 #include "motor_controller.h"
 #include "motor_controller_cmd.h"
 #include "signal_handler.h"
+#include "system_monitor.h"
 #include "application.h"
 
 //////////////////////////////////////////////////////////////////////////
@@ -74,6 +75,8 @@ static void RegisterConsoleCommands(void);
 static void ConfigureSignalHandler(void);
 static void HandleRPM1Signal(struct signal_t *signal_p);
 static void HandleCurrent1Signal(struct signal_t *signal_p);
+static inline void PrintResetFlags(void);
+static inline void PrintIdAndRevision(void);
 
 //////////////////////////////////////////////////////////////////////////
 //FUNCTIONS
@@ -86,6 +89,8 @@ void Application_Init(void)
     SysTime_Init();
     Serial_Init(BAUD_RATE);
     Logging_Init(SysTime_GetSystemTime);
+
+    SystemMonitor_Init();
     CANInterface_Init();
     ADC_Init();
     MotorController_Init();
@@ -96,14 +101,9 @@ void Application_Init(void)
 
     ConfigureSignalHandler();
 
-    struct board_id_t device_id = Board_GetId();
-    Logging_Info(module.logger, "Id=%x%x%x HW=%u SW=%u",
-                 device_id.offset_0,
-                 device_id.offset_4,
-                 device_id.offset_8,
-                 Board_GetHardwareRevision(),
-                 Board_GetSoftwareRevision()
-                );
+    PrintResetFlags();
+    PrintIdAndRevision();
+
     Logging_Info(module.logger, "Application ready");
 
     Console_Init(ConsoleWrite, ConsoleRead);
@@ -118,6 +118,7 @@ void Application_Run(void)
     SignalHandler_Process();
     MotorController_Update();
     Console_Process();
+    SystemMonitor_Update();
 
     const uint32_t led_toggle_period_ms = 500;
     if (SysTime_GetDifference(module.status_led_time) >= led_toggle_period_ms)
@@ -171,4 +172,27 @@ static void HandleCurrent1Signal(struct signal_t *signal_p)
 {
     Signal_Log(signal_p, module.logger);
     MotorController_SetCurrent(BOARD_M1_INDEX, *(int16_t *)signal_p->data_p);
+}
+
+static inline void PrintResetFlags(void)
+{
+    const uint32_t reset_flags = Board_GetResetFlags();
+    Logging_Info(module.logger, "reset_flags: {LPWRR: %u, IWDGRSTF: %u, PINRSTF: %u, SFTRSTF: %u}",
+                 !!(reset_flags & RCC_CSR_LPWRRSTF),
+                 !!(reset_flags & RCC_CSR_IWDGRSTF),
+                 !!(reset_flags & RCC_CSR_PINRSTF),
+                 !!(reset_flags & RCC_CSR_SFTRSTF)
+                );
+}
+
+static inline void PrintIdAndRevision(void)
+{
+    struct board_id_t device_id = Board_GetId();
+    Logging_Info(module.logger, "Id=%x%x%x HW=%u SW=%u",
+                 device_id.offset_0,
+                 device_id.offset_4,
+                 device_id.offset_8,
+                 Board_GetHardwareRevision(),
+                 Board_GetSoftwareRevision()
+                );
 }

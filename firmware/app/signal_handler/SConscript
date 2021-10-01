@@ -22,10 +22,11 @@ Import(['*'])
 SOURCE = Glob('*.c')
 
 env.Append(CPPPATH=[
-    '../utility',
-    '../logging',
+    '#app/utility',
+    '#app/logging',
     '../candb',
-    '../fifo',
+    '#app/fifo',
+    '#app/system_monitor'
 ])
 
 OBJECTS = env.Object(SOURCE)

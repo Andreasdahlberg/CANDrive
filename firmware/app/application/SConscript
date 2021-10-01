@@ -33,7 +33,8 @@ env.Append(CPPPATH=[
     '#app/systime',
     '#app/motor_controller',
     '#app/console',
-    '#app/signal_handler'
+    '#app/signal_handler',
+    '#app/system_monitor'
 ])
 
 OBJECTS = env.Object(SOURCE)
