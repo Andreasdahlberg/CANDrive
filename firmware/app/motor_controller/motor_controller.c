@@ -32,6 +32,7 @@ along with CANDrive firmware.  If not, see <http://www.gnu.org/licenses/>.
 #include "board.h"
 #include "systime.h"
 #include "pid.h"
+#include "system_monitor.h"
 #include "motor_controller.h"
 
 //////////////////////////////////////////////////////////////////////////
@@ -62,6 +63,7 @@ struct motor_controller_t
     logging_logger_t *logger_p;
     struct motor_instance_t instances[MAX_NUMBER_OF_MOTORS];
     uint32_t update_time;
+    uint32_t watchdog_handle;
 };
 
 //////////////////////////////////////////////////////////////////////////
@@ -95,13 +97,13 @@ static void ResetPIDControllers(struct motor_instance_t *instance_p);
 void MotorController_Init(void)
 {
     module = (__typeof__(module)) {0};
-
+    module.watchdog_handle = SystemMonitor_GetWatchdogHandle();
     module.logger_p = Logging_GetLogger(MOTOR_CONTROLLER_LOGGER_NAME);
     Logging_SetLevel(module.logger_p, MOTOR_CONTROLLER_LOGGER_DEBUG_LEVEL);
 
     InitializeMotors();
-
-    Logging_Info(module.logger_p, "MotorController initialized");
+    Logging_Info(module.logger_p, "MotorController initialized {wdt_handle: %u}",
+                 module.watchdog_handle);
 }
 
 void MotorController_Update(void)
@@ -111,6 +113,7 @@ void MotorController_Update(void)
     if (SysTime_GetDifference(module.update_time) >= UPDATE_TIME_MS)
     {
         UpdateMotorSpeeds();
+        SystemMonitor_FeedWatchdog(module.watchdog_handle);
         module.update_time = SysTime_GetSystemTime();
     }
 }

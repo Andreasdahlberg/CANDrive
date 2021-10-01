@@ -31,6 +31,7 @@ along with CANDrive firmware.  If not, see <http://www.gnu.org/licenses/>.
 #include "logging.h"
 #include "candb.h"
 #include "fifo.h"
+#include "system_monitor.h"
 #include "signal_handler.h"
 
 //////////////////////////////////////////////////////////////////////////
@@ -62,6 +63,7 @@ struct module_t
     struct fifo_t frame_fifo;
     struct handler_t handlers[MAX_NUMBER_OF_HANDLERS];
     size_t number_of_handlers;
+    uint32_t watchdog_handle;
 };
 
 //////////////////////////////////////////////////////////////////////////
@@ -85,9 +87,11 @@ void SignalHandler_Init(void)
 {
     module = (__typeof__(module)) {0};
     module.frame_fifo = FIFO_New(module.frame_buffer);
+    module.watchdog_handle = SystemMonitor_GetWatchdogHandle();
     module.logger = Logging_GetLogger(SIGH_LOGGER_NAME);
     Logging_SetLevel(module.logger, SIGH_LOGGER_DEBUG_LEVEL);
-    Logging_Info(module.logger, "Signal handler initialized");
+    Logging_Info(module.logger, "Signal handler initialized {wdt_handle: %u}",
+                 module.watchdog_handle);
 }
 
 void SignalHandler_Process(void)
@@ -109,6 +113,7 @@ void SignalHandler_Process(void)
                 break;
         }
     }
+    SystemMonitor_FeedWatchdog(module.watchdog_handle);
 }
 
 void SignalHandler_RegisterHandler(enum signal_id_t id, signalhandler_handler_cb_t handler_cb)

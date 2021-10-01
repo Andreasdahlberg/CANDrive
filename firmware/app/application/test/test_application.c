@@ -90,6 +90,7 @@ static int Setup(void **state)
     expect_function_call(SysTime_Init);
     expect_any(Serial_Init, baud_rate);
     expect_function_call(Logging_Init);
+    expect_function_call(SystemMonitor_Init);
     expect_function_call(CANInterface_Init);
     expect_function_call(ADC_Init);
     expect_function_call(MotorController_Init);
@@ -99,8 +100,9 @@ static int Setup(void **state)
     expect_any(CANInterface_AddFilter, id);
     expect_any(CANInterface_AddFilter, mask);
     expect_any_always(SignalHandler_RegisterHandler, id);
-    will_return(Board_GetHardwareRevision, 1);
-    will_return(Board_GetSoftwareRevision, 2);
+    will_return_maybe(Board_GetResetFlags, 0);
+    will_return_maybe(Board_GetHardwareRevision, 1);
+    will_return_maybe(Board_GetSoftwareRevision, 2);
     expect_any(MotorController_SetRPM, index);
     expect_any(MotorController_SetRPM, rpm);
     expect_any(MotorController_SetCurrent, index);
@@ -137,6 +139,7 @@ static void test_Application_Init(void **state)
     expect_function_call(SysTime_Init);
     expect_value(Serial_Init, baud_rate, BAUD_RATE);
     expect_function_call(Logging_Init);
+    expect_function_call(SystemMonitor_Init);
     expect_function_call(CANInterface_Init);
     expect_function_call(ADC_Init);
     expect_function_call(MotorController_Init);
@@ -146,8 +149,9 @@ static void test_Application_Init(void **state)
     expect_any(CANInterface_AddFilter, id);
     expect_any(CANInterface_AddFilter, mask);
     expect_any_always(SignalHandler_RegisterHandler, id);
-    will_return(Board_GetHardwareRevision, 1);
-    will_return(Board_GetSoftwareRevision, 2);
+    will_return_maybe(Board_GetResetFlags, 0);
+    will_return_maybe(Board_GetHardwareRevision, 1);
+    will_return_maybe(Board_GetSoftwareRevision, 2);
     expect_value(MotorController_SetRPM, index, 0);
     expect_value(MotorController_SetRPM, rpm, 0);
     expect_value(MotorController_SetCurrent, index, 0);
@@ -163,12 +167,14 @@ static void test_Application_Run(void **state)
     expect_function_call(SignalHandler_Process);
     expect_function_call(MotorController_Update);
     expect_function_call(Console_Process);
+    expect_function_call(SystemMonitor_Update);
     will_return(SysTime_GetDifference, led_toggle_period_ms - 1);
     Application_Run();
 
     expect_function_call(SignalHandler_Process);
     expect_function_call(MotorController_Update);
     expect_function_call(Console_Process);
+    expect_function_call(SystemMonitor_Update);
     will_return(SysTime_GetDifference, led_toggle_period_ms);
     expect_function_call(Board_ToggleStatusLED);
     will_return(SysTime_GetSystemTime, 0);
