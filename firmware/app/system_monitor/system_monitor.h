@@ -51,12 +51,26 @@ along with CANDrive firmware.  If not, see <http://www.gnu.org/licenses/>.
  */
 void SystemMonitor_Init(void);
 
+/**
+ * Update the internal state of the system monitor.
+ */
 void SystemMonitor_Update(void);
 
-
+/**
+ * Get a unique watchdog handle.
+ *
+ * After calling this function, 'SystemMonitor_FeedWatchdog' must by called with
+ * the handle as input to prevent the watchdog from resetting the device.
+ *
+ * @return Watchdog handle.
+ */
 uint32_t SystemMonitor_GetWatchdogHandle(void);
 
-
+/**
+ * Feed the watchdog associated with the supplied handle.
+ *
+ * @param handle
+ */
 void SystemMonitor_FeedWatchdog(uint32_t handle);
 
 #endif
