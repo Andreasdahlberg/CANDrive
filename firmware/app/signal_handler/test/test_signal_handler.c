@@ -93,6 +93,7 @@ static void test_SignalHandler_Process(void **state)
     frame.id = CANDB_CONTROLLER_MSG_MOTOR_CONTROL_FRAME_ID;
     SignalHandler_Listener(&frame);
     /* Expect nothing to happen(frame is discarded) since no signal handlers are registered. */
+    expect_function_call(SystemMonitor_ReportControlActivity);
     expect_value(SystemMonitor_FeedWatchdog, handle, WATCHDOG_HANDLE);
     SignalHandler_Process();
 
@@ -109,6 +110,7 @@ static void test_SignalHandler_Process(void **state)
     SignalHandler_Listener(&frame);
     expect_function_call(SignalHandlerFunc1);
     expect_function_call(SignalHandlerFunc2);
+    expect_function_call(SystemMonitor_ReportControlActivity);
     expect_value(SystemMonitor_FeedWatchdog, handle, WATCHDOG_HANDLE);
     SignalHandler_Process();
 
@@ -132,7 +134,9 @@ static void test_SignalHandler_Process(void **state)
 
 static void test_SignalHandler_Process_InvalidFrameSize(void **state)
 {
-    uint8_t sizes[] = {0, CANDB_MOTOR_MSG_STATUS_FRAME_ID - 1};
+    const uint8_t sizes[] = {0, 7};
+
+    SignalHandler_RegisterHandler(SIGNAL_CONTROL_RPM1, SignalHandlerFunc1);
 
     for (size_t i = 0; i < ElementsIn(sizes); ++i)
     {
@@ -140,9 +144,7 @@ static void test_SignalHandler_Process_InvalidFrameSize(void **state)
         frame.size = sizes[i];
         frame.id = CANDB_CONTROLLER_MSG_MOTOR_CONTROL_FRAME_ID;
 
-        SignalHandler_RegisterHandler(SIGNAL_CONTROL_RPM1, SignalHandlerFunc1);
         SignalHandler_Listener(&frame);
-        expect_function_call(SignalHandlerFunc1);
         /* Expect nothing to happen since the frame is invalid. */
         expect_value(SystemMonitor_FeedWatchdog, handle, WATCHDOG_HANDLE);
         SignalHandler_Process();

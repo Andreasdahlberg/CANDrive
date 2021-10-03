@@ -35,6 +35,7 @@ along with CANDrive firmware.  If not, see <http://www.gnu.org/licenses/>.
 #include <string.h>
 #include "utility.h"
 #include "signal_handler.h"
+#include "system_monitor.h"
 #include "application.h"
 
 //////////////////////////////////////////////////////////////////////////
@@ -168,6 +169,7 @@ static void test_Application_Run(void **state)
     expect_function_call(MotorController_Update);
     expect_function_call(Console_Process);
     expect_function_call(SystemMonitor_Update);
+    will_return(SystemMonitor_GetState, SYSTEM_MONITOR_UNKNOWN);
     will_return(SysTime_GetDifference, led_toggle_period_ms - 1);
     Application_Run();
 
@@ -175,9 +177,44 @@ static void test_Application_Run(void **state)
     expect_function_call(MotorController_Update);
     expect_function_call(Console_Process);
     expect_function_call(SystemMonitor_Update);
+    will_return(SystemMonitor_GetState, SYSTEM_MONITOR_UNKNOWN);
     will_return(SysTime_GetDifference, led_toggle_period_ms);
     expect_function_call(Board_ToggleStatusLED);
     will_return(SysTime_GetSystemTime, 0);
+    Application_Run();
+}
+
+static void test_Application_Run_StateChanges(void **state)
+{
+    const uint32_t led_toggle_period_ms = 500;
+    const size_t number_of_motors = 2;
+
+    /* Active */
+    expect_function_call(SignalHandler_Process);
+    expect_function_call(MotorController_Update);
+    expect_function_call(Console_Process);
+    expect_function_call(SystemMonitor_Update);
+    will_return(SystemMonitor_GetState, SYSTEM_MONITOR_ACTIVE);
+    will_return(Board_GetNumberOfMotors, number_of_motors);
+    for (size_t i = 0; i < number_of_motors; ++i)
+    {
+        expect_value(MotorController_Run, index, i);
+    }
+    will_return(SysTime_GetDifference, 0);
+    Application_Run();
+
+    /* Inactive */
+    expect_function_call(SignalHandler_Process);
+    expect_function_call(MotorController_Update);
+    expect_function_call(Console_Process);
+    expect_function_call(SystemMonitor_Update);
+    will_return(SystemMonitor_GetState, SYSTEM_MONITOR_INACTIVE);
+    will_return_always(Board_GetNumberOfMotors, number_of_motors);
+    for (size_t i = 0; i < number_of_motors; ++i)
+    {
+        expect_value(MotorController_Brake, index, i);
+    }
+    will_return(SysTime_GetDifference, 0);
     Application_Run();
 }
 
@@ -212,6 +249,7 @@ int main(int argc, char *argv[])
     {
         cmocka_unit_test(test_Application_Init),
         cmocka_unit_test_setup(test_Application_Run, Setup),
+        cmocka_unit_test_setup(test_Application_Run_StateChanges, Setup),
         cmocka_unit_test_setup(test_Application_SignalHandlers, Setup)
     };
 

@@ -28,8 +28,10 @@ along with CANDrive firmware.  If not, see <http://www.gnu.org/licenses/>.
 #include <assert.h>
 #include <stddef.h>
 #include <libopencm3/stm32/iwdg.h>
+#include "utility.h"
 #include "logging.h"
 #include "board.h"
+#include "systime.h"
 #include "system_monitor.h"
 
 //////////////////////////////////////////////////////////////////////////
@@ -44,6 +46,7 @@ along with CANDrive firmware.  If not, see <http://www.gnu.org/licenses/>.
 #define WATCHDOG_PERIOD_MS 200
 #define MAX_NUMBER_OF_WATCHDOG_HANDLES 32
 #define MAGIC_NUMBER 0xAABCDEFA
+#define CONTROL_INACTIVITY_PERIOD_MS 200
 
 //////////////////////////////////////////////////////////////////////////
 //TYPE DEFINITIONS
@@ -54,6 +57,8 @@ struct module_t
     logging_logger_t *logger;
     uint32_t number_of_handles;
     uint32_t flags;
+    uint32_t control_activity_timer;
+    enum system_monitor_state_t state;
 };
 
 //////////////////////////////////////////////////////////////////////////
@@ -61,7 +66,6 @@ struct module_t
 //////////////////////////////////////////////////////////////////////////
 
 static struct module_t module;
-
 static uint32_t cold_restart_magic_number __attribute__ ((section (".noinit")));
 static uint32_t number_of_watchdog_restarts __attribute__ ((section (".noinit")));
 
@@ -81,6 +85,7 @@ static inline bool IsWatchdogRestart(void);
 void SystemMonitor_Init(void)
 {
     module = (__typeof__(module)) {0};
+    module.state = SYSTEM_MONITOR_INACTIVE;
 
     module.logger = Logging_GetLogger("SysMon");
     Logging_SetLevel(module.logger, LOGGING_DEBUG);
@@ -111,6 +116,8 @@ void SystemMonitor_Init(void)
     assert(number_of_watchdog_restarts < 3 && "Stopped due to watchdog reset loop");
     iwdg_set_period_ms(WATCHDOG_PERIOD_MS);
     iwdg_start();
+
+    Logging_Info(module.logger, "SystemMonitor initialized {state: SYSTEM_MONITOR_INACTIVE}");
 }
 
 void SystemMonitor_Update(void)
@@ -121,6 +128,13 @@ void SystemMonitor_Update(void)
     {
         iwdg_reset();
         module.flags = 0;
+    }
+
+    if ((module.state != SYSTEM_MONITOR_INACTIVE) &&
+            (SysTime_GetDifference(module.control_activity_timer) > CONTROL_INACTIVITY_PERIOD_MS))
+    {
+        Logging_Info(module.logger, "{state: SYSTEM_MONITOR_INACTIVE}");
+        module.state = SYSTEM_MONITOR_INACTIVE;
     }
 }
 
@@ -140,6 +154,17 @@ void SystemMonitor_FeedWatchdog(uint32_t handle)
     assert(handle < module.number_of_handles);
 
     module.flags |= (1 << handle);
+}
+
+void SystemMonitor_ReportControlActivity(void)
+{
+    module.state = SYSTEM_MONITOR_ACTIVE;
+    module.control_activity_timer = SysTime_GetSystemTime();
+}
+
+enum system_monitor_state_t SystemMonitor_GetState(void)
+{
+    return module.state;
 }
 
 //////////////////////////////////////////////////////////////////////////

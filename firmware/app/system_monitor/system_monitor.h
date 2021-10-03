@@ -42,6 +42,17 @@ along with CANDrive firmware.  If not, see <http://www.gnu.org/licenses/>.
 //TYPE DEFINITIONS
 //////////////////////////////////////////////////////////////////////////
 
+enum system_monitor_state_t
+{
+    SYSTEM_MONITOR_UNKNOWN = 0,
+    SYSTEM_MONITOR_ACTIVE,
+    SYSTEM_MONITOR_FAIL,
+    SYSTEM_MONITOR_INACTIVE,
+    SYSTEM_MONITOR_EMERGENCY,
+    /* No new states after SYSTEM_MONITOR_END!*/
+    SYSTEM_MONITOR_END
+};
+
 //////////////////////////////////////////////////////////////////////////
 //FUNCTION PROTOTYPES
 //////////////////////////////////////////////////////////////////////////
@@ -72,5 +83,12 @@ uint32_t SystemMonitor_GetWatchdogHandle(void);
  * @param handle
  */
 void SystemMonitor_FeedWatchdog(uint32_t handle);
+
+/**
+ * Report control activity.
+ */
+void SystemMonitor_ReportControlActivity(void);
+
+enum system_monitor_state_t SystemMonitor_GetState(void);
 
 #endif
