@@ -73,7 +73,7 @@ __attribute__((weak)) void SystemMonitor_FeedWatchdog(uint32_t handle)
     check_expected(handle);
 }
 
-__attribute__((weak)) void SystemMonitor_ReportControlActivity(void)
+__attribute__((weak)) void SystemMonitor_ReportActivity(void)
 {
     function_called();
 }

@@ -87,7 +87,7 @@ void SystemMonitor_FeedWatchdog(uint32_t handle);
 /**
  * Report control activity.
  */
-void SystemMonitor_ReportControlActivity(void);
+void SystemMonitor_ReportActivity(void);
 
 enum system_monitor_state_t SystemMonitor_GetState(void);
 
