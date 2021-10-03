@@ -73,6 +73,17 @@ __attribute__((weak)) void SystemMonitor_FeedWatchdog(uint32_t handle)
     check_expected(handle);
 }
 
+__attribute__((weak)) void SystemMonitor_ReportControlActivity(void)
+{
+    function_called();
+}
+
+__attribute__((weak)) enum system_monitor_state_t SystemMonitor_GetState(void)
+{
+    return mock_type(enum system_monitor_state_t);
+}
+
+
 //////////////////////////////////////////////////////////////////////////
 //LOCAL FUNCTIONS
 //////////////////////////////////////////////////////////////////////////

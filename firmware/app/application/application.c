@@ -57,6 +57,7 @@ struct module_t
 {
     logging_logger_t *logger;
     uint32_t status_led_time;
+    enum system_monitor_state_t last_state;
 };
 
 //////////////////////////////////////////////////////////////////////////
@@ -75,6 +76,9 @@ static void RegisterConsoleCommands(void);
 static void ConfigureSignalHandler(void);
 static void HandleRPM1Signal(struct signal_t *signal_p);
 static void HandleCurrent1Signal(struct signal_t *signal_p);
+static void HandleStateChanges(void);
+static void HandleActiveState(void);
+static void HandleInactiveState(void);
 static inline void PrintResetFlags(void);
 static inline void PrintIdAndRevision(void);
 
@@ -119,6 +123,7 @@ void Application_Run(void)
     MotorController_Update();
     Console_Process();
     SystemMonitor_Update();
+    HandleStateChanges();
 
     const uint32_t led_toggle_period_ms = 500;
     if (SysTime_GetDifference(module.status_led_time) >= led_toggle_period_ms)
@@ -172,6 +177,49 @@ static void HandleCurrent1Signal(struct signal_t *signal_p)
 {
     Signal_Log(signal_p, module.logger);
     MotorController_SetCurrent(BOARD_M1_INDEX, *(int16_t *)signal_p->data_p);
+}
+
+static void HandleStateChanges(void)
+{
+    const enum system_monitor_state_t state = SystemMonitor_GetState();
+
+    if (module.last_state != state)
+    {
+        module.last_state = state;
+
+        switch (state)
+        {
+            case SYSTEM_MONITOR_ACTIVE:
+                HandleActiveState();
+                break;
+
+            case SYSTEM_MONITOR_INACTIVE:
+                HandleInactiveState();
+                break;
+
+            default:
+                break;
+
+        }
+    }
+}
+
+static void HandleActiveState(void)
+{
+    const size_t number_of_motors = Board_GetNumberOfMotors();
+    for (size_t i = 0; i < number_of_motors; ++i)
+    {
+        MotorController_Run(i);
+    }
+}
+
+static void HandleInactiveState(void)
+{
+    const size_t number_of_motors = Board_GetNumberOfMotors();
+    for (size_t i = 0; i < number_of_motors; ++i)
+    {
+        MotorController_Brake(i);
+    }
 }
 
 static inline void PrintResetFlags(void)

@@ -195,12 +195,31 @@ static void test_SystemMonitor_Update(void **state)
     SystemMonitor_FeedWatchdog(handles[0]);
     SystemMonitor_Update();
 
-
     SystemMonitor_FeedWatchdog(handles[2]);
     expect_function_call(iwdg_reset);
     SystemMonitor_Update();
 
     SystemMonitor_Update();
+}
+
+static void test_SystemMonitor_ControlActivity(void **state)
+{
+    SystemMonitor_GetWatchdogHandle();
+
+    assert_int_equal(SystemMonitor_GetState(), SYSTEM_MONITOR_INACTIVE);
+
+    will_return(SysTime_GetSystemTime, 0);
+    SystemMonitor_ReportControlActivity();
+    assert_int_equal(SystemMonitor_GetState(), SYSTEM_MONITOR_ACTIVE);
+
+    expect_function_call(iwdg_reset);
+    will_return(SysTime_GetDifference, 200);
+    SystemMonitor_Update();
+    assert_int_equal(SystemMonitor_GetState(), SYSTEM_MONITOR_ACTIVE);
+
+    will_return(SysTime_GetDifference, 201);
+    SystemMonitor_Update();
+    assert_int_equal(SystemMonitor_GetState(), SYSTEM_MONITOR_INACTIVE);
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -216,7 +235,8 @@ int main(int argc, char *argv[])
         cmocka_unit_test_setup(test_SystemMonitor_GetWatchdogHandle_Invalid, Setup),
         cmocka_unit_test_setup(test_SystemMonitor_GetWatchdogHandle, Setup),
         cmocka_unit_test_setup(test_SystemMonitor_FeedWatchdog_Invalid, Setup),
-        cmocka_unit_test_setup(test_SystemMonitor_Update, Setup)
+        cmocka_unit_test_setup(test_SystemMonitor_Update, Setup),
+        cmocka_unit_test_setup(test_SystemMonitor_ControlActivity, Setup),
     };
 
     if (argc >= 2)

@@ -28,7 +28,7 @@ env.Append(CPPPATH=[
     '#app/motor',
     '#app/utility',
     '#app/logging',
-
+    '#app/systime',
     '#app/system_monitor'
 ])
 
