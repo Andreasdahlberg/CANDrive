@@ -207,7 +207,7 @@ static void HandleMotorControlFrame(const struct can_frame_t *frame_p)
         control_signal.data_p = &msg.controller_msg_motor_control_sig_current2;
         DistributeSignal(&control_signal);
 
-        SystemMonitor_ReportControlActivity();
+        SystemMonitor_ReportActivity();
     }
     else
     {

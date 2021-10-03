@@ -209,7 +209,7 @@ static void test_SystemMonitor_ControlActivity(void **state)
     assert_int_equal(SystemMonitor_GetState(), SYSTEM_MONITOR_INACTIVE);
 
     will_return(SysTime_GetSystemTime, 0);
-    SystemMonitor_ReportControlActivity();
+    SystemMonitor_ReportActivity();
     assert_int_equal(SystemMonitor_GetState(), SYSTEM_MONITOR_ACTIVE);
 
     expect_function_call(iwdg_reset);

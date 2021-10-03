@@ -156,7 +156,7 @@ void SystemMonitor_FeedWatchdog(uint32_t handle)
     module.flags |= (1 << handle);
 }
 
-void SystemMonitor_ReportControlActivity(void)
+void SystemMonitor_ReportActivity(void)
 {
     module.state = SYSTEM_MONITOR_ACTIVE;
     module.control_activity_timer = SysTime_GetSystemTime();

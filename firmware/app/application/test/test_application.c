@@ -216,6 +216,15 @@ static void test_Application_Run_StateChanges(void **state)
     }
     will_return(SysTime_GetDifference, 0);
     Application_Run();
+
+    /* Unknown */
+    expect_function_call(SignalHandler_Process);
+    expect_function_call(MotorController_Update);
+    expect_function_call(Console_Process);
+    expect_function_call(SystemMonitor_Update);
+    will_return(SystemMonitor_GetState, SYSTEM_MONITOR_UNKNOWN);
+    will_return(SysTime_GetDifference, 0);
+    Application_Run();
 }
 
 static void test_Application_SignalHandlers(void **state)
