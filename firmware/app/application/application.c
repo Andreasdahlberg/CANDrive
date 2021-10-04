@@ -81,6 +81,7 @@ static void HandleActiveState(void);
 static void HandleInactiveState(void);
 static inline void PrintResetFlags(void);
 static inline void PrintIdAndRevision(void);
+static bool ResetCmd(void);
 
 //////////////////////////////////////////////////////////////////////////
 //FUNCTIONS
@@ -154,6 +155,7 @@ static void RegisterConsoleCommands(void)
     Console_RegisterCommand("run", MotorControllerCmd_Run);
     Console_RegisterCommand("coast", MotorControllerCmd_Coast);
     Console_RegisterCommand("brake", MotorControllerCmd_Brake);
+    Console_RegisterCommand("reset", ResetCmd);
 }
 
 static void ConfigureSignalHandler(void)
@@ -243,4 +245,10 @@ static inline void PrintIdAndRevision(void)
                  Board_GetHardwareRevision(),
                  Board_GetSoftwareRevision()
                 );
+}
+
+static bool ResetCmd(void)
+{
+    Board_Reset();
+    return true;
 }
