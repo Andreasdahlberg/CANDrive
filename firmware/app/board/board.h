@@ -106,4 +106,9 @@ void Board_ToggleStatusLED(void);
  */
 uint32_t Board_GetResetFlags(void);
 
+/**
+ * Reset the device.
+ */
+void Board_Reset(void) __attribute__((noreturn));
+
 #endif
