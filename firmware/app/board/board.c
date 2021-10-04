@@ -27,6 +27,7 @@ along with CANDrive firmware.  If not, see <http://www.gnu.org/licenses/>.
 
 #include <libopencm3/cm3/common.h>
 #include <libopencm3/stm32/gpio.h>
+#include <libopencm3/cm3/scb.h>
 #include <assert.h>
 #include "utility.h"
 #include "board.h"
@@ -154,6 +155,11 @@ void Board_ToggleStatusLED(void)
 uint32_t Board_GetResetFlags(void)
 {
     return module.reset_flags;
+}
+
+void Board_Reset(void)
+{
+    scb_reset_system();
 }
 
 //////////////////////////////////////////////////////////////////////////
