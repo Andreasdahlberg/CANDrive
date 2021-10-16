@@ -31,6 +31,7 @@ along with CANDrive firmware.  If not, see <http://www.gnu.org/licenses/>.
 #include "board_cmd.h"
 #include "serial.h"
 #include "logging.h"
+#include "logging_cmd.h"
 #include "can_interface.h"
 #include "adc.h"
 #include "systime.h"
@@ -156,6 +157,7 @@ static void RegisterConsoleCommands(void)
     Console_RegisterCommand("coast", MotorControllerCmd_Coast);
     Console_RegisterCommand("brake", MotorControllerCmd_Brake);
     Console_RegisterCommand("reset", BoardCmd_Reset);
+    Console_RegisterCommand("level", LoggingCmd_SetLevel);
 }
 
 static void ConfigureSignalHandler(void)
