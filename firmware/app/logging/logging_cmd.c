@@ -64,7 +64,7 @@ bool LoggingCmd_SetLevel(void)
         logging_logger_t *logger_p = Logging_GetLogger(name_p);
         if (logger_p != NULL)
         {
-            Logging_SetLevel(logger_p, level);
+            Logging_SetLevel(logger_p, (enum logging_level_t)level);
             status = true;
         }
     }
