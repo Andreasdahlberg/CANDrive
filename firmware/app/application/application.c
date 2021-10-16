@@ -28,6 +28,7 @@ along with CANDrive firmware.  If not, see <http://www.gnu.org/licenses/>.
 
 #include <string.h>
 #include "board.h"
+#include "board_cmd.h"
 #include "serial.h"
 #include "logging.h"
 #include "can_interface.h"
@@ -81,7 +82,6 @@ static void HandleActiveState(void);
 static void HandleInactiveState(void);
 static inline void PrintResetFlags(void);
 static inline void PrintIdAndRevision(void);
-static bool ResetCmd(void);
 
 //////////////////////////////////////////////////////////////////////////
 //FUNCTIONS
@@ -155,7 +155,7 @@ static void RegisterConsoleCommands(void)
     Console_RegisterCommand("run", MotorControllerCmd_Run);
     Console_RegisterCommand("coast", MotorControllerCmd_Coast);
     Console_RegisterCommand("brake", MotorControllerCmd_Brake);
-    Console_RegisterCommand("reset", ResetCmd);
+    Console_RegisterCommand("reset", BoardCmd_Reset);
 }
 
 static void ConfigureSignalHandler(void)
@@ -245,10 +245,4 @@ static inline void PrintIdAndRevision(void)
                  Board_GetHardwareRevision(),
                  Board_GetSoftwareRevision()
                 );
-}
-
-static bool ResetCmd(void)
-{
-    Board_Reset();
-    return true;
 }
