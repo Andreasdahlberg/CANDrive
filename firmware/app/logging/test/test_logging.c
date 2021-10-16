@@ -32,8 +32,9 @@ along with CANDrive firmware.  If not, see <http://www.gnu.org/licenses/>.
 #include <cmocka.h>
 #include <stdio.h>
 #include <stdbool.h>
-
+#include "utility.h"
 #include "logging.h"
+#include "logging_cmd.h"
 
 //////////////////////////////////////////////////////////////////////////
 //DEFINES
@@ -66,17 +67,17 @@ static int Setup(void **state)
 //TESTS
 //////////////////////////////////////////////////////////////////////////
 
-void test_Logging_Init_Invalid(void **state)
+static void test_Logging_Init_Invalid(void **state)
 {
     expect_assert_failure(Logging_Init(NULL));
 }
 
-void test_Logging_GetLogger_Invalid(void **state)
+static void test_Logging_GetLogger_Invalid(void **state)
 {
     expect_assert_failure(Logging_GetLogger(NULL));
 }
 
-void test_Logging_GetLogger(void **state)
+static void test_Logging_GetLogger(void **state)
 {
     /* Get new loggers */
     logging_logger_t *logger_a_p = Logging_GetLogger("TestLoggerA");
@@ -90,7 +91,7 @@ void test_Logging_GetLogger(void **state)
     assert_ptr_equal(logger_b_p, Logging_GetLogger("TestLoggerB"));
 }
 
-void test_Logging_GetLogger_NoAvailableLoggers(void **state)
+static void test_Logging_GetLogger_NoAvailableLoggers(void **state)
 {
     assert_non_null(Logging_GetLogger("TestLoggerA"));
     assert_non_null(Logging_GetLogger("TestLoggerB"));
@@ -103,7 +104,7 @@ void test_Logging_GetLogger_NoAvailableLoggers(void **state)
     assert_non_null(Logging_GetLogger("TestLoggerA"));
 }
 
-void test_Logging_GetLogger_TruncatedName(void **state)
+static void test_Logging_GetLogger_TruncatedName(void **state)
 {
     const char logger_name[] = "verylongloggername";
     logging_logger_t *logger_p = Logging_GetLogger(logger_name);
@@ -115,13 +116,77 @@ void test_Logging_GetLogger_TruncatedName(void **state)
     assert_ptr_equal(logger_p, Logging_GetLogger(truncated_logger_name));
 }
 
+static void test_LoggingCmd_SetLevel_InvalidFormat(void **state)
+{
+
+    /* Invalid format on name */
+    will_return(Console_GetStringArgument, false);
+    assert_false(LoggingCmd_SetLevel());
+
+    /* Invalid format on level */
+    const char name[] = "DummyName";
+    will_return(Console_GetStringArgument, true);
+    will_return(Console_GetStringArgument, name);
+    will_return(Console_GetInt32Argument, false);
+    assert_false(LoggingCmd_SetLevel());
+}
+
+static void test_LoggingCmd_SetLevel_InvalidLevel(void **state)
+{
+    const int32_t data[] = {INT32_MIN, -1};
+    for (size_t i = 0; i < ElementsIn(data); ++i)
+    {
+        const char name[] = "DummyName";
+        will_return(Console_GetStringArgument, true);
+        will_return(Console_GetStringArgument, name);
+        will_return(Console_GetInt32Argument, true);
+        will_return(Console_GetInt32Argument, data[i]);
+        assert_false(LoggingCmd_SetLevel());
+    }
+}
+
+static void test_LoggingCmd_SetLevel_InvalidName(void **state)
+{
+    /* Use all available loggers */
+    assert_non_null(Logging_GetLogger("a"));
+    assert_non_null(Logging_GetLogger("b"));
+    assert_non_null(Logging_GetLogger("c"));
+    assert_non_null(Logging_GetLogger("d"));
+    assert_non_null(Logging_GetLogger("e"));
+    assert_non_null(Logging_GetLogger("f"));
+    assert_non_null(Logging_GetLogger("g"));
+    assert_null(Logging_GetLogger("h"));
+
+    const char name[] = "InvalidName";
+    will_return(Console_GetStringArgument, true);
+    will_return(Console_GetStringArgument, name);
+    will_return(Console_GetInt32Argument, true);
+    will_return(Console_GetInt32Argument, 0);
+    assert_false(LoggingCmd_SetLevel());
+}
+
+static void test_LoggingCmd_SetLevel(void **state)
+{
+    const int32_t levels[] = {0, 50, INT32_MAX};
+
+    for (size_t i = 0; i < ElementsIn(levels); ++i)
+    {
+        const char name[] = "DummyName";
+        will_return(Console_GetStringArgument, true);
+        will_return(Console_GetStringArgument, name);
+        will_return(Console_GetInt32Argument, true);
+        will_return(Console_GetInt32Argument, levels[i]);
+        assert_true(LoggingCmd_SetLevel());
+    }
+}
+
 //////////////////////////////////////////////////////////////////////////
 //FUNCTIONS
 //////////////////////////////////////////////////////////////////////////
 
 int main(int argc, char *argv[])
 {
-    const struct CMUnitTest test_FIFO[] =
+    const struct CMUnitTest test_logging[] =
     {
         cmocka_unit_test(test_Logging_Init_Invalid),
         cmocka_unit_test_setup(test_Logging_GetLogger_Invalid, Setup),
@@ -130,10 +195,21 @@ int main(int argc, char *argv[])
         cmocka_unit_test_setup(test_Logging_GetLogger_TruncatedName, Setup),
     };
 
+    const struct CMUnitTest test_logging_cmd[] =
+    {
+        cmocka_unit_test_setup(test_LoggingCmd_SetLevel_InvalidFormat, Setup),
+        cmocka_unit_test_setup(test_LoggingCmd_SetLevel_InvalidLevel, Setup),
+        cmocka_unit_test_setup(test_LoggingCmd_SetLevel_InvalidName, Setup),
+        cmocka_unit_test_setup(test_LoggingCmd_SetLevel, Setup)
+    };
+
     if (argc >= 2)
     {
         cmocka_set_test_filter(argv[1]);
     }
 
-    return cmocka_run_group_tests(test_FIFO, NULL, NULL);
+    int status = 0;
+    status = cmocka_run_group_tests(test_logging, NULL, NULL);
+    status += cmocka_run_group_tests(test_logging_cmd, NULL, NULL);
+    return status;
 }
