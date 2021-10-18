@@ -171,9 +171,9 @@ struct motor_controller_motor_status_t MotorController_GetStatus(size_t index)
     const struct motor_instance_t *instance_p = &module.instances[index];
     struct motor_controller_motor_status_t status;
     status.rpm.actual = Motor_GetRPM(&instance_p->motor);
-    status.rpm.target = PID_GetSetpoint(&instance_p->rpm_pid);
+    status.rpm.target = (int16_t)PID_GetSetpoint(&instance_p->rpm_pid);
     status.current.actual = Motor_GetCurrent(&instance_p->motor);
-    status.current.target = PID_GetSetpoint(&instance_p->current_pid);
+    status.current.target = (int16_t)PID_GetSetpoint(&instance_p->current_pid);
     status.status = Motor_GetStatus(&instance_p->motor);
 
     return status;
