@@ -41,6 +41,22 @@ along with CANDrive firmware.  If not, see <http://www.gnu.org/licenses/>.
 //TYPE DEFINITIONS
 //////////////////////////////////////////////////////////////////////////
 
+struct motor_controller_motor_status_t
+{
+    struct
+    {
+        int16_t actual;
+        int16_t target;
+    } rpm;
+    struct
+    {
+        int16_t actual;
+        int16_t target;
+    } current;
+
+    enum motor_status_t  status;
+};
+
 //////////////////////////////////////////////////////////////////////////
 //FUNCTION PROTOTYPES
 //////////////////////////////////////////////////////////////////////////
@@ -106,5 +122,14 @@ void MotorController_Brake(size_t index);
  * @return Motor position in degrees.
  */
 uint32_t MotorController_GetPosition(size_t index);
+
+/**
+ * Get the status of the selected motor.
+ *
+ * @param index Motor index.
+ *
+ * @return Struct with motor status.
+ */
+struct motor_controller_motor_status_t MotorController_GetStatus(size_t index);
 
 #endif

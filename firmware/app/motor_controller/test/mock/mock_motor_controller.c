@@ -92,7 +92,12 @@ __attribute__((weak)) void MotorController_Brake(size_t index)
 
 __attribute__((weak)) uint32_t MotorController_GetPosition(size_t index)
 {
-    mock_type(uint32_t);
+    return mock_type(uint32_t);
+}
+
+__attribute__((weak)) struct motor_controller_motor_status_t MotorController_GetStatus(size_t index)
+{
+    return *mock_ptr_type(struct motor_controller_motor_status_t *);
 }
 
 //////////////////////////////////////////////////////////////////////////
