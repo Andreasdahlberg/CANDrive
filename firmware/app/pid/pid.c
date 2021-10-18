@@ -89,6 +89,13 @@ void PID_SetSetpoint(struct pid_t *self_p, int32_t setpoint)
     self_p->sp = setpoint;
 }
 
+int32_t PID_GetSetpoint(const struct pid_t *self_p)
+{
+    assert(self_p != NULL);
+
+    return self_p->sp;
+}
+
 void PID_SetParameters(struct pid_t *self_p, const struct pid_parameters_t *parameters_p)
 {
     assert(self_p != NULL);

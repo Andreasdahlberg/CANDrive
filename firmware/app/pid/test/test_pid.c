@@ -118,6 +118,22 @@ static void test_PID_SetSetpoint_Invalid(void **state)
     expect_assert_failure(PID_SetSetpoint(NULL, 0));
 }
 
+static void test_PID_GetSetpoint_Invalid(void **state)
+{
+    expect_assert_failure(PID_GetSetpoint(NULL));
+}
+
+static void test_PID_SetAndGetSetpoint(void **state)
+{
+    const int32_t data[] = {INT32_MIN, -1, 0, 1, INT32_MAX};
+
+    for (size_t i = 0; i < ElementsIn(data); ++i)
+    {
+        PID_SetSetpoint(&pid, data[i]);
+        assert_int_equal(PID_GetSetpoint(&pid), data[i]);
+    }
+}
+
 static void test_PID_SetParameters_Invalid(void **state)
 {
     struct pid_t pid;
@@ -179,6 +195,7 @@ int main(int argc, char *argv[])
         cmocka_unit_test_setup(test_PID_Update_ControlVariableLimit, Setup),
         cmocka_unit_test_setup(test_PID_Update_NegativeControlVariable, Setup),
         cmocka_unit_test(test_PID_SetSetpoint_Invalid),
+        cmocka_unit_test(test_PID_GetSetpoint_Invalid),
         cmocka_unit_test(test_PID_SetParameters_Invalid),
         cmocka_unit_test(test_PID_GetParameters_Invalid),
         cmocka_unit_test_setup(test_PID_SetGetParameters, Setup),
