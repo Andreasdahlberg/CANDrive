@@ -36,6 +36,7 @@ along with CANDrive firmware.  If not, see <http://www.gnu.org/licenses/>.
 #include "utility.h"
 #include "signal_handler.h"
 #include "system_monitor.h"
+#include "motor_controller.h"
 #include "application.h"
 
 //////////////////////////////////////////////////////////////////////////
@@ -163,14 +164,15 @@ static void test_Application_Init(void **state)
 
 static void test_Application_Run(void **state)
 {
-    const uint32_t led_toggle_period_ms = 500;
+    const uint32_t motor_status_period_ms = 200;
+    const size_t number_of_motors = 1;
 
     expect_function_call(SignalHandler_Process);
     expect_function_call(MotorController_Update);
     expect_function_call(Console_Process);
     expect_function_call(SystemMonitor_Update);
     will_return(SystemMonitor_GetState, SYSTEM_MONITOR_UNKNOWN);
-    will_return(SysTime_GetDifference, led_toggle_period_ms - 1);
+    will_return(SysTime_GetDifference, motor_status_period_ms - 1);
     Application_Run();
 
     expect_function_call(SignalHandler_Process);
@@ -178,15 +180,39 @@ static void test_Application_Run(void **state)
     expect_function_call(Console_Process);
     expect_function_call(SystemMonitor_Update);
     will_return(SystemMonitor_GetState, SYSTEM_MONITOR_UNKNOWN);
-    will_return(SysTime_GetDifference, led_toggle_period_ms);
+    will_return(SysTime_GetDifference, motor_status_period_ms);
     expect_function_call(Board_ToggleStatusLED);
+
+    /* Expect sending motor status */
+    const struct motor_controller_motor_status_t status =
+    {
+        .rpm = {
+            .actual = 10,
+            .target = 0
+        },
+        .current = {
+            .actual = 150,
+            .target = 1000
+        },
+        .status = MOTOR_COAST
+    };
+    will_return(Board_GetNumberOfMotors, number_of_motors);
+    will_return(MotorController_GetStatus, &status);
+    expect_value(SignalHandler_SendMotorStatus, rpm1, status.rpm.actual);
+    expect_value(SignalHandler_SendMotorStatus, current1, status.current.actual);
+    expect_value(SignalHandler_SendMotorStatus, rpm2, 0);
+    expect_value(SignalHandler_SendMotorStatus, current2, 0);
+    /* Expect zero since status is not implemented yet. */
+    expect_value(SignalHandler_SendMotorStatus, msg_status, 0);
+    will_return(SignalHandler_SendMotorStatus, true);
+
     will_return(SysTime_GetSystemTime, 0);
     Application_Run();
 }
 
 static void test_Application_Run_StateChanges(void **state)
 {
-    const uint32_t led_toggle_period_ms = 500;
+    const uint32_t motor_status_period_ms = 200;
     const size_t number_of_motors = 2;
 
     /* Active */

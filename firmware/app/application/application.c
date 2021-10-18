@@ -26,6 +26,7 @@ along with CANDrive firmware.  If not, see <http://www.gnu.org/licenses/>.
 //INCLUDES
 //////////////////////////////////////////////////////////////////////////
 
+#include <assert.h>
 #include <string.h>
 #include "board.h"
 #include "board_cmd.h"
@@ -40,6 +41,7 @@ along with CANDrive firmware.  If not, see <http://www.gnu.org/licenses/>.
 #include "motor_controller_cmd.h"
 #include "signal_handler.h"
 #include "system_monitor.h"
+#include "utility.h"
 #include "application.h"
 
 //////////////////////////////////////////////////////////////////////////
@@ -58,7 +60,7 @@ along with CANDrive firmware.  If not, see <http://www.gnu.org/licenses/>.
 struct module_t
 {
     logging_logger_t *logger;
-    uint32_t status_led_time;
+    uint32_t motor_status_time;
     enum system_monitor_state_t last_state;
 };
 
@@ -83,6 +85,7 @@ static void HandleActiveState(void);
 static void HandleInactiveState(void);
 static inline void PrintResetFlags(void);
 static inline void PrintIdAndRevision(void);
+static void SendMotorStatus(void);
 
 //////////////////////////////////////////////////////////////////////////
 //FUNCTIONS
@@ -127,11 +130,12 @@ void Application_Run(void)
     SystemMonitor_Update();
     HandleStateChanges();
 
-    const uint32_t led_toggle_period_ms = 500;
-    if (SysTime_GetDifference(module.status_led_time) >= led_toggle_period_ms)
+    const uint32_t motor_status_period_ms = 200;
+    if (SysTime_GetDifference(module.motor_status_time) >= motor_status_period_ms)
     {
         Board_ToggleStatusLED();
-        module.status_led_time = SysTime_GetSystemTime();
+        SendMotorStatus();
+        module.motor_status_time = SysTime_GetSystemTime();
     }
 }
 
@@ -247,4 +251,22 @@ static inline void PrintIdAndRevision(void)
                  Board_GetHardwareRevision(),
                  Board_GetSoftwareRevision()
                 );
+}
+
+static void SendMotorStatus(void)
+{
+    struct motor_controller_motor_status_t motors[2] = {0};
+
+    const size_t number_of_motors = Board_GetNumberOfMotors();
+    assert(number_of_motors <= ElementsIn(motors));
+    for (size_t i = 0; i < number_of_motors; ++i)
+    {
+        motors[i] = MotorController_GetStatus(i);
+    }
+
+    SignalHandler_SendMotorStatus(motors[0].rpm.actual,
+                                  motors[0].current.actual,
+                                  motors[1].rpm.actual,
+                                  motors[1].current.actual,
+                                  0);
 }
