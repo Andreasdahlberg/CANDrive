@@ -70,6 +70,11 @@ __attribute__((weak)) void PID_SetSetpoint(struct pid_t *self_p, int32_t setpoin
     check_expected(setpoint);
 }
 
+__attribute__((weak)) int32_t PID_GetSetpoint(const struct pid_t *self_p)
+{
+    return mock_type(int32_t);
+}
+
 __attribute__((weak)) void PID_SetParameters(struct pid_t *self_p, const struct pid_parameters_t *parameters_p)
 {
     assert_non_null(self_p);

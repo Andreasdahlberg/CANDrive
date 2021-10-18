@@ -89,6 +89,15 @@ int32_t PID_Update(struct pid_t *self_p, int32_t input);
 void PID_SetSetpoint(struct pid_t *self_p, int32_t setpoint);
 
 /**
+ * Get the set point for the PID controller.
+ *
+ * @param self_p Pointer to a PID controller instance.
+ *
+ * @return Set point.
+ */
+int32_t PID_GetSetpoint(const struct pid_t *self_p);
+
+/**
  * Set the parameters for the PID controller.
  *
  * @param self_p Pointer to a PID controller instance.
