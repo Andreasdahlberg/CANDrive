@@ -252,6 +252,59 @@ static void test_MotorController_GetPosition(void **state)
     }
 }
 
+static void test_MotorController_GetStatus_Invalid(void **state)
+{
+    will_return_maybe(Board_GetNumberOfMotors, NUMBER_OF_MOTORS);
+    expect_assert_failure(MotorController_GetStatus(NUMBER_OF_MOTORS + 1));
+}
+
+static void test_MotorController_GetStatus(void **state)
+{
+    will_return_maybe(Board_GetNumberOfMotors, NUMBER_OF_MOTORS);
+
+    const struct motor_controller_motor_status_t data[] =
+    {
+        {
+            .rpm = {
+                .actual = 90,
+                .target = 100
+            },
+            .current = {
+                .actual = 1500,
+                .target = 2000
+            },
+            .status = MOTOR_RUN
+        },
+        {
+            .rpm = {
+                .actual = -30,
+                .target = 0
+            },
+            .current = {
+                .actual = -3000,
+                .target = 0
+            },
+            .status = MOTOR_BRAKE
+        }
+    };
+
+    for (size_t i = 0; i < ElementsIn(data); ++i)
+    {
+        will_return(Motor_GetRPM, data[i].rpm.actual);
+        will_return(PID_GetSetpoint, data[i].rpm.target);
+        will_return(Motor_GetCurrent, data[i].current.actual);
+        will_return(PID_GetSetpoint, data[i].current.target);
+        will_return(Motor_GetStatus, data[i].status);
+
+        const struct motor_controller_motor_status_t status = MotorController_GetStatus(0);
+        assert_int_equal(status.rpm.actual, data[i].rpm.actual);
+        assert_int_equal(status.rpm.target, data[i].rpm.target);
+        assert_int_equal(status.current.actual, data[i].current.actual);
+        assert_int_equal(status.current.target, data[i].current.target);
+        assert_int_equal(status.status, data[i].status);
+    }
+}
+
 static void test_MotorControllerCmd_SetRPM_InvalidFormat(void **state)
 {
     will_return_maybe(Board_GetNumberOfMotors, NUMBER_OF_MOTORS);
@@ -526,6 +579,8 @@ int main(int argc, char *argv[])
         cmocka_unit_test_setup(test_MotorController_Brake, Setup),
         cmocka_unit_test_setup(test_MotorController_GetPosition_Invalid, Setup),
         cmocka_unit_test_setup(test_MotorController_GetPosition, Setup),
+        cmocka_unit_test_setup(test_MotorController_GetStatus_Invalid, Setup),
+        cmocka_unit_test_setup(test_MotorController_GetStatus, Setup),
     };
 
     const struct CMUnitTest test_motor_controller_cmd[] =
