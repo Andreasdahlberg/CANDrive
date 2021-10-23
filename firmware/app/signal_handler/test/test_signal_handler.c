@@ -88,7 +88,7 @@ static void test_SignalHandler_Process(void **state)
     expect_value(SystemMonitor_FeedWatchdog, handle, WATCHDOG_HANDLE);
     SignalHandler_Process();
 
-    struct can_frame_t frame;
+    struct can_frame_t frame = {0};
     frame.size = 8;
     frame.id = CANDB_CONTROLLER_MSG_MOTOR_CONTROL_FRAME_ID;
     SignalHandler_Listener(&frame);
