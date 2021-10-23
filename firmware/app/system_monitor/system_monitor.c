@@ -130,11 +130,23 @@ void SystemMonitor_Update(void)
         module.flags = 0;
     }
 
-    if ((module.state != SYSTEM_MONITOR_INACTIVE) &&
-            (SysTime_GetDifference(module.control_activity_timer) > CONTROL_INACTIVITY_PERIOD_MS))
+    if (Board_GetEmergencyPinState())
     {
-        Logging_Info(module.logger, "{state: SYSTEM_MONITOR_INACTIVE}");
-        module.state = SYSTEM_MONITOR_INACTIVE;
+        if (module.state != SYSTEM_MONITOR_EMERGENCY)
+        {
+            module.state = SYSTEM_MONITOR_EMERGENCY;
+            Logging_Info(module.logger, "{state: SYSTEM_MONITOR_EMERGENCY}");
+        }
+    }
+    else
+    {
+
+        if ((module.state != SYSTEM_MONITOR_INACTIVE) &&
+                (SysTime_GetDifference(module.control_activity_timer) > CONTROL_INACTIVITY_PERIOD_MS))
+        {
+            Logging_Info(module.logger, "{state: SYSTEM_MONITOR_INACTIVE}");
+            module.state = SYSTEM_MONITOR_INACTIVE;
+        }
     }
 }
 
@@ -158,7 +170,10 @@ void SystemMonitor_FeedWatchdog(uint32_t handle)
 
 void SystemMonitor_ReportActivity(void)
 {
-    module.state = SYSTEM_MONITOR_ACTIVE;
+    if (!Board_GetEmergencyPinState())
+    {
+        module.state = SYSTEM_MONITOR_ACTIVE;
+    }
     module.control_activity_timer = SysTime_GetSystemTime();
 }
 
