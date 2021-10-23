@@ -192,9 +192,9 @@ static void InitCANPeripheral(void)
                  receive_fifo_locked_mode,
                  transmit_fifo_priority,
                  CAN_BTR_SJW_1TQ,
-                 CAN_BTR_TS1_9TQ,
-                 CAN_BTR_TS2_6TQ,
-                 2,
+                 CAN_BTR_TS1_3TQ,
+                 CAN_BTR_TS2_5TQ,
+                 8,
                  loopback,
                  silent) != 0)
     {
