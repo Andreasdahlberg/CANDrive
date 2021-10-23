@@ -111,4 +111,11 @@ uint32_t Board_GetResetFlags(void);
  */
 void Board_Reset(void) __attribute__((noreturn));
 
+/**
+ * Get the state of the emergency pin.
+ *
+ * @return Emergency pin state.
+ */
+bool Board_GetEmergencyPinState(void);
+
 #endif
