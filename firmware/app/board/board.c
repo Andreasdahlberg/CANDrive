@@ -40,6 +40,9 @@ along with CANDrive firmware.  If not, see <http://www.gnu.org/licenses/>.
 #define GPIO_STATUS_LED_CLOCK RCC_GPIOA
 #define GPIO_STATUS_LED_PORT GPIOA
 #define GPIO_STATUS_LED GPIO5
+#define GPIO_EMERGENCY_CLOCK RCC_GPIOC
+#define GPIO_EMERGENCY_PORT GPIOC
+#define GPIO_EMERGENCY GPIO13
 
 //////////////////////////////////////////////////////////////////////////
 //TYPE DEFINITIONS
@@ -162,6 +165,11 @@ void Board_Reset(void)
     scb_reset_system();
 }
 
+bool Board_GetEmergencyPinState(void)
+{
+    return !(bool)gpio_get(GPIO_EMERGENCY_PORT, GPIO_EMERGENCY);
+}
+
 //////////////////////////////////////////////////////////////////////////
 //LOCAL FUNCTIONS
 //////////////////////////////////////////////////////////////////////////
@@ -186,4 +194,8 @@ static void SetupGPIO(void)
     rcc_periph_clock_enable(GPIO_STATUS_LED_CLOCK);
     gpio_set(GPIO_STATUS_LED_PORT, GPIO_STATUS_LED);
     gpio_set_mode(GPIO_STATUS_LED_PORT, GPIO_MODE_OUTPUT_50_MHZ, GPIO_CNF_OUTPUT_PUSHPULL, GPIO_STATUS_LED);
+
+    rcc_periph_clock_enable(GPIO_EMERGENCY_CLOCK);
+    gpio_set(GPIO_EMERGENCY_PORT, GPIO_EMERGENCY);
+    gpio_set_mode(GPIO_EMERGENCY_PORT, GPIO_MODE_INPUT, GPIO_CNF_INPUT_PULL_UPDOWN, GPIO_EMERGENCY);
 }
