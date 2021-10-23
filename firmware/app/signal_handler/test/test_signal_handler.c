@@ -176,9 +176,9 @@ static void test_SignalHandler_Listener_Invalid(void **state)
 static void test_SignalHandler_SendMotorStatus_OutOfRange(void **state)
 {
     /* Expect no calls to 'CANInterface_Transmit'. */
-    assert_false(SignalHandler_SendMotorStatus(10000, 0, 0, 0, 0));
+    assert_false(SignalHandler_SendMotorStatus(20000, 0, 0, 0, 0));
     assert_false(SignalHandler_SendMotorStatus(0, 10000, 0, 0, 0));
-    assert_false(SignalHandler_SendMotorStatus(0, 0, 10000, 0, 0));
+    assert_false(SignalHandler_SendMotorStatus(0, 0, 20000, 0, 0));
     assert_false(SignalHandler_SendMotorStatus(0, 0, 0, 10000, 0));
 }
 
