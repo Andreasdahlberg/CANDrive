@@ -31,24 +31,26 @@ NS_ :
     BU_BO_REL_
     SG_MUL_VAL_
 
-BS_:
-BU_: Motor Controller
+BS_: 
+BU_: Motor Controller 
 BO_ 10 MotorMsgStatus: 8 Motor
-   SG_ MotorMsgStatusSigRPM1 : 7|16@0- (1,0) [0|1] "RPM" Controller
-   SG_ MotorMsgStatusSigRPM2 : 23|16@0- (1,0) [0|1] "RPM" Controller
+   SG_ MotorMsgStatusSigRPM1 : 7|16@0- (1,0) [-15000|15000] "RPM" Vector__XXX
+   SG_ MotorMsgStatusSigRPM2 : 23|16@0- (1,0) [-15000|15000] "RPM" Controller
    SG_ MotorMsgStatusSigCurrent1 : 39|14@0- (1,0) [-6000|6000] "mA" Controller
    SG_ MotorMsgStatusSigCurrent2 : 41|14@0- (1,0) [-6000|6000] "mA" Controller
    SG_ MotorMsgStatusSigStatus : 59|4@0+ (1,0) [0|15] "" Controller
 
 BO_ 9 ControllerMsgMotorControl: 8 Controller
    SG_ ControllerMsgMotorControlSigMode : 59|4@0+ (1,0) [0|11] "" Motor
-   SG_ ControllerMsgMotorControlSigRPM1 : 7|16@0+ (1,0) [0|11] "RPM" Motor
-   SG_ ControllerMsgMotorControlSigRPM2 : 23|16@0+ (1,0) [0|11] "RPM" Motor
-   SG_ ControllerMsgMotorControlSigCurrent1 : 39|14@0+ (1,0) [-6000|6000] "mA" Motor
-   SG_ ControllerMsgMotorControlSigCurrent2 : 41|14@0+ (1,0) [-6000|6000] "mA" Motor
+   SG_ ControllerMsgMotorControlSigRPM1 : 7|16@0- (1,0) [-15000|15000] "RPM" Motor
+   SG_ ControllerMsgMotorControlSigRPM2 : 23|16@0- (1,0) [-15000|15000] "RPM" Motor
+   SG_ ControllerMsgMotorControlSigCurrent1 : 39|14@0- (1,0) [-6000|6000] "mA" Motor
+   SG_ ControllerMsgMotorControlSigCurrent2 : 41|14@0- (1,0) [-6000|6000] "mA" Motor
 
 BA_DEF_ BO_ "GenMsgBackgroundColor" STRING ;
 BA_DEF_ BO_ "GenMsgForegroundColor" STRING ;
+BA_DEF_ BO_ "matchingcriteria" INT 0 0;
+BA_DEF_ BO_ "filterlabeling" INT 0 0;
 BA_DEF_ BO_ "matchingcriteria" INT 0 0;
 BA_DEF_ BO_ "filterlabeling" INT 0 0;
 BA_DEF_ BO_ "matchingcriteria" INT 0 0;
