@@ -182,6 +182,8 @@ static void test_SystemMonitor_Update(void **state)
         handles[i] =  SystemMonitor_GetWatchdogHandle();
     }
 
+    will_return_always(Board_GetEmergencyPinState, false);
+
     /* Expect watchdog reset since the watchdog is feed when getting the handles*/
     expect_function_call(iwdg_reset);
     SystemMonitor_Update();
@@ -205,8 +207,8 @@ static void test_SystemMonitor_Update(void **state)
 static void test_SystemMonitor_ControlActivity(void **state)
 {
     SystemMonitor_GetWatchdogHandle();
-
     assert_int_equal(SystemMonitor_GetState(), SYSTEM_MONITOR_INACTIVE);
+    will_return_always(Board_GetEmergencyPinState, false);
 
     will_return(SysTime_GetSystemTime, 0);
     SystemMonitor_ReportActivity();
@@ -220,6 +222,20 @@ static void test_SystemMonitor_ControlActivity(void **state)
     will_return(SysTime_GetDifference, 201);
     SystemMonitor_Update();
     assert_int_equal(SystemMonitor_GetState(), SYSTEM_MONITOR_INACTIVE);
+}
+
+static void test_SystemMonitor_Emergency(void **state)
+{
+    SystemMonitor_GetWatchdogHandle();
+
+    expect_function_call(iwdg_reset);
+    will_return(Board_GetEmergencyPinState, true);
+    SystemMonitor_Update();
+    assert_int_equal(SystemMonitor_GetState(), SYSTEM_MONITOR_EMERGENCY);
+
+    will_return(Board_GetEmergencyPinState, true);
+    SystemMonitor_Update();
+    assert_int_equal(SystemMonitor_GetState(), SYSTEM_MONITOR_EMERGENCY);
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -237,6 +253,7 @@ int main(int argc, char *argv[])
         cmocka_unit_test_setup(test_SystemMonitor_FeedWatchdog_Invalid, Setup),
         cmocka_unit_test_setup(test_SystemMonitor_Update, Setup),
         cmocka_unit_test_setup(test_SystemMonitor_ControlActivity, Setup),
+        cmocka_unit_test_setup(test_SystemMonitor_Emergency, Setup)
     };
 
     if (argc >= 2)

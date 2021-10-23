@@ -82,7 +82,7 @@ static void HandleRPM1Signal(struct signal_t *signal_p);
 static void HandleCurrent1Signal(struct signal_t *signal_p);
 static void HandleStateChanges(void);
 static void HandleActiveState(void);
-static void HandleInactiveState(void);
+static void BrakeAllMotors(void);
 static inline void PrintResetFlags(void);
 static inline void PrintIdAndRevision(void);
 static void SendMotorStatus(void);
@@ -201,8 +201,9 @@ static void HandleStateChanges(void)
                 HandleActiveState();
                 break;
 
+            case SYSTEM_MONITOR_EMERGENCY:
             case SYSTEM_MONITOR_INACTIVE:
-                HandleInactiveState();
+                BrakeAllMotors();
                 break;
 
             default:
@@ -221,7 +222,7 @@ static void HandleActiveState(void)
     }
 }
 
-static void HandleInactiveState(void)
+static void BrakeAllMotors(void)
 {
     const size_t number_of_motors = Board_GetNumberOfMotors();
     for (size_t i = 0; i < number_of_motors; ++i)

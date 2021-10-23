@@ -214,6 +214,7 @@ static void test_Application_Run_StateChanges(void **state)
 {
     const uint32_t motor_status_period_ms = 200;
     const size_t number_of_motors = 2;
+    will_return_always(Board_GetNumberOfMotors, number_of_motors);
 
     /* Active */
     expect_function_call(SignalHandler_Process);
@@ -221,7 +222,6 @@ static void test_Application_Run_StateChanges(void **state)
     expect_function_call(Console_Process);
     expect_function_call(SystemMonitor_Update);
     will_return(SystemMonitor_GetState, SYSTEM_MONITOR_ACTIVE);
-    will_return(Board_GetNumberOfMotors, number_of_motors);
     for (size_t i = 0; i < number_of_motors; ++i)
     {
         expect_value(MotorController_Run, index, i);
@@ -235,7 +235,20 @@ static void test_Application_Run_StateChanges(void **state)
     expect_function_call(Console_Process);
     expect_function_call(SystemMonitor_Update);
     will_return(SystemMonitor_GetState, SYSTEM_MONITOR_INACTIVE);
-    will_return_always(Board_GetNumberOfMotors, number_of_motors);
+    for (size_t i = 0; i < number_of_motors; ++i)
+    {
+        expect_value(MotorController_Brake, index, i);
+    }
+    will_return(SysTime_GetDifference, 0);
+    Application_Run();
+
+    /* Emergency */
+    expect_function_call(SignalHandler_Process);
+    expect_function_call(MotorController_Update);
+    expect_function_call(Console_Process);
+    expect_function_call(SystemMonitor_Update);
+    will_return(SystemMonitor_GetState, SYSTEM_MONITOR_EMERGENCY);
+    //will_return_always(Board_GetNumberOfMotors, number_of_motors);
     for (size_t i = 0; i < number_of_motors; ++i)
     {
         expect_value(MotorController_Brake, index, i);
