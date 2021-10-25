@@ -34,11 +34,12 @@ NS_ :
 BS_: 
 BU_: Motor Controller 
 BO_ 10 MotorMsgStatus: 8 Motor
-   SG_ MotorMsgStatusSigRPM1 : 7|16@0- (1,0) [-15000|15000] "RPM" Vector__XXX
-   SG_ MotorMsgStatusSigRPM2 : 23|16@0- (1,0) [-15000|15000] "RPM" Controller
-   SG_ MotorMsgStatusSigCurrent1 : 39|14@0- (1,0) [-6000|6000] "mA" Controller
-   SG_ MotorMsgStatusSigCurrent2 : 41|14@0- (1,0) [-6000|6000] "mA" Controller
-   SG_ MotorMsgStatusSigStatus : 59|4@0+ (1,0) [0|15] "" Controller
+   SG_ MotorMsgStatusSigRPM1 : 7|15@0- (1,0) [-15000|15000] "RPM" Controller
+   SG_ MotorMsgStatusSigRPM2 : 8|15@0- (1,0) [-15000|15000] "RPM" Controller
+   SG_ MotorMsgStatusSigCurrent1 : 25|14@0- (1,0) [-6000|6000] "mA" Controller
+   SG_ MotorMsgStatusSigCurrent2 : 43|14@0- (1,0) [-6000|6000] "mA" Controller
+   SG_ MotorMsgStatusSigStatus1 : 61|3@0+ (1,0) [0|7] "" Controller
+   SG_ MotorMsgStatusSigStatus2 : 58|3@0+ (1,0) [0|7] "" Controller
 
 BO_ 9 ControllerMsgMotorControl: 8 Controller
    SG_ ControllerMsgMotorControlSigMode : 59|4@0+ (1,0) [0|11] "" Motor
