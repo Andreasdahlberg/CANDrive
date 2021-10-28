@@ -140,7 +140,7 @@ void SignalHandler_Listener(const struct can_frame_t *frame_p)
     }
 }
 
-bool SignalHandler_SendMotorStatus(int16_t rpm1, int16_t current1, int16_t rpm2, int16_t current2, uint8_t msg_status)
+bool SignalHandler_SendMotorStatus(int16_t rpm1, int16_t current1, uint8_t msg_status_1, int16_t rpm2, int16_t current2, uint8_t msg_status_2)
 {
 
     const bool valid_values = (candb_motor_msg_status_motor_msg_status_sig_rpm1_is_in_range(rpm1) &&
@@ -156,7 +156,8 @@ bool SignalHandler_SendMotorStatus(int16_t rpm1, int16_t current1, int16_t rpm2,
         msg.motor_msg_status_sig_current1 = current1;
         msg.motor_msg_status_sig_rpm2 = rpm2;
         msg.motor_msg_status_sig_current2 = current2;
-        msg.motor_msg_status_sig_status = msg_status;
+        msg.motor_msg_status_sig_status1 = msg_status_1;
+        msg.motor_msg_status_sig_status2 = msg_status_2;
 
         uint8_t data[CANDB_MOTOR_MSG_STATUS_LENGTH];
         const int32_t pack_status = candb_motor_msg_status_pack(data, &msg, sizeof(data));

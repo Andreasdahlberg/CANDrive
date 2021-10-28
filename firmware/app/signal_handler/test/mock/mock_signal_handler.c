@@ -75,13 +75,14 @@ __attribute__((weak)) void SignalHandler_RegisterHandler(enum signal_id_t id, si
     assert_non_null(handler_cb);
 }
 
-__attribute__((weak)) bool SignalHandler_SendMotorStatus(int16_t rpm1, int16_t current1, int16_t rpm2, int16_t current2, uint8_t msg_status)
+__attribute__((weak)) bool SignalHandler_SendMotorStatus(int16_t rpm1, int16_t current1, uint8_t msg_status_1, int16_t rpm2, int16_t current2, uint8_t msg_status_2)
 {
     check_expected(rpm1);
     check_expected(current1);
+    check_expected(msg_status_1);
     check_expected(rpm2);
     check_expected(current2);
-    check_expected(msg_status);
+    check_expected(msg_status_2);
 
     return mock_type(bool);
 }

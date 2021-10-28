@@ -176,22 +176,22 @@ static void test_SignalHandler_Listener_Invalid(void **state)
 static void test_SignalHandler_SendMotorStatus_OutOfRange(void **state)
 {
     /* Expect no calls to 'CANInterface_Transmit'. */
-    assert_false(SignalHandler_SendMotorStatus(20000, 0, 0, 0, 0));
-    assert_false(SignalHandler_SendMotorStatus(0, 10000, 0, 0, 0));
-    assert_false(SignalHandler_SendMotorStatus(0, 0, 20000, 0, 0));
-    assert_false(SignalHandler_SendMotorStatus(0, 0, 0, 10000, 0));
+    assert_false(SignalHandler_SendMotorStatus(20000, 0, 0, 0, 0, 0));
+    assert_false(SignalHandler_SendMotorStatus(0, 10000, 0, 0, 0, 0));
+    assert_false(SignalHandler_SendMotorStatus(0, 0, 0, 20000, 0, 0));
+    assert_false(SignalHandler_SendMotorStatus(0, 0, 0, 0, 10000, 0));
 }
 
 static void test_SignalHandler_SendMotorStatus_TransmitFailed(void **state)
 {
     will_return(CANInterface_Transmit, false);
-    assert_false(SignalHandler_SendMotorStatus(1, 200, 0, 0, 1));
+    assert_false(SignalHandler_SendMotorStatus(1, 200, 1, 0, 0, 0));
 }
 
 static void test_SignalHandler_SendMotorStatus(void **state)
 {
     will_return(CANInterface_Transmit, true);
-    assert_true(SignalHandler_SendMotorStatus(1, 200, 0, 0, 1));
+    assert_true(SignalHandler_SendMotorStatus(1, 200, 1, 0, 0, 0));
 }
 
 static void test_Signal_IsIDValid(void **state)
