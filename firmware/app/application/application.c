@@ -266,8 +266,8 @@ static void SendMotorStatus(void)
 
     SignalHandler_SendMotorStatus(motors[0].rpm.actual,
                                   motors[0].current.actual,
-                                  motors[0].status,
+                                  (uint8_t)motors[0].status,
                                   motors[1].rpm.actual,
                                   motors[1].current.actual,
-                                  motors[1].status);
+                                  (uint8_t)motors[1].status);
 }
