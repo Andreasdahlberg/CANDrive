@@ -31,8 +31,7 @@ NS_ :
     BU_BO_REL_
     SG_MUL_VAL_
 
-BS_: 
-BU_: Motor Controller 
+BU_: Motor Controller
 BO_ 10 MotorMsgStatus: 8 Motor
    SG_ MotorMsgStatusSigRPM1 : 7|15@0- (1,0) [-15000|15000] "RPM" Controller
    SG_ MotorMsgStatusSigRPM2 : 8|15@0- (1,0) [-15000|15000] "RPM" Controller
@@ -48,19 +47,15 @@ BO_ 9 ControllerMsgMotorControl: 8 Controller
    SG_ ControllerMsgMotorControlSigCurrent1 : 39|14@0- (1,0) [-6000|6000] "mA" Motor
    SG_ ControllerMsgMotorControlSigCurrent2 : 41|14@0- (1,0) [-6000|6000] "mA" Motor
 
-BA_DEF_ BO_ "GenMsgBackgroundColor" STRING ;
-BA_DEF_ BO_ "GenMsgForegroundColor" STRING ;
-BA_DEF_ BO_ "matchingcriteria" INT 0 0;
-BA_DEF_ BO_ "filterlabeling" INT 0 0;
-BA_DEF_ BO_ "matchingcriteria" INT 0 0;
-BA_DEF_ BO_ "filterlabeling" INT 0 0;
-BA_DEF_ BO_ "matchingcriteria" INT 0 0;
-BA_DEF_ BO_ "filterlabeling" INT 0 0;
-BA_ "GenMsgForegroundColor" BO_ 10 "#ef2929";
-BA_ "GenMsgForegroundColor" BO_ 9 "#ef2929";
-BA_DEF_DEF_ "GenMsgBackgroundColor" "#ffffff";
-BA_DEF_DEF_ "GenMsgForegroundColor" "#000000";
-BA_DEF_DEF_ "matchingcriteria" 0;
-BA_DEF_DEF_ "filterlabeling" 1;
-BA_DEF_DEF_ "matchingcriteria" 0;
-VAL_ 10 MotorMsgStatusSigCurrent2 0 "No Description";
+BA_DEF_  "BusType" STRING ;
+BA_DEF_ SG_  "GenSigStartValue" INT 0 2147483647;
+BA_DEF_ BO_  "GenMsgSendType" ENUM  "cyclic","NotUsed","IfActive","NotUsed","NotUsed","NotUsed","NotUsed","NotUsed","noMsgSendType";
+BA_DEF_ BO_  "GenMsgCycleTime" INT 0 1000;
+BA_DEF_DEF_  "BusType" "CAN";
+BA_DEF_DEF_  "GenSigStartValue" 0;
+BA_DEF_DEF_  "GenMsgSendType" "noMsgSendType";
+BA_DEF_DEF_  "GenMsgCycleTime" 0;
+BA_ "GenMsgCycleTime" BO_ 9 100;
+BA_ "GenMsgSendType" BO_ 9 0;
+
+VAL_ 9 ControllerMsgMotorControlSigRPM1 10 "VAL_0" 50 "VAL_1";

@@ -200,10 +200,10 @@ static void test_Application_Run(void **state)
     will_return(MotorController_GetStatus, &status);
     expect_value(SignalHandler_SendMotorStatus, rpm1, status.rpm.actual);
     expect_value(SignalHandler_SendMotorStatus, current1, status.current.actual);
+    expect_value(SignalHandler_SendMotorStatus, msg_status_1, status.status);
     expect_value(SignalHandler_SendMotorStatus, rpm2, 0);
     expect_value(SignalHandler_SendMotorStatus, current2, 0);
-    /* Expect zero since status is not implemented yet. */
-    expect_value(SignalHandler_SendMotorStatus, msg_status, 0);
+    expect_value(SignalHandler_SendMotorStatus, msg_status_2, 0);
     will_return(SignalHandler_SendMotorStatus, true);
 
     will_return(SysTime_GetSystemTime, 0);
