@@ -208,19 +208,27 @@ static void test_SystemMonitor_ControlActivity(void **state)
 {
     SystemMonitor_GetWatchdogHandle();
     assert_int_equal(SystemMonitor_GetState(), SYSTEM_MONITOR_INACTIVE);
-    will_return_always(Board_GetEmergencyPinState, false);
 
+    will_return(Board_GetEmergencyPinState, false);
     will_return(SysTime_GetSystemTime, 0);
     SystemMonitor_ReportActivity();
     assert_int_equal(SystemMonitor_GetState(), SYSTEM_MONITOR_ACTIVE);
 
     expect_function_call(iwdg_reset);
+    will_return(Board_GetEmergencyPinState, false);
     will_return(SysTime_GetDifference, 200);
     SystemMonitor_Update();
     assert_int_equal(SystemMonitor_GetState(), SYSTEM_MONITOR_ACTIVE);
 
+    will_return(Board_GetEmergencyPinState, false);
     will_return(SysTime_GetDifference, 201);
     SystemMonitor_Update();
+    assert_int_equal(SystemMonitor_GetState(), SYSTEM_MONITOR_INACTIVE);
+
+    /* Do not change state when in emergency state */
+    will_return(Board_GetEmergencyPinState, true);
+    will_return(SysTime_GetSystemTime, 0);
+    SystemMonitor_ReportActivity();
     assert_int_equal(SystemMonitor_GetState(), SYSTEM_MONITOR_INACTIVE);
 }
 
