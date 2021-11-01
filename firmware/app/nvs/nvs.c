@@ -119,13 +119,10 @@ void NVS_Init(uint32_t start_page_address, size_t number_of_pages)
         GetPageHeader(address, &page_header);
 
         /* TODO: Check CRC, maybe create function IsPageInUse() */
-        if (page_header.state == PAGE_IN_USE)
+        if ((page_header.state == PAGE_IN_USE) && (page_header.sequence_number > self.active_sequence_number))
         {
-            if (page_header.sequence_number > self.active_sequence_number)
-            {
-                self.active_sequence_number = page_header.sequence_number;
-                self.active_page_address = address;
-            }
+            self.active_sequence_number = page_header.sequence_number;
+            self.active_page_address = address;
         }
     }
 
@@ -203,7 +200,7 @@ bool NVS_Retrieve(const char *key_p, uint32_t *value_p)
         ReadFromFlash(item_address, &item, sizeof(item));
 
         /* TODO: Check crc */
-        if (item.hash == hash && item.crc == 0)
+        if ((item.hash == hash) && (item.crc == 0))
         {
             const uint32_t data_address = item_address + sizeof(item);
             ReadFromFlash(data_address, value_p, item.size);
@@ -260,7 +257,7 @@ static bool WriteToFlash(uint32_t address, const void *data_p, size_t length)
     for (size_t i = 0; i < length / sizeof(uint32_t); ++i)
     {
         const uint32_t destination = address + (i * sizeof(uint32_t));
-        const uint32_t data = *((uint32_t *)data_p + i);
+        const uint32_t data = *((const uint32_t *)data_p + i);
 
         flash_program_word(destination, data);
         if(flash_get_status_flags() != FLASH_SR_EOP)
