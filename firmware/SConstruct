@@ -86,6 +86,9 @@ Help('size: Display the application size.\n')
 env.Command('serial', '', 'minicom -D ${SERIAL_PORT} -b ${BAUD_RATE} -t linux')
 Help('serial: Display serial output from the device.\n')
 
+env.Command('monitor', app, '../scripts/monitor.py ${SERIAL_PORT} ${SOURCE} -b ${BAUD_RATE}')
+Help('monitor: Display formatted output from the device.\n')
+
 env.Command("format", None, 'astyle --options=.astylerc --recursive app/*.c app/*.h')
 Help('format: Format all source files.\n')
 

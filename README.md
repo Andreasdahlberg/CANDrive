@@ -11,17 +11,37 @@ CANDrive is a brushed DC Motor Controller controlled via a [CAN](https://en.wiki
 * Torque control
 * CAN interface
 * Firmware updates over CAN
-* Emergency stop 
+* Emergency stop
 * 5 A output current
 * 12-24 V supply voltage
 
-## Usage
+## Tools
+
+### Monitor
+The monitor tool is a serial terminal which parses serial output from the device and formats the
+output to make it easier to read.
+
+#### Features
+* Host timestamps
+* Color coded debug levels
+* Translation from addresses to file and line
+* Filtering[Not implemented]
+
+![Example of monitor output](doc/images/monitor.png)
+
+#### Usage
+The monitor is started by typing *scons monitor*.
+Serial port and baudrate can be configured [here](firmware/config.py) or on the command line, e.g.
+*scons monitor SERIAL_PORT=/dev/ttyACM0 BAUD_RATE=921600*
+
 ### Debug Console
 CANDrive incorporates a simple debug console used for traces and debug commands.
 The debug commands are not intended for controlling the motors during normal usage
 since they bypass several of the safety features.
 
 The debug console is available at JP1 and disabled by default. It can be enabled by moving jumper J1.
+Type *scons serial* to access the console, this is only a shortcut for minicom at the moment and will
+be incorporated into the serial monitor at some point.
 
 #### Available commands
 ##### rpm
