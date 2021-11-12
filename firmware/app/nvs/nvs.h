@@ -40,11 +40,12 @@ along with CANDrive firmware.  If not, see <http://www.gnu.org/licenses/>.
 //TYPE DEFINITIONS
 //////////////////////////////////////////////////////////////////////////
 
-void NVS_Init(uint32_t address, size_t size);
+void NVS_Init(uint32_t start_page_address, size_t number_of_pages);
 
 bool NVS_Retrieve(const char *key_p, uint32_t *value_p);
 
 bool NVS_Store(const char *key_p, uint32_t value);
 
+bool NVS_Clear(void);
 
 #endif
