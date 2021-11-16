@@ -104,6 +104,16 @@ __attribute__((weak)) bool Board_GetEmergencyPinState(void)
     return mock_type(bool);
 }
 
+__attribute__((weak)) uint32_t Board_GetNVSAddress(void)
+{
+    return mock_type(uint32_t);
+}
+
+__attribute__((weak)) uint32_t Board_GetNumberOfPagesInNVS(void)
+{
+    return mock_type(uint32_t);
+}
+
 //////////////////////////////////////////////////////////////////////////
 //LOCAL FUNCTIONS
 //////////////////////////////////////////////////////////////////////////

@@ -170,6 +170,16 @@ bool Board_GetEmergencyPinState(void)
     return !(bool)gpio_get(GPIO_EMERGENCY_PORT, GPIO_EMERGENCY);
 }
 
+uint32_t Board_GetNVSAddress(void)
+{
+    return 0x801F800;
+}
+
+uint32_t Board_GetNumberOfPagesInNVS(void)
+{
+    return 2;
+}
+
 //////////////////////////////////////////////////////////////////////////
 //LOCAL FUNCTIONS
 //////////////////////////////////////////////////////////////////////////
