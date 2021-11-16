@@ -29,7 +29,10 @@ along with CANDrive firmware.  If not, see <http://www.gnu.org/licenses/>.
 #include <libopencm3/stm32/flash.h>
 #include <libopencm3/stm32/crc.h>
 #include <assert.h>
+#include <string.h>
+#include "utility.h"
 #include "logging.h"
+#include "crc.h"
 #include "nvs.h"
 
 //////////////////////////////////////////////////////////////////////////
@@ -41,10 +44,9 @@ along with CANDrive firmware.  If not, see <http://www.gnu.org/licenses/>.
 #define NVS_LOGGER_DEBUG_LEVEL LOGGING_DEBUG
 #endif
 
-//#define FLASH_START_ADDRESS ((uint32_t)0x08000000)
-//#define FLASH_OPERATION_ADDRESS ((uint32_t)0x0801FC00)
-
-#define FLASH_PAGE_NUM_MAX 127
+#define FLASH_START 0x08000000
+#define FLASH_END 0x8020000
+#define FLASH_MIN_NUMBER_OF_PAGES 2
 #define FLASH_PAGE_SIZE 0x400
 
 //////////////////////////////////////////////////////////////////////////
@@ -64,7 +66,6 @@ struct nvs_t
     uint32_t active_page_address;
     uint32_t active_sequence_number;
     uint32_t active_address;
-    struct nvs_hash_address_t address_cache[10];
     logging_logger_t *logger_p;
 };
 
@@ -76,7 +77,6 @@ enum nvs_page_state_t
 
 struct nvs_page_header_t
 {
-    /* TODO: Enforce 32-bit? */
     enum nvs_page_state_t state;
     uint32_t sequence_number;
     uint32_t crc;
@@ -90,8 +90,6 @@ struct nvs_item_t
     uint8_t data[0];
 };
 
-/* TODO: Add static assert, sizeof(header) % sizeof(uint32_t) == 0 */
-
 //////////////////////////////////////////////////////////////////////////
 //VARIABLES
 //////////////////////////////////////////////////////////////////////////
@@ -101,23 +99,28 @@ static struct nvs_t self;
 //////////////////////////////////////////////////////////////////////////
 //LOCAL FUNCTION PROTOTYPES
 //////////////////////////////////////////////////////////////////////////
+
 static bool ErasePage(uint32_t page_address);
-static void ReadFromFlash(size_t address, void *data_p, size_t length);
 static bool WriteToFlash(uint32_t address, const void *data_p, size_t length);
+static void FindActivePage(void);
 static void GetPageHeader(uint32_t address, struct nvs_page_header_t *page_header_p);
 static uint32_t GetActiveAddress(void);
 static uint32_t CalculateHash(const char *str_p);
 static uint32_t CalculateItemCRC(const struct nvs_item_t *item_p);
-static void ReadFromFlash32(size_t address, void *data_p, size_t length);
+static void ReadFromFlash(size_t address, void *data_p, size_t length);
+static bool GetValueByHash(uint32_t page_address, uint32_t hash, uint32_t *value_p);
+static void MoveItemsToNewPage(void);
+static uint32_t GetNextPageAddress(void);
+
 //////////////////////////////////////////////////////////////////////////
 //FUNCTIONS
 //////////////////////////////////////////////////////////////////////////
 
 void NVS_Init(uint32_t start_page_address, size_t number_of_pages)
 {
-    /*TODO: Add assertion to check if addresses are valid. */
-
-    rcc_periph_clock_enable(RCC_CRC);
+    assert(start_page_address >= FLASH_START);
+    assert(number_of_pages >= FLASH_MIN_NUMBER_OF_PAGES);
+    assert((start_page_address + (number_of_pages * FLASH_PAGE_SIZE)) <= FLASH_END);
 
     self = (__typeof__(self)) {0};
     self.start_page_address = start_page_address;
@@ -126,22 +129,9 @@ void NVS_Init(uint32_t start_page_address, size_t number_of_pages)
     self.number_of_pages = number_of_pages;
     self.logger_p = Logging_GetLogger(NVS_LOGGER_NAME);
     Logging_SetLevel(self.logger_p, NVS_LOGGER_DEBUG_LEVEL);
+
+    FindActivePage();
     self.active_address = GetActiveAddress();
-
-
-    for (size_t i = 0; i < self.number_of_pages; ++i)
-    {
-        const uint32_t address = self.start_page_address + (i * FLASH_PAGE_SIZE);
-        struct nvs_page_header_t page_header;
-        GetPageHeader(address, &page_header);
-
-        /* TODO: Check CRC, maybe create function IsPageInUse() */
-        if ((page_header.state == PAGE_IN_USE) && (page_header.sequence_number > self.active_sequence_number))
-        {
-            self.active_sequence_number = page_header.sequence_number;
-            self.active_page_address = address;
-        }
-    }
 
     struct nvs_page_header_t page_header;
     GetPageHeader(self.active_page_address, &page_header);
@@ -154,9 +144,8 @@ void NVS_Init(uint32_t start_page_address, size_t number_of_pages)
         {
             page_header.state = PAGE_IN_USE;
             page_header.sequence_number = self.active_sequence_number;
-            page_header.crc = 0; /* TODO: Calculate CRC */
+            page_header.crc = CRC_Calculate(&page_header, offsetof(__typeof__(page_header), crc));
             WriteToFlash(self.active_page_address, &page_header, sizeof(page_header));
-
         }
     }
 
@@ -171,7 +160,12 @@ void NVS_Init(uint32_t start_page_address, size_t number_of_pages)
 
 bool NVS_Store(const char *key_p, uint32_t value)
 {
-    /* TODO: move to new page if current page is full */
+
+    if ((sizeof(struct nvs_item_t) + sizeof(value)) > (FLASH_PAGE_SIZE - self.active_address))
+    {
+        MoveItemsToNewPage();
+    }
+
     assert((sizeof(struct nvs_item_t) + sizeof(value)) <= (FLASH_PAGE_SIZE - self.active_address));
 
     struct nvs_item_t item;
@@ -198,8 +192,8 @@ bool NVS_Store(const char *key_p, uint32_t value)
     }
     else
     {
-        /* TODO: Handle corrupt page, move to new page and erase. */
-        Logging_Debug(self.logger_p, "Corrupt page: {page_address: 0x%x}", self.active_page_address);
+        /* TODO: Handle corrupt page, move to new page. */
+        Logging_Critical(self.logger_p, "Corrupt page: {page_address: 0x%x}", self.active_page_address);
     }
 
     return status;
@@ -207,51 +201,16 @@ bool NVS_Store(const char *key_p, uint32_t value)
 
 bool NVS_Retrieve(const char *key_p, uint32_t *value_p)
 {
-    bool status = false;
-    Logging_Debug(self.logger_p, "Calculate hash");
     const uint32_t hash = CalculateHash(key_p);
+    Logging_Debug(self.logger_p, "Retrieve: {key: %s, hash: %u}", key_p, hash);
 
-    Logging_Debug(self.logger_p, "Retrieve item: {key: %s, hash: %u}", key_p, hash);
-
-    uint32_t item_address = self.active_page_address + sizeof(struct nvs_page_header_t);
-
-    while(item_address < self.active_page_address + FLASH_PAGE_SIZE)
-    {
-        struct nvs_item_t item;
-        //Logging_Debug(self.logger_p, "Read start");
-        ReadFromFlash32(item_address, &item, sizeof(item));
-
-        Logging_Debug(self.logger_p,
-                      "Item: {address: 0x%x, hash: %u, crc: %u, size: %u}",
-                      item_address,
-                      item.hash,
-                      item.crc,
-                      item.size);
-
-
-        const uint32_t crc = CalculateItemCRC(&item);
-        if ((item.hash == hash) && (item.crc == crc))
-        {
-            const uint32_t data_address = item_address + sizeof(item);
-            ReadFromFlash32(data_address, value_p, item.size);
-            status = true;
-        }
-        else if (item.crc != crc)
-        {
-            break;
-        }
-       // Logging_Debug(self.logger_p, "Read end");
-        item_address += sizeof(item) + item.size;
-    }
-
+    const bool status = GetValueByHash(self.active_page_address, hash, value_p);
     return status;
 }
 
 bool NVS_Clear(void)
 {
     Logging_Info(self.logger_p,"Clear non volatile storage.");
-
-    /* TODO: Measure time and fix WDT reset! */
 
     bool status = true;
     for (size_t i = 0; i < self.number_of_pages; ++i)
@@ -261,6 +220,7 @@ bool NVS_Clear(void)
         Logging_Debug(self.logger_p,"Erase page: {page_address: 0x%x}", page_address);
         if (!ErasePage(page_address))
         {
+            Logging_Critical(self.logger_p, "Erase failed: {page_address: 0x%x}", page_address);
             status = false;
             break;
         }
@@ -294,30 +254,8 @@ static bool ErasePage(uint32_t page_address)
 
 static void ReadFromFlash(size_t address, void *data_p, size_t length)
 {
-    const volatile uint8_t *source_p= (const volatile uint8_t *)address;
-    uint8_t *destination_p = (uint8_t *)data_p;
-
-    for (size_t i = 0; i < length; ++i)
-    {
-        *destination_p = *source_p;
-
-        destination_p += 1;
-        source_p += 1;
-    }
-}
-
-static void ReadFromFlash32(size_t address, void *data_p, size_t length)
-{
-    const volatile uint32_t *source_p= (const volatile uint32_t *)address;
-    uint32_t *destination_p = (uint32_t *)data_p;
-
-    for (size_t i = 0; i < length / sizeof(uint32_t); ++i)
-    {
-        *destination_p = *source_p;
-
-        destination_p += 1;
-        source_p += 1;
-    }
+    const uint32_t *source_p= (const uint32_t *)address;
+    memcpy(data_p, source_p, length);
 }
 
 static bool WriteToFlash(uint32_t address, const void *data_p, size_t length)
@@ -350,34 +288,50 @@ static bool WriteToFlash(uint32_t address, const void *data_p, size_t length)
     return status;
 }
 
+static void FindActivePage(void)
+{
+    for (size_t i = 0; i < self.number_of_pages; ++i)
+    {
+        const uint32_t address = self.start_page_address + (i * FLASH_PAGE_SIZE);
+        struct nvs_page_header_t page_header;
+        GetPageHeader(address, &page_header);
+
+        const uint32_t crc = CRC_Calculate(&page_header, offsetof(__typeof__(page_header), crc));
+        if ((page_header.state == PAGE_IN_USE) &&
+                (page_header.sequence_number > self.active_sequence_number) &&
+                (page_header.crc == crc))
+        {
+            self.active_sequence_number = page_header.sequence_number;
+            self.active_page_address = address;
+        }
+    }
+}
+
 static void GetPageHeader(uint32_t address, struct nvs_page_header_t *page_header_p)
 {
     ReadFromFlash(address, page_header_p, sizeof(*page_header_p));
 }
 
-
-//void PopulateAddressCache()
-
 static uint32_t GetActiveAddress(void)
 {
-    Logging_Debug(self.logger_p, "<<<GetActiveAddress>>>");
-
     uint32_t active_address = self.active_page_address + sizeof(struct nvs_page_header_t);
 
-    while(active_address < self.active_page_address + FLASH_PAGE_SIZE)
+    while(active_address + sizeof(struct nvs_item_t) <= self.active_page_address + FLASH_PAGE_SIZE)
     {
+
+        //Logging_Debug(self.logger_p, "Item: {address: 0x%x}", active_address);
         struct nvs_item_t item;
         ReadFromFlash(active_address, &item, sizeof(item));
 
+#if 0
         Logging_Debug(self.logger_p,
                       "Item: {address: 0x%x, hash: %u, crc: %u, size: %u}",
                       active_address,
                       item.hash,
                       item.crc,
                       item.size);
-        Logging_Debug(self.logger_p, "Expected CRC: %u", CalculateItemCRC(&item));
-
-        if ((item.crc != CalculateItemCRC(&item)))
+#endif
+        if (item.crc != CalculateItemCRC(&item))
         {
             break;
         }
@@ -389,24 +343,123 @@ static uint32_t GetActiveAddress(void)
     return active_address - self.active_page_address;
 }
 
-
-
-
 static uint32_t CalculateHash(const char *str_p)
 {
-    uint32_t CalculateHash = 5381;
+    uint32_t hash = 5381;
     uint32_t c;
 
     while (c = *str_p++)
     {
-        CalculateHash = ((CalculateHash << 5) + CalculateHash) + c;
+        hash = ((hash << 5) + hash) + c;
     }
 
-    return CalculateHash;
+    return hash;
 }
 
 static uint32_t CalculateItemCRC(const struct nvs_item_t *item_p)
 {
-    crc_reset();
-    return crc_calculate_block((uint32_t *)item_p, 2);
+    return CRC_Calculate(item_p, offsetof(__typeof__(*item_p), crc));
+}
+
+static bool GetValueByHash(uint32_t page_address, uint32_t hash, uint32_t *value_p)
+{
+    bool status = false;
+    uint32_t item_address = page_address + sizeof(struct nvs_page_header_t);
+    while(item_address + sizeof(struct nvs_item_t) <= page_address + FLASH_PAGE_SIZE)
+    {
+        struct nvs_item_t item;
+        ReadFromFlash(item_address, &item, sizeof(item));
+
+        const uint32_t crc = CalculateItemCRC(&item);
+        if ((item.hash == hash) && (item.crc == crc))
+        {
+            const uint32_t data_address = item_address + sizeof(item);
+            ReadFromFlash(data_address, value_p, item.size);
+            status = true;
+        }
+        else if (item.crc != crc)
+        {
+            /* Abort when all valid items are checked. */
+            break;
+        }
+        item_address += sizeof(item) + item.size;
+    }
+
+    return status;
+}
+
+static void MoveItemsToNewPage(void)
+{
+
+    Logging_Info(self.logger_p, "Move items to new page: {active_page_address: 0x%x, new_page_address: 0x%x}",
+                 self.active_page_address,
+                 GetNextPageAddress()
+                );
+
+
+    ErasePage(GetNextPageAddress());
+
+
+    uint32_t destination = GetNextPageAddress() + sizeof(struct nvs_page_header_t);
+
+    uint32_t item_address = self.active_page_address + sizeof(struct nvs_page_header_t);
+    while(item_address + sizeof(struct nvs_item_t) <= self.active_page_address + FLASH_PAGE_SIZE)
+    {
+        struct nvs_item_t item;
+        ReadFromFlash(item_address, &item, sizeof(item));
+
+        const uint32_t crc = CalculateItemCRC(&item);
+        if (item.crc == crc)
+        {
+            uint32_t value;
+            GetValueByHash(self.active_page_address, item.hash, &value);
+
+            if (!GetValueByHash(GetNextPageAddress(), item.hash, &value))
+            {
+                Logging_Debug(self.logger_p,
+                              "Move: {value: %u, hash: %u, size: %u, crc: %u, destination: 0x%x}",
+                              value,
+                              item.hash,
+                              item.size,
+                              item.crc,
+                              destination);
+                WriteToFlash(destination, &item, sizeof(item));
+                WriteToFlash(destination + sizeof(item), &value, sizeof(value));
+
+                destination += sizeof(item) + sizeof(value);
+            }
+        }
+
+        item_address += sizeof(item) + item.size;
+    }
+
+    struct nvs_page_header_t page_header;
+    page_header.state = PAGE_IN_USE;
+    page_header.sequence_number = self.active_sequence_number + 1;
+    page_header.crc = CRC_Calculate(&page_header, offsetof(__typeof__(page_header), crc));
+    WriteToFlash(GetNextPageAddress(), &page_header, sizeof(page_header));
+
+    /* TODO: Make sure that the write was successful before updating these parameters. */
+    self.active_sequence_number = page_header.sequence_number;
+    self.active_page_address = GetNextPageAddress();
+    self.active_address = destination - self.active_page_address;
+
+    Logging_Info(self.logger_p,
+                 "Items moved to new page: {page_address: 0x%x, sequence_number: %u, active_address: 0x%x}",
+                 self.active_page_address,
+                 self.active_sequence_number,
+                 self.active_address);
+
+
+}
+
+static uint32_t GetNextPageAddress(void)
+{
+    uint32_t next_page_address = self.active_page_address + FLASH_PAGE_SIZE;
+
+    if (next_page_address >= (self.start_page_address + (self.number_of_pages * FLASH_PAGE_SIZE)))
+    {
+        next_page_address = self.start_page_address;
+    }
+    return  next_page_address;
 }
