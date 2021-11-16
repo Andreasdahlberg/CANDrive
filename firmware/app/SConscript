@@ -41,7 +41,8 @@ MODULES = [
     'motor_controller',
     'signal_handler',
     'system_monitor',
-    'nvs'
+    'nvs',
+    'crc'
 ]
 
 module_objects = []
