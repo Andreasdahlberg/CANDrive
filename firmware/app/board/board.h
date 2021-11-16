@@ -118,4 +118,18 @@ void Board_Reset(void);
  */
 bool Board_GetEmergencyPinState(void);
 
+/**
+ * Get the start address of the NVS partition.
+ *
+ * @return Address.
+ */
+uint32_t Board_GetNVSAddress(void);
+
+/**
+ * Get the number of flash pages in the NVS partition.
+ *
+ * @return Number of pages.
+ */
+uint32_t Board_GetNumberOfPagesInNVS(void);
+
 #endif
