@@ -145,7 +145,7 @@ static inline void Nop(void)
 
 static void Delay(void)
 {
-    for (size_t i = 0; i < 400000; ++i)
+    for (size_t i = 0; i < 100000; ++i)
     {
         Nop();
     }
