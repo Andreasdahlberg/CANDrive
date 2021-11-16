@@ -42,6 +42,7 @@ along with CANDrive firmware.  If not, see <http://www.gnu.org/licenses/>.
 #include "signal_handler.h"
 #include "system_monitor.h"
 #include "utility.h"
+#include "nvs.h"
 #include "application.h"
 
 //////////////////////////////////////////////////////////////////////////
@@ -100,6 +101,7 @@ void Application_Init(void)
     Logging_Init(SysTime_GetSystemTime);
 
     SystemMonitor_Init();
+    NVS_Init(Board_GetNVSAddress(), Board_GetNumberOfPagesInNVS());
     CANInterface_Init();
     ADC_Init();
     MotorController_Init();
