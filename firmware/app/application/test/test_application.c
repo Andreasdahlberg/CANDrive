@@ -93,6 +93,9 @@ static int Setup(void **state)
     expect_any(Serial_Init, baud_rate);
     expect_function_call(Logging_Init);
     expect_function_call(SystemMonitor_Init);
+    will_return(Board_GetNVSAddress, 0x801F800);
+    will_return(Board_GetNumberOfPagesInNVS, 2);
+    expect_function_call(NVS_Init);
     expect_function_call(CANInterface_Init);
     expect_function_call(ADC_Init);
     expect_function_call(MotorController_Init);
@@ -142,6 +145,9 @@ static void test_Application_Init(void **state)
     expect_value(Serial_Init, baud_rate, BAUD_RATE);
     expect_function_call(Logging_Init);
     expect_function_call(SystemMonitor_Init);
+    will_return(Board_GetNVSAddress, 0x801F800);
+    will_return(Board_GetNumberOfPagesInNVS, 2);
+    expect_function_call(NVS_Init);
     expect_function_call(CANInterface_Init);
     expect_function_call(ADC_Init);
     expect_function_call(MotorController_Init);
