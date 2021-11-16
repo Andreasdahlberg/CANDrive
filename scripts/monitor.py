@@ -158,8 +158,12 @@ class Monitor():
                     'line': result.group('line'),
                     'message': result.group('message'),
                 }
-
                 return values
+            elif line.startswith('assertion'):
+                datetime_obj = datetime.now()
+                print('{} {}'.format(
+                    Colors.BOLD + datetime_obj.strftime('%H:%M:%S.%f')[:-3] + Colors.END,
+                    Colors.RED + line + Colors.END))
         return None
 
     def _add_host_timestamp(self, values):
