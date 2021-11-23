@@ -153,6 +153,20 @@ bool Console_GetInt32Argument(int32_t *argument_p)
     return status;
 }
 
+bool Console_GetUint32Argument(uint32_t *argument_p)
+{
+    bool status = false;
+
+    int32_t argument;
+    if (Console_GetInt32Argument(&argument))
+    {
+        *argument_p = (uint32_t)argument;
+        status = true;
+    }
+
+    return status;
+}
+
 bool Console_GetStringArgument(char **argument_p)
 {
     char *argument_token;
