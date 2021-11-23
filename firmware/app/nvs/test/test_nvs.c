@@ -31,6 +31,7 @@ along with CANDrive firmware.  If not, see <http://www.gnu.org/licenses/>.
 #include <setjmp.h>
 #include <cmocka.h>
 #include <stdio.h>
+#include <string.h>
 #include <stdbool.h>
 #include <libopencm3/stm32/flash.h>
 #include "nvs.h"
@@ -46,6 +47,7 @@ along with CANDrive firmware.  If not, see <http://www.gnu.org/licenses/>.
  */
 #define FLASH_START_ADDRESS 0
 #define NUMBER_OF_PAGES 2
+#define PAGE_SIZE 1024
 
 //////////////////////////////////////////////////////////////////////////
 //TYPE DEFINITIONS
@@ -57,6 +59,7 @@ along with CANDrive firmware.  If not, see <http://www.gnu.org/licenses/>.
 
 static struct logging_logger_t *dummy_logger;
 static bool create_corrupt_crc = false;
+static uint32_t flash_data[NUMBER_OF_PAGES][PAGE_SIZE];
 
 //////////////////////////////////////////////////////////////////////////
 //LOCAL FUNCTIONS
@@ -73,6 +76,36 @@ static int Setup(void **state)
     NVS_Init(FLASH_START_ADDRESS, NUMBER_OF_PAGES);
 
     return 0;
+}
+
+//////////////////////////////////////////////////////////////////////////
+//MOCKS
+//////////////////////////////////////////////////////////////////////////
+
+void *__real_memcpy (void *destination_p, const void *source_p, size_t length);
+
+void flash_program_word(uint32_t address, uint32_t data)
+{
+    uint8_t *destination_p = ((uint8_t *)flash_data) + address;
+    __real_memcpy(destination_p, &data, sizeof(data));
+}
+
+void *__wrap_memcpy (void *destination_p, const void *source_p, size_t length)
+{
+    uint8_t *real_source_p = ((uint8_t *)flash_data) + ((uintptr_t )source_p);
+    return __real_memcpy(destination_p, real_source_p, length);
+}
+
+void flash_erase_page(uint32_t page_address)
+{
+    uint32_t page_index = page_address / PAGE_SIZE;
+    memset(flash_data[page_index], 0xFF, PAGE_SIZE);
+}
+
+void flash_erase_all_pages(void)
+{
+
+    memset(flash_data, 0xFF, sizeof(flash_data));
 }
 
 //////////////////////////////////////////////////////////////////////////
