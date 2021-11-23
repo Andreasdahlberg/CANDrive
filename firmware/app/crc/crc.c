@@ -62,7 +62,7 @@ uint32_t CRC_Calculate(const void *data_p, size_t length)
     rcc_periph_clock_enable(RCC_CRC);
     crc_reset();
 
-    const uint8_t *temp_p = (uint8_t *)data_p;
+    const uint8_t *temp_p = (const uint8_t *)data_p;
     for (size_t i = 0; i < number_of_words; ++i)
     {
         uint32_t data;
@@ -72,11 +72,11 @@ uint32_t CRC_Calculate(const void *data_p, size_t length)
         temp_p += word_size;
     }
 
-    uint32_t remainder = length % word_size;
-    if (remainder != 0)
+    uint32_t number_of_remaining_bytes = length % word_size;
+    if (number_of_remaining_bytes != 0)
     {
         uint32_t data;
-        memcpy(&data, temp_p, remainder);
+        memcpy(&data, temp_p, number_of_remaining_bytes);
         result = crc_calculate(data);
     }
 
