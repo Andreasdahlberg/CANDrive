@@ -25,7 +25,9 @@ env.Append(CPPPATH=[
     ])
 
 env.Append(LINKFLAGS=[
+    '-Wl,--wrap=memcpy',
 ])
+
 
 source = Glob('*.c')
 objects = env.Object(source=source)
