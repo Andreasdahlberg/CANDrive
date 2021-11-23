@@ -246,7 +246,7 @@ static bool ErasePage(uint32_t page_address)
 
 static void ReadFromFlash(uint32_t address, void *data_p, size_t length)
 {
-    const uint32_t *source_p= (const uint32_t *)address;
+    const uint32_t *source_p = (const uint32_t *)address;
     memcpy(data_p, source_p, length);
 }
 
