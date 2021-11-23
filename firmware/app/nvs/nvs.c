@@ -53,12 +53,6 @@ along with CANDrive firmware.  If not, see <http://www.gnu.org/licenses/>.
 //TYPE DEFINITIONS
 //////////////////////////////////////////////////////////////////////////
 
-struct nvs_hash_address_t
-{
-    uint32_t hash;
-    uint32_t address;
-};
-
 struct nvs_t
 {
     uint32_t start_page_address;
@@ -107,7 +101,7 @@ static void GetPageHeader(uint32_t address, struct nvs_page_header_t *page_heade
 static uint32_t GetActiveAddress(void);
 static uint32_t CalculateHash(const char *str_p);
 static uint32_t CalculateItemCRC(const struct nvs_item_t *item_p);
-static void ReadFromFlash(size_t address, void *data_p, size_t length);
+static void ReadFromFlash(uint32_t address, void *data_p, size_t length);
 static bool GetValueByHash(uint32_t page_address, uint32_t hash, uint32_t *value_p);
 static void MoveItemsToNewPage(void);
 static uint32_t GetNextPageAddress(void);
@@ -118,9 +112,7 @@ static uint32_t GetNextPageAddress(void);
 
 void NVS_Init(uint32_t start_page_address, size_t number_of_pages)
 {
-    assert(start_page_address >= FLASH_START);
     assert(number_of_pages >= FLASH_MIN_NUMBER_OF_PAGES);
-    assert((start_page_address + (number_of_pages * FLASH_PAGE_SIZE)) <= FLASH_END);
 
     self = (__typeof__(self)) {0};
     self.start_page_address = start_page_address;
@@ -252,7 +244,7 @@ static bool ErasePage(uint32_t page_address)
     return status;
 }
 
-static void ReadFromFlash(size_t address, void *data_p, size_t length)
+static void ReadFromFlash(uint32_t address, void *data_p, size_t length)
 {
     const uint32_t *source_p= (const uint32_t *)address;
     memcpy(data_p, source_p, length);
@@ -318,24 +310,13 @@ static uint32_t GetActiveAddress(void)
 
     while(active_address + sizeof(struct nvs_item_t) <= self.active_page_address + FLASH_PAGE_SIZE)
     {
-
-        //Logging_Debug(self.logger_p, "Item: {address: 0x%x}", active_address);
         struct nvs_item_t item;
         ReadFromFlash(active_address, &item, sizeof(item));
 
-#if 0
-        Logging_Debug(self.logger_p,
-                      "Item: {address: 0x%x, hash: %u, crc: %u, size: %u}",
-                      active_address,
-                      item.hash,
-                      item.crc,
-                      item.size);
-#endif
         if (item.crc != CalculateItemCRC(&item))
         {
             break;
         }
-
 
         active_address += sizeof(item) + item.size;
     }
@@ -343,16 +324,20 @@ static uint32_t GetActiveAddress(void)
     return active_address - self.active_page_address;
 }
 
+/**
+ * Calculate FNV-1a hash for given string.
+ */
 static uint32_t CalculateHash(const char *str_p)
 {
-    uint32_t hash = 5381;
-    uint32_t c;
+    const uint32_t fnv_offset = 2166136261;
+    const uint32_t fnv_prime = 16777619;
 
-    while (c = *str_p++)
+    uint32_t hash = fnv_offset;
+    for (const char *p = str_p; *p != '\0'; ++p)
     {
-        hash = ((hash << 5) + hash) + c;
+        hash ^= (uint32_t)(*p);
+        hash *= fnv_prime;
     }
-
     return hash;
 }
 
@@ -396,12 +381,9 @@ static void MoveItemsToNewPage(void)
                  GetNextPageAddress()
                 );
 
-
     ErasePage(GetNextPageAddress());
 
-
     uint32_t destination = GetNextPageAddress() + sizeof(struct nvs_page_header_t);
-
     uint32_t item_address = self.active_page_address + sizeof(struct nvs_page_header_t);
     while(item_address + sizeof(struct nvs_item_t) <= self.active_page_address + FLASH_PAGE_SIZE)
     {
@@ -449,8 +431,6 @@ static void MoveItemsToNewPage(void)
                  self.active_page_address,
                  self.active_sequence_number,
                  self.active_address);
-
-
 }
 
 static uint32_t GetNextPageAddress(void)
