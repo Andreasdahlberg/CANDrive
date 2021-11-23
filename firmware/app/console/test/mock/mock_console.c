@@ -82,6 +82,19 @@ __attribute__((weak)) bool Console_GetInt32Argument(int32_t *argument_p)
     return status;
 }
 
+__attribute__((weak)) bool Console_GetUint32Argument(uint32_t *argument_p)
+{
+    assert_non_null(argument_p);
+
+    bool status = mock_type(bool);
+    if (status)
+    {
+        *argument_p = mock_type(uint32_t);
+    }
+
+    return status;
+}
+
 __attribute__((weak)) bool Console_GetStringArgument(char **argument_p)
 {
     assert_non_null(argument_p);

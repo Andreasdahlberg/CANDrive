@@ -38,6 +38,7 @@ along with CANDrive firmware.  If not, see <http://www.gnu.org/licenses/>.
 
 #define Console_GetArgument(argument_p) _Generic((argument_p), \
     int32_t *:Console_GetInt32Argument, \
+    uint32_t *:Console_GetUint32Argument, \
     bool *:Console_GetBoolArgument, \
     char **:Console_GetStringArgument)(argument_p)
 
@@ -60,6 +61,8 @@ void Console_RegisterCommand(const char *name, console_command_func_t handler);
 void Console_Process(void);
 
 bool Console_GetInt32Argument(int32_t *argument_p);
+
+bool Console_GetUint32Argument(uint32_t *argument_p);
 
 bool Console_GetStringArgument(char **argument_p);
 

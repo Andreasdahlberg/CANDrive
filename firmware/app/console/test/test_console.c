@@ -76,15 +76,18 @@ static bool MockCommandHandlerWithArgs(void)
 {
     bool status;
     int32_t arg_int32;
+    uint32_t arg_uint32;
     bool arg_bool;
     char *arg_string;
 
     status = Console_GetArgument(&arg_string) &&
              Console_GetArgument(&arg_int32) &&
+             Console_GetArgument(&arg_uint32) &&
              Console_GetArgument(&arg_bool);
 
     check_expected(arg_string);
     check_expected(arg_int32);
+    check_expected(arg_uint32);
     check_expected(arg_bool);
 
     return status;
@@ -192,10 +195,11 @@ static void test_Console(void **state)
     ExpectCommand("mock_command");
     ExpectEndOfCommand(true);
 
-    expect_string(MockCommandHandlerWithArgs, arg_string, "foobar");
+    expect_string(MockCommandHandlerWithArgs, arg_string, "foo");
     expect_value(MockCommandHandlerWithArgs, arg_int32, 512);
+    expect_value(MockCommandHandlerWithArgs, arg_uint32, 256);
     expect_value(MockCommandHandlerWithArgs, arg_bool, true);
-    ExpectCommand("mock_command_args foobar 512 1");
+    ExpectCommand("mock_command_args foo 512 256 1");
     ExpectEndOfCommand(true);
 }
 
