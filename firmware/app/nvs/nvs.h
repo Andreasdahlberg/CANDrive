@@ -68,6 +68,15 @@ bool NVS_Store(const char *key_p, uint32_t value);
 bool NVS_Retrieve(const char *key_p, uint32_t *value_p);
 
 /**
+ * Remove a value from NVS.
+ *
+ * @param  key_p Key of value to retrieve.
+ *
+ * @return True if value was removed successfully, otherwise false.
+ */
+bool NVS_Remove(const char *key_p);
+
+/**
  * Clear all stored values.
  *
  * @return Status of clear operation.

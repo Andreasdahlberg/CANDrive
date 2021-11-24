@@ -69,6 +69,12 @@ enum nvs_page_state_t
     PAGE_IN_USE = 0x0C00FFE0
 };
 
+enum nvs_item_status_t
+{
+    ITEM_DELETED = 0,
+    ITEM_USED = 0xFFFF
+};
+
 struct nvs_page_header_t
 {
     enum nvs_page_state_t state;
@@ -79,7 +85,8 @@ struct nvs_page_header_t
 struct nvs_item_t
 {
     uint32_t hash;
-    uint32_t size;
+    uint16_t size;
+    uint16_t status;
     uint32_t crc;
     uint8_t data[0];
 };
@@ -162,12 +169,13 @@ bool NVS_Store(const char *key_p, uint32_t value)
 
     struct nvs_item_t item;
     item.hash = CalculateHash(key_p);
+    item.status = ITEM_USED;
     item.size = sizeof(value);
     item.crc = CalculateItemCRC(&item);
 
     const uint32_t destination = self.active_page_address + self.active_address;
     Logging_Debug(self.logger_p,
-                  "Store: {key: %s, value: %u, hash: %u, size: %u, crc: %u, destination: 0x%x}",
+                  "Store: {key: %s, value: %u, hash: %u, size: %u, crc: 0x%x, destination: 0x%x}",
                   key_p,
                   value,
                   item.hash,
@@ -200,6 +208,45 @@ bool NVS_Retrieve(const char *key_p, uint32_t *value_p)
     return status;
 }
 
+bool NVS_Remove(const char *key_p)
+{
+    bool status = false;
+    const uint32_t hash = CalculateHash(key_p);
+
+    uint32_t item_address = self.active_page_address + sizeof(struct nvs_page_header_t);
+    while(item_address + sizeof(struct nvs_item_t) <= self.active_page_address + FLASH_PAGE_SIZE)
+    {
+        struct nvs_item_t item;
+        ReadFromFlash(item_address, &item, sizeof(item));
+        const uint32_t crc = CalculateItemCRC(&item);
+
+        if ((item.hash == hash) && (item.crc == crc) && (item.status == ITEM_USED))
+        {
+            const uint16_t item_status = ITEM_DELETED;
+            status = WriteToFlash(item_address + 6, &item_status, sizeof(item_status));
+
+            if (!status)
+            {
+                status = false;
+                Logging_Error(self.logger_p,
+                              "Failed to remove item: {key: %s, hash: %u, size: %u}",
+                              key_p,
+                              item.hash,
+                              item.size);
+                break;
+            }
+        }
+        else if (item.crc != crc)
+        {
+            /* Abort when all valid items are checked. */
+            break;
+        }
+        item_address += sizeof(item) + item.size;
+    }
+
+    return status;
+}
+
 bool NVS_Clear(void)
 {
     Logging_Info(self.logger_p,"Clear non volatile storage.");
@@ -217,6 +264,8 @@ bool NVS_Clear(void)
             break;
         }
     }
+
+    NVS_Init(self.start_page_address, self.number_of_pages);
     return status;
 }
 
@@ -254,16 +303,16 @@ static bool WriteToFlash(uint32_t address, const void *data_p, size_t length)
 {
     bool status = true;
 
-    assert(length % sizeof(uint32_t) == 0);
+    assert(length % sizeof(uint16_t) == 0);
 
     flash_unlock();
 
-    for (size_t i = 0; i < length / sizeof(uint32_t); ++i)
+    for (size_t i = 0; i < length / sizeof(uint16_t); ++i)
     {
-        const uint32_t destination = address + (i * sizeof(uint32_t));
-        const uint32_t data = *((const uint32_t *)data_p + i);
+        const uint32_t destination = address + (i * sizeof(uint16_t));
+        const uint16_t data = *((const uint16_t *)data_p + i);
 
-        flash_program_word(destination, data);
+        flash_program_half_word(destination, data);
         if(flash_get_status_flags() != FLASH_SR_EOP)
         {
             status = false;
@@ -343,7 +392,7 @@ static uint32_t CalculateHash(const char *str_p)
 
 static uint32_t CalculateItemCRC(const struct nvs_item_t *item_p)
 {
-    return CRC_Calculate(item_p, offsetof(__typeof__(*item_p), crc));
+    return CRC_Calculate(item_p, offsetof(__typeof__(*item_p), status));
 }
 
 static bool GetValueByHash(uint32_t page_address, uint32_t hash, uint32_t *value_p)
@@ -356,7 +405,7 @@ static bool GetValueByHash(uint32_t page_address, uint32_t hash, uint32_t *value
         ReadFromFlash(item_address, &item, sizeof(item));
 
         const uint32_t crc = CalculateItemCRC(&item);
-        if ((item.hash == hash) && (item.crc == crc))
+        if ((item.hash == hash) && (item.crc == crc) && (item.status == ITEM_USED))
         {
             const uint32_t data_address = item_address + sizeof(item);
             ReadFromFlash(data_address, value_p, item.size);

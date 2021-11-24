@@ -90,6 +90,12 @@ void flash_program_word(uint32_t address, uint32_t data)
     __real_memcpy(destination_p, &data, sizeof(data));
 }
 
+void flash_program_half_word(uint32_t address, uint16_t data)
+{
+    uint8_t *destination_p = ((uint8_t *)flash_data) + address;
+    __real_memcpy(destination_p, &data, sizeof(data));
+}
+
 void *__wrap_memcpy (void *destination_p, const void *source_p, size_t length)
 {
     uint8_t *real_source_p = ((uint8_t *)flash_data) + ((uintptr_t )source_p);
@@ -104,7 +110,6 @@ void flash_erase_page(uint32_t page_address)
 
 void flash_erase_all_pages(void)
 {
-
     memset(flash_data, 0xFF, sizeof(flash_data));
 }
 
@@ -132,6 +137,46 @@ static void test_NVS_StoreAndRetrieve(void **state)
     assert_true(NVS_Retrieve("Bar", &value));
     assert_int_equal(value, 20);
     assert_false(NVS_Retrieve("Foobar", &value));
+}
+
+static void test_NVS_Store_Failed(void **state)
+{
+    will_return_maybe(flash_get_status_flags, FLASH_SR_PGERR);
+
+    assert_false(NVS_Store("Foo", 10));
+}
+
+static void test_NVS_Remove(void **state)
+{
+    will_return_maybe(flash_get_status_flags, FLASH_SR_EOP);
+
+    /* Try to remove non existing value. */
+    assert_false(NVS_Remove("Foo"));
+
+    /* Removing existing value. */
+    uint32_t value;
+    assert_true(NVS_Store("Bar", 10));
+    assert_true(NVS_Remove("Bar"));
+    assert_false(NVS_Retrieve("Bar", &value));
+
+    /* Try to remove already removed value. */
+    assert_false(NVS_Remove("Bar"));
+
+    /* Remove value with several old values. */
+    assert_true(NVS_Store("Foo", 10));
+    assert_true(NVS_Store("Foo", 20));
+    assert_true(NVS_Store("Foo", 30));
+    assert_true(NVS_Remove("Foo"));
+    assert_false(NVS_Retrieve("Foo", &value));
+}
+
+static void test_NVS_Remove_FailedFlashWrite(void **state)
+{
+    will_return_count(flash_get_status_flags, FLASH_SR_EOP, 8);
+    assert_true(NVS_Store("Foo", 10));
+
+    will_return_maybe(flash_get_status_flags, FLASH_SR_PGERR);
+    assert_false(NVS_Remove("Foo"));
 }
 
 static void test_NVS_RetrieveExistingValues(void **state)
@@ -242,6 +287,32 @@ static void test_NVS_PageWrapAround(void **state)
     assert_int_equal(value, 31);
 }
 
+static void test_NVS_Clear(void **state)
+{
+    will_return_maybe(Logging_GetLogger, dummy_logger);
+    will_return_maybe(flash_get_status_flags, FLASH_SR_EOP);
+
+    assert_true(NVS_Store("Foo", 10));
+    assert_true(NVS_Store("Bar", 20));
+    assert_true(NVS_Clear());
+
+    uint32_t value;
+    assert_false(NVS_Retrieve("Foo", &value));
+    assert_false(NVS_Retrieve("Bar", &value));
+
+    assert_true(NVS_Store("Foo", 30));
+    assert_true(NVS_Retrieve("Foo", &value));
+    assert_int_equal(value, 30);
+}
+
+static void test_NVS_ClearFailed(void **state)
+{
+    will_return_maybe(Logging_GetLogger, dummy_logger);
+    will_return_maybe(flash_get_status_flags, FLASH_SR_PGERR);
+
+    assert_false(NVS_Clear());
+}
+
 /////////////////////////////////////////////////////////////////////////
 //FUNCTIONS
 //////////////////////////////////////////////////////////////////////////
@@ -252,9 +323,14 @@ int main(int argc, char *argv[])
     {
         cmocka_unit_test(test_NVS_Init_Invalid),
         cmocka_unit_test_setup(test_NVS_StoreAndRetrieve, Setup),
+        cmocka_unit_test_setup(test_NVS_Store_Failed, Setup),
+        cmocka_unit_test_setup(test_NVS_Remove, Setup),
+        cmocka_unit_test_setup(test_NVS_Remove_FailedFlashWrite, Setup),
         cmocka_unit_test_setup(test_NVS_RetrieveExistingValues, Setup),
         cmocka_unit_test_setup(test_NVS_PageFull, Setup),
         cmocka_unit_test_setup(test_NVS_PageWrapAround, Setup),
+        cmocka_unit_test_setup(test_NVS_Clear, Setup),
+        cmocka_unit_test_setup(test_NVS_ClearFailed, Setup),
     };
 
     if (argc >= 2)
