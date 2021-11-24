@@ -75,7 +75,7 @@ uint32_t CRC_Calculate(const void *data_p, size_t length)
     uint32_t number_of_remaining_bytes = length % word_size;
     if (number_of_remaining_bytes != 0)
     {
-        uint32_t data;
+        uint32_t data = 0;
         memcpy(&data, temp_p, number_of_remaining_bytes);
         result = crc_calculate(data);
     }
