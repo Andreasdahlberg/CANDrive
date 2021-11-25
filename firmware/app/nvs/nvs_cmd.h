@@ -44,4 +44,6 @@ along with CANDrive firmware.  If not, see <http://www.gnu.org/licenses/>.
 
 bool NVSCmd_Store(void);
 
+bool NVSCmd_Remove(void);
+
 #endif
