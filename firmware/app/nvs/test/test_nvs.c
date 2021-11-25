@@ -34,7 +34,9 @@ along with CANDrive firmware.  If not, see <http://www.gnu.org/licenses/>.
 #include <string.h>
 #include <stdbool.h>
 #include <libopencm3/stm32/flash.h>
+#include "utility.h"
 #include "nvs.h"
+#include "nvs_cmd.h"
 
 //////////////////////////////////////////////////////////////////////////
 //DEFINES
@@ -313,6 +315,61 @@ static void test_NVS_ClearFailed(void **state)
     assert_false(NVS_Clear());
 }
 
+static void test_NVSCmd_Store_InvalidFormat(void **state)
+{
+    /* Invalid format on name */
+    will_return(Console_GetStringArgument, false);
+    assert_false(NVSCmd_Store());
+
+    /* Invalid format on value */
+    const char name[] = "DummyName";
+    will_return(Console_GetStringArgument, true);
+    will_return(Console_GetStringArgument, name);
+    will_return(Console_GetUint32Argument, false);
+    assert_false(NVSCmd_Store());
+}
+
+static void test_NVSCmd_Store(void **state)
+{
+    will_return_maybe(flash_get_status_flags, FLASH_SR_EOP);
+    const uint32_t values[] = {0, 50, UINT32_MAX};
+
+    for (size_t i = 0; i < ElementsIn(values); ++i)
+    {
+        const char name[] = "DummyName";
+        will_return(Console_GetStringArgument, true);
+        will_return(Console_GetStringArgument, name);
+        will_return(Console_GetUint32Argument, true);
+        will_return(Console_GetUint32Argument, values[i]);
+        assert_true(NVSCmd_Store());
+
+        uint32_t value;
+        assert_true(NVS_Retrieve(name, &value));
+        assert_int_equal(value, values[i]);
+    }
+}
+
+static void test_NVSCmd_Remove_InvalidFormat(void **state)
+{
+    /* Invalid format on name */
+    will_return(Console_GetStringArgument, false);
+    assert_false(NVSCmd_Remove());
+}
+
+static void test_NVSCmd_Remove(void **state)
+{
+    will_return_maybe(flash_get_status_flags, FLASH_SR_EOP);
+
+    const char name[] = "DummyName";
+    assert_true(NVS_Store(name, 10));
+    will_return(Console_GetStringArgument, true);
+    will_return(Console_GetStringArgument, name);
+    assert_true(NVSCmd_Remove());
+
+    uint32_t value;
+    assert_false(NVS_Retrieve(name, &value));
+}
+
 /////////////////////////////////////////////////////////////////////////
 //FUNCTIONS
 //////////////////////////////////////////////////////////////////////////
@@ -330,7 +387,15 @@ int main(int argc, char *argv[])
         cmocka_unit_test_setup(test_NVS_PageFull, Setup),
         cmocka_unit_test_setup(test_NVS_PageWrapAround, Setup),
         cmocka_unit_test_setup(test_NVS_Clear, Setup),
-        cmocka_unit_test_setup(test_NVS_ClearFailed, Setup),
+        cmocka_unit_test_setup(test_NVS_ClearFailed, Setup)
+    };
+
+    const struct CMUnitTest test_nvs_cmd[] =
+    {
+        cmocka_unit_test(test_NVSCmd_Store_InvalidFormat),
+        cmocka_unit_test_setup(test_NVSCmd_Store, Setup),
+        cmocka_unit_test(test_NVSCmd_Remove_InvalidFormat),
+        cmocka_unit_test(test_NVSCmd_Remove)
     };
 
     if (argc >= 2)
@@ -338,7 +403,10 @@ int main(int argc, char *argv[])
         cmocka_set_test_filter(argv[1]);
     }
 
-    return cmocka_run_group_tests(test_nvs, NULL, NULL);
+    int status = 0;
+    status = cmocka_run_group_tests(test_nvs, NULL, NULL);
+    status += cmocka_run_group_tests(test_nvs_cmd, NULL, NULL);
+    return status;
 }
 
 uint32_t CRC_Calculate(const void *data_p, size_t length)
