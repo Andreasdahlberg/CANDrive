@@ -49,6 +49,8 @@ along with CANDrive firmware.  If not, see <http://www.gnu.org/licenses/>.
 #define FLASH_MIN_NUMBER_OF_PAGES 2
 #define FLASH_PAGE_SIZE 0x400
 
+#define PAGE_HEADER_SIZE_WITHOUT_CRC (sizeof(struct nvs_page_header_t) - sizeof(uint32_t))
+
 //////////////////////////////////////////////////////////////////////////
 //TYPE DEFINITIONS
 //////////////////////////////////////////////////////////////////////////
@@ -134,8 +136,9 @@ void NVS_Init(uint32_t start_page_address, size_t number_of_pages)
 
     struct nvs_page_header_t page_header;
     GetPageHeader(self.active_page_address, &page_header);
-    /* TODO: Check CRC */
-    if (page_header.state != PAGE_IN_USE)
+    const uint32_t crc = CRC_Calculate(&page_header, PAGE_HEADER_SIZE_WITHOUT_CRC);
+
+    if (page_header.state != PAGE_IN_USE || page_header.crc != crc)
     {
         Logging_Debug(self.logger_p, "Reset page: {page_address: 0x%x}", self.active_page_address);
 
@@ -143,18 +146,16 @@ void NVS_Init(uint32_t start_page_address, size_t number_of_pages)
         {
             page_header.state = PAGE_IN_USE;
             page_header.sequence_number = self.active_sequence_number;
-            page_header.crc = CRC_Calculate(&page_header, offsetof(__typeof__(page_header), crc));
+            page_header.crc = CRC_Calculate(&page_header, PAGE_HEADER_SIZE_WITHOUT_CRC);
             WriteToFlash(self.active_page_address, &page_header, sizeof(page_header));
         }
     }
 
-    /* TODO: Handle flash failures */
     Logging_Info(self.logger_p,
                  "NVS initialized: {page_address: 0x%x, sequence_number: %u, active_address: 0x%x}",
                  self.active_page_address,
                  self.active_sequence_number,
                  self.active_address);
-
 }
 
 bool NVS_Store(const char *key_p, uint32_t value)
@@ -192,7 +193,6 @@ bool NVS_Store(const char *key_p, uint32_t value)
     }
     else
     {
-        /* TODO: Handle corrupt page, move to new page. */
         Logging_Critical(self.logger_p, "Corrupt page: {page_address: 0x%x}", self.active_page_address);
     }
 
@@ -223,7 +223,8 @@ bool NVS_Remove(const char *key_p)
         if ((item.hash == hash) && (item.crc == crc) && (item.status == ITEM_USED))
         {
             const uint16_t item_status = ITEM_DELETED;
-            status = WriteToFlash(item_address + 6, &item_status, sizeof(item_status));
+            const size_t status_offset = 6;
+            status = WriteToFlash(item_address + status_offset, &item_status, sizeof(item_status));
 
             if (!status)
             {
@@ -337,7 +338,7 @@ static void FindActivePage(void)
         struct nvs_page_header_t page_header;
         GetPageHeader(address, &page_header);
 
-        const uint32_t crc = CRC_Calculate(&page_header, offsetof(__typeof__(page_header), crc));
+        const uint32_t crc = CRC_Calculate(&page_header, PAGE_HEADER_SIZE_WITHOUT_CRC);
         if ((page_header.state == PAGE_IN_USE) &&
                 (page_header.sequence_number > self.active_sequence_number) &&
                 (page_header.crc == crc))
@@ -392,7 +393,8 @@ static uint32_t CalculateHash(const char *str_p)
 
 static uint32_t CalculateItemCRC(const struct nvs_item_t *item_p)
 {
-    return CRC_Calculate(item_p, offsetof(__typeof__(*item_p), status));
+    const size_t item_size_without_crc = 6;
+    return CRC_Calculate(item_p, item_size_without_crc);
 }
 
 static bool GetValueByHash(uint32_t page_address, uint32_t hash, uint32_t *value_p)
@@ -424,7 +426,6 @@ static bool GetValueByHash(uint32_t page_address, uint32_t hash, uint32_t *value
 
 static void MoveItemsToNewPage(void)
 {
-
     Logging_Info(self.logger_p, "Move items to new page: {active_page_address: 0x%x, new_page_address: 0x%x}",
                  self.active_page_address,
                  GetNextPageAddress()
@@ -467,10 +468,9 @@ static void MoveItemsToNewPage(void)
     struct nvs_page_header_t page_header;
     page_header.state = PAGE_IN_USE;
     page_header.sequence_number = self.active_sequence_number + 1;
-    page_header.crc = CRC_Calculate(&page_header, offsetof(__typeof__(page_header), crc));
+    page_header.crc = CRC_Calculate(&page_header, PAGE_HEADER_SIZE_WITHOUT_CRC);
     WriteToFlash(GetNextPageAddress(), &page_header, sizeof(page_header));
 
-    /* TODO: Make sure that the write was successful before updating these parameters. */
     self.active_sequence_number = page_header.sequence_number;
     self.active_page_address = GetNextPageAddress();
     self.active_address = destination - self.active_page_address;
