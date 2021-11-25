@@ -69,6 +69,19 @@ bool NVSCmd_Store(void)
     return status;
 }
 
+bool NVSCmd_Remove(void)
+{
+    bool status = false;
+
+    char *name_p;
+    if (GetName(&name_p))
+    {
+        status = NVS_Remove(name_p);
+    }
+
+    return status;
+}
+
 //////////////////////////////////////////////////////////////////////////
 //LOCAL FUNCTIONS
 //////////////////////////////////////////////////////////////////////////
