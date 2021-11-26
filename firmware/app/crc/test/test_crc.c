@@ -32,6 +32,7 @@ along with CANDrive firmware.  If not, see <http://www.gnu.org/licenses/>.
 #include <cmocka.h>
 #include <stdio.h>
 #include <stdbool.h>
+#include "utility.h"
 #include "crc.h"
 
 //////////////////////////////////////////////////////////////////////////
@@ -54,9 +55,36 @@ along with CANDrive firmware.  If not, see <http://www.gnu.org/licenses/>.
 //TESTS
 //////////////////////////////////////////////////////////////////////////
 
-static void test_CRC_Calculate(void **state)
+static void test_CRC_Calculate_Even(void **state)
 {
-    skip();
+    uint32_t data[2] = {0xAABBCCDD, 0xEEFFAABB};
+
+    expect_function_call(crc_reset);
+
+    for (size_t i = 0; i < ElementsIn(data); ++i)
+    {
+        expect_value(crc_calculate, data, data[i]);
+        will_return(crc_calculate, i);
+    }
+
+    const uint32_t result = CRC_Calculate(data, sizeof(data));
+    assert_int_equal(result, 1);
+}
+
+static void test_CRC_Calculate_Uneven(void **state)
+{
+    uint8_t data[6] = {0xAA, 0xBB, 0xCC, 0xDD, 0xEE, 0xFF};
+
+    expect_function_call(crc_reset);
+
+    expect_value(crc_calculate, data, 0xDDCCBBAA);
+    will_return(crc_calculate, 10);
+
+    expect_value(crc_calculate, data, 0xFFEE);
+    will_return(crc_calculate, 20);
+
+    const uint32_t result = CRC_Calculate(data, sizeof(data));
+    assert_int_equal(result, 20);
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -67,7 +95,8 @@ int main(int argc, char *argv[])
 {
     const struct CMUnitTest test_crc[] =
     {
-        cmocka_unit_test(test_CRC_Calculate)
+        cmocka_unit_test(test_CRC_Calculate_Even),
+        cmocka_unit_test(test_CRC_Calculate_Uneven),
     };
 
     if (argc >= 2)
