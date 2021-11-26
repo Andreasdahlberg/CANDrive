@@ -21,7 +21,8 @@ Import(['*'])
 
 
 env.Append(CPPPATH=[
-    '#app/crc'
+    '#app/crc',
+    '#app/utility'
     ])
 
 env.Append(LINKFLAGS=[

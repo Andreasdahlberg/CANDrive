@@ -60,6 +60,7 @@ __attribute__((weak)) void crc_reset(void)
 
 __attribute__((weak)) uint32_t crc_calculate(uint32_t data)
 {
+    check_expected(data);
     mock_type(uint32_t);
 }
 
