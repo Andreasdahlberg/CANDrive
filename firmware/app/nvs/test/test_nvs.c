@@ -125,6 +125,24 @@ static void test_NVS_Init_Invalid(void **state)
     expect_assert_failure(NVS_Init(FLASH_START_ADDRESS, 1));
 }
 
+static void test_NVS_Init_CrcError(void **state)
+{
+    will_return_maybe(Logging_GetLogger, dummy_logger);
+    will_return_maybe(flash_get_status_flags, FLASH_SR_EOP);
+
+    assert_true(NVS_Store("Foo", 10));
+
+    create_corrupt_crc = true;
+    NVS_Init(FLASH_START_ADDRESS, NUMBER_OF_PAGES);
+
+    /**
+     * 'Foo' should no longer be available since the page it was stored on should
+     * be reset due to CRC error.
+     */
+    uint32_t value;
+    assert_false(NVS_Retrieve("Foo", &value));
+}
+
 static void test_NVS_StoreAndRetrieve(void **state)
 {
     will_return_maybe(flash_get_status_flags, FLASH_SR_EOP);
@@ -379,6 +397,7 @@ int main(int argc, char *argv[])
     const struct CMUnitTest test_nvs[] =
     {
         cmocka_unit_test(test_NVS_Init_Invalid),
+        cmocka_unit_test_setup(test_NVS_Init_CrcError, Setup),
         cmocka_unit_test_setup(test_NVS_StoreAndRetrieve, Setup),
         cmocka_unit_test_setup(test_NVS_Store_Failed, Setup),
         cmocka_unit_test_setup(test_NVS_Remove, Setup),
