@@ -138,7 +138,7 @@ void NVS_Init(uint32_t start_page_address, size_t number_of_pages)
     GetPageHeader(self.active_page_address, &page_header);
     const uint32_t crc = CRC_Calculate(&page_header, PAGE_HEADER_SIZE_WITHOUT_CRC);
 
-    if (page_header.state != PAGE_IN_USE || page_header.crc != crc)
+    if ((page_header.state != PAGE_IN_USE) || (page_header.crc != crc))
     {
         Logging_Debug(self.logger_p, "Reset page: {page_address: 0x%x}", self.active_page_address);
 
@@ -241,6 +241,10 @@ bool NVS_Remove(const char *key_p)
         {
             /* Abort when all valid items are checked. */
             break;
+        }
+        else
+        {
+            /* Do nothing, item is valid but does not match the supplied key. */
         }
         item_address += sizeof(item) + item.size;
     }
@@ -418,6 +422,11 @@ static bool GetValueByHash(uint32_t page_address, uint32_t hash, uint32_t *value
             /* Abort when all valid items are checked. */
             break;
         }
+        else
+        {
+            /* Do nothing, item is valid but is removed or does not match the supplied hash. */
+        }
+
         item_address += sizeof(item) + item.size;
     }
 
