@@ -217,19 +217,26 @@ static void test_Console_InvalidCommand(void **state)
 
 static void test_Console_InvalidArguments(void **state)
 {
-    Console_RegisterCommand("mock_command", MockCommandHandler);
+    Console_RegisterCommand("mock_cmd", MockCommandHandler);
 
-    ExpectCommand("mock_command");
+    ExpectCommand("mock_cmd");
     int32_t int32_arg;
+    uint32_t uint32_arg;
     bool arg_bool;
     char *arg_string;
     assert_false(Console_GetArgument(&int32_arg));
+    assert_false(Console_GetArgument(&uint32_arg));
     assert_false(Console_GetArgument(&arg_bool));
     assert_false(Console_GetArgument(&arg_string));
     will_return(MockCommandHandler, false);
     ExpectEndOfCommand(false);
 
-    ExpectCommand("mock_command foo");
+    ExpectCommand("mock_cmd foo");
+    assert_false(Console_GetArgument(&int32_arg));
+    will_return(MockCommandHandler, false);
+    ExpectEndOfCommand(false);
+
+    ExpectCommand("mock_cmd 18446744073709551616");
     assert_false(Console_GetArgument(&int32_arg));
     will_return(MockCommandHandler, false);
     ExpectEndOfCommand(false);
