@@ -90,7 +90,6 @@ struct nvs_item_t
     uint16_t size;
     uint16_t status;
     uint32_t crc;
-    uint8_t data[0];
 };
 
 //////////////////////////////////////////////////////////////////////////
