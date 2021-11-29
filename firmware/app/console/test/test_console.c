@@ -178,7 +178,7 @@ static void test_Console_RegisterCommand_Invalid(void **state)
     expect_assert_failure(Console_RegisterCommand(NULL, NULL));
 
     /* Too many commands registered */
-    const size_t max_number_of_commands = 8;
+    const size_t max_number_of_commands = 9;
     for (size_t i = 0; i < max_number_of_commands; ++i)
     {
         Console_RegisterCommand(name, MockCommandHandler);
