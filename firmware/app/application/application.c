@@ -43,6 +43,7 @@ along with CANDrive firmware.  If not, see <http://www.gnu.org/licenses/>.
 #include "system_monitor.h"
 #include "utility.h"
 #include "nvs.h"
+#include "nvs_cmd.h"
 #include "application.h"
 
 //////////////////////////////////////////////////////////////////////////
@@ -164,6 +165,8 @@ static void RegisterConsoleCommands(void)
     Console_RegisterCommand("brake", MotorControllerCmd_Brake);
     Console_RegisterCommand("reset", BoardCmd_Reset);
     Console_RegisterCommand("level", LoggingCmd_SetLevel);
+    Console_RegisterCommand("store", NVSCmd_Store);
+    Console_RegisterCommand("remove", NVSCmd_Remove);
 }
 
 static void ConfigureSignalHandler(void)
