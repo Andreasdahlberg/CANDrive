@@ -41,11 +41,12 @@ BO_ 10 MotorMsgStatus: 8 Motor
    SG_ MotorMsgStatusSigStatus2 : 58|3@0+ (1,0) [0|7] "" Controller
 
 BO_ 9 ControllerMsgMotorControl: 8 Controller
-   SG_ ControllerMsgMotorControlSigMode : 59|4@0+ (1,0) [0|11] "" Motor
-   SG_ ControllerMsgMotorControlSigRPM1 : 7|16@0- (1,0) [-15000|15000] "RPM" Motor
-   SG_ ControllerMsgMotorControlSigRPM2 : 23|16@0- (1,0) [-15000|15000] "RPM" Motor
-   SG_ ControllerMsgMotorControlSigCurrent1 : 39|14@0- (1,0) [-6000|6000] "mA" Motor
-   SG_ ControllerMsgMotorControlSigCurrent2 : 41|14@0- (1,0) [-6000|6000] "mA" Motor
+   SG_ ControllerMsgMotorControlSigRPM1 : 7|15@0- (1,0) [-15000|15000] "RPM" Motor
+   SG_ ControllerMsgMotorControlSigRPM2 : 8|15@0- (1,0) [-15000|15000] "RPM" Motor
+   SG_ ControllerMsgMotorControlSigCurrent1 : 25|14@0- (1,0) [-6000|6000] "mA" Motor
+   SG_ ControllerMsgMotorControlSigCurrent2 : 43|14@0- (1,0) [-6000|6000] "mA" Motor
+   SG_ ControllerMsgMotorControlSigMode1 : 61|3@0+ (1,0) [0|7] "" Motor
+   SG_ ControllerMsgMotorControlSigMode2 : 58|3@0+ (1,0) [0|7] "" Motor
 
 BA_DEF_  "BusType" STRING ;
 BA_DEF_ SG_  "GenSigStartValue" INT 0 2147483647;
