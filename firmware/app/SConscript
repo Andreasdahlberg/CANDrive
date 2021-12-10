@@ -42,7 +42,8 @@ MODULES = [
     'signal_handler',
     'system_monitor',
     'nvs',
-    'crc'
+    'crc',
+    'config'
 ]
 
 module_objects = []
