@@ -32,6 +32,7 @@ along with CANDrive firmware.  If not, see <http://www.gnu.org/licenses/>.
 #include <assert.h>
 #include "utility.h"
 #include "systime.h"
+#include "config.h"
 #include "motor.h"
 
 //////////////////////////////////////////////////////////////////////////
@@ -66,7 +67,7 @@ static inline uint32_t GetPosition(const struct motor_t *self_p);
 static inline void ResetPosition(const struct motor_t *self_p);
 static inline int16_t SenseVoltageToCurrent(const struct motor_t *self_p, uint32_t sense_voltage);
 static inline int32_t GetCountDifference(const struct motor_t *self_p, int32_t count);
-static inline int32_t CountToRPM(int32_t count);
+static inline int32_t CountToRPM(const struct motor_t *self_p, int32_t count);
 
 //////////////////////////////////////////////////////////////////////////
 //FUNCTIONS
@@ -83,6 +84,8 @@ void Motor_Init(struct motor_t *self_p,
     *self_p = (__typeof__(*self_p)) {0};
     self_p->config_p = config_p;
     self_p->status = MOTOR_RUN;
+    self_p->counts_per_revolution = (int32_t)Config_GetCountsPerRev();
+    assert(self_p->counts_per_revolution > 0);
 
     self_p->logger_p = Logging_GetLogger(name);
     Logging_SetLevel(self_p->logger_p, MOTOR_LOGGER_DEBUG_LEVEL);
@@ -115,7 +118,7 @@ void Motor_Update(struct motor_t *self_p)
         /* TODO: Check direction here! */
         if (difference >= 0)
         {
-            self_p->rpm = (int16_t)CountToRPM(difference);
+            self_p->rpm = (int16_t)CountToRPM(self_p, difference);
         }
 
         self_p->count = count;
@@ -200,7 +203,7 @@ enum motor_direction_t Motor_GetDirection(const struct motor_t *self_p)
 uint32_t Motor_GetPosition(const struct motor_t *self_p)
 {
     assert(self_p != NULL);
-    return (GetPosition(self_p) * 360) / MOTOR_COUNTS_PER_REVOLUTION;
+    return (GetPosition(self_p) * 360) / self_p->counts_per_revolution;
 }
 
 const char *Motor_DirectionToString(const struct motor_t *self_p, enum motor_direction_t direction)
@@ -244,7 +247,7 @@ static inline void SetupTimer(const struct motor_t *self_p)
     rcc_periph_clock_enable(self_p->config_p->encoder.timer_clock);
     rcc_periph_reset_pulse(self_p->config_p->encoder.timer_rst);
 
-    timer_set_period(self_p->config_p->encoder.timer, MOTOR_COUNTS_PER_REVOLUTION - 1);
+    timer_set_period(self_p->config_p->encoder.timer, self_p->counts_per_revolution - 1);
     timer_slave_set_mode(self_p->config_p->encoder.timer, encoder_mode);
     timer_ic_disable(self_p->config_p->encoder.timer, TIM_IC1);
     timer_ic_disable(self_p->config_p->encoder.timer, TIM_IC2);
@@ -331,11 +334,11 @@ static inline int32_t GetCountDifference(const struct motor_t *self_p, int32_t c
     {
         if (dir != 0)
         {
-            difference = (count - MOTOR_COUNTS_PER_REVOLUTION) - self_p->count - 1;
+            difference = (count - self_p->counts_per_revolution) - self_p->count - 1;
         }
         else
         {
-            difference = (MOTOR_COUNTS_PER_REVOLUTION - self_p->count) + count + 1;
+            difference = (self_p->counts_per_revolution - self_p->count) + count + 1;
         }
     }
     else
@@ -346,7 +349,7 @@ static inline int32_t GetCountDifference(const struct motor_t *self_p, int32_t c
     return difference;
 }
 
-static inline int32_t CountToRPM(int32_t count)
+static inline int32_t CountToRPM(const struct motor_t *self_p, int32_t count)
 {
-    return (count * (int32_t)RPM_SAMPLE_FREQUENCY * 60 + (MOTOR_COUNTS_PER_REVOLUTION / 2)) / MOTOR_COUNTS_PER_REVOLUTION;
+    return (count * (int32_t)RPM_SAMPLE_FREQUENCY * 60 + (self_p->counts_per_revolution / 2)) / self_p->counts_per_revolution;
 }

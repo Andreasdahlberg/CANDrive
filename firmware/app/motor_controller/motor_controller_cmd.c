@@ -29,7 +29,7 @@ along with CANDrive firmware.  If not, see <http://www.gnu.org/licenses/>.
 #include <stdio.h>
 #include "utility.h"
 #include "console.h"
-#include "board.h"
+#include "config.h"
 #include "motor_controller.h"
 #include "motor_controller_cmd.h"
 
@@ -147,7 +147,7 @@ static bool GetIndex(size_t *index_p)
 
 static bool IsIndexArgValid(int32_t arg)
 {
-    return (arg >= 0) && ((size_t)arg < Board_GetNumberOfMotors());
+    return (arg >= 0) && ((size_t)arg < Config_GetNumberOfMotors());
 }
 
 static bool GetRPM(int16_t *rpm_p)

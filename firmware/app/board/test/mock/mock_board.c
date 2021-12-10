@@ -79,11 +79,6 @@ __attribute__((weak)) const struct motor_config_t *Board_GetMotorConfig(size_t i
     return mock_type(struct motor_config_t *);
 }
 
-__attribute__((weak)) size_t Board_GetNumberOfMotors(void)
-{
-    return mock_type(size_t);
-}
-
 __attribute__((weak)) void Board_ToggleStatusLED(void)
 {
     function_called();

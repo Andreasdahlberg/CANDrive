@@ -64,7 +64,7 @@ static int Setup(void **state)
 {
     will_return(SystemMonitor_GetWatchdogHandle, WATCHDOG_HANDLE);
     will_return_maybe(Logging_GetLogger, dummy_logger);
-    will_return_maybe(Board_GetNumberOfMotors, NUMBER_OF_MOTORS);
+    will_return_maybe(Config_GetNumberOfMotors, NUMBER_OF_MOTORS);
     for (size_t i = 0; i < NUMBER_OF_MOTORS; ++i)
     {
         will_return(Board_GetMotorConfig, &motor_configs[i]);
@@ -104,7 +104,7 @@ static void test_MotorController_Init_UnsupportedNumberOfMotors(void **state)
 {
     will_return(SystemMonitor_GetWatchdogHandle, WATCHDOG_HANDLE);
     will_return_maybe(Logging_GetLogger, dummy_logger);
-    will_return_maybe(Board_GetNumberOfMotors, NUMBER_OF_MOTORS + 1);
+    will_return_maybe(Config_GetNumberOfMotors, NUMBER_OF_MOTORS + 1);
 
     expect_assert_failure(MotorController_Init());
 }
@@ -113,7 +113,7 @@ static void test_MotorController_Init(void **state)
 {
     will_return(SystemMonitor_GetWatchdogHandle, WATCHDOG_HANDLE);
     will_return_maybe(Logging_GetLogger, dummy_logger);
-    will_return_maybe(Board_GetNumberOfMotors, NUMBER_OF_MOTORS);
+    will_return_maybe(Config_GetNumberOfMotors, NUMBER_OF_MOTORS);
     for (size_t i = 0; i < NUMBER_OF_MOTORS; ++i)
     {
         will_return(Board_GetMotorConfig, &motor_configs[i]);
@@ -125,7 +125,7 @@ static void test_MotorController_Init(void **state)
 
 static void test_MotorController_Update(void **state)
 {
-    will_return_maybe(Board_GetNumberOfMotors, NUMBER_OF_MOTORS);
+    will_return_maybe(Config_GetNumberOfMotors, NUMBER_OF_MOTORS);
 
     /* No PID update */
     will_return(SysTime_GetDifference, 0);
@@ -153,13 +153,13 @@ static void test_MotorController_Update(void **state)
 
 static void test_MotorController_SetRpm_Invalid(void **state)
 {
-    will_return_maybe(Board_GetNumberOfMotors, NUMBER_OF_MOTORS);
+    will_return_maybe(Config_GetNumberOfMotors, NUMBER_OF_MOTORS);
     expect_assert_failure(MotorController_SetRPM(NUMBER_OF_MOTORS + 1, 0));
 }
 
 static void test_MotorController_SetRpm(void **state)
 {
-    will_return_maybe(Board_GetNumberOfMotors, NUMBER_OF_MOTORS);
+    will_return_maybe(Config_GetNumberOfMotors, NUMBER_OF_MOTORS);
 
     const int16_t data[] = {INT16_MIN, 0, 50, INT16_MAX};
     for (size_t i = 0; i < ElementsIn(data); ++i)
@@ -171,13 +171,13 @@ static void test_MotorController_SetRpm(void **state)
 
 static void test_MotorController_SetCurrent_Invalid(void **state)
 {
-    will_return_maybe(Board_GetNumberOfMotors, NUMBER_OF_MOTORS);
+    will_return_maybe(Config_GetNumberOfMotors, NUMBER_OF_MOTORS);
     expect_assert_failure(MotorController_SetCurrent(NUMBER_OF_MOTORS + 1, 0));
 }
 
 static void test_MotorController_SetCurrent(void **state)
 {
-    will_return_maybe(Board_GetNumberOfMotors, NUMBER_OF_MOTORS);
+    will_return_maybe(Config_GetNumberOfMotors, NUMBER_OF_MOTORS);
 
     const int16_t data[] = {INT16_MIN, 0, 50, INT16_MAX};
     for (size_t i = 0; i < ElementsIn(data); ++i)
@@ -189,13 +189,13 @@ static void test_MotorController_SetCurrent(void **state)
 
 static void test_MotorController_Run_Invalid(void **state)
 {
-    will_return_maybe(Board_GetNumberOfMotors, NUMBER_OF_MOTORS);
+    will_return_maybe(Config_GetNumberOfMotors, NUMBER_OF_MOTORS);
     expect_assert_failure(MotorController_Run(NUMBER_OF_MOTORS + 1));
 }
 
 static void test_MotorController_Run(void **state)
 {
-    will_return_maybe(Board_GetNumberOfMotors, NUMBER_OF_MOTORS);
+    will_return_maybe(Config_GetNumberOfMotors, NUMBER_OF_MOTORS);
 
     /* Expect nothing if motor is already running. */
     will_return(Motor_GetStatus, MOTOR_RUN);
@@ -208,13 +208,13 @@ static void test_MotorController_Run(void **state)
 
 static void test_MotorController_Coast_Invalid(void **state)
 {
-    will_return_maybe(Board_GetNumberOfMotors, NUMBER_OF_MOTORS);
+    will_return_maybe(Config_GetNumberOfMotors, NUMBER_OF_MOTORS);
     expect_assert_failure(MotorController_Coast(NUMBER_OF_MOTORS + 1));
 }
 
 static void test_MotorController_Coast(void **state)
 {
-    will_return_maybe(Board_GetNumberOfMotors, NUMBER_OF_MOTORS);
+    will_return_maybe(Config_GetNumberOfMotors, NUMBER_OF_MOTORS);
     expect_function_call(Motor_Coast);
     expect_function_calls(PID_Reset, 2);
     MotorController_Coast(0);
@@ -222,13 +222,13 @@ static void test_MotorController_Coast(void **state)
 
 static void test_MotorController_Brake_Invalid(void **state)
 {
-    will_return_maybe(Board_GetNumberOfMotors, NUMBER_OF_MOTORS);
+    will_return_maybe(Config_GetNumberOfMotors, NUMBER_OF_MOTORS);
     expect_assert_failure(MotorController_Brake(NUMBER_OF_MOTORS + 1));
 }
 
 static void test_MotorController_Brake(void **state)
 {
-    will_return_maybe(Board_GetNumberOfMotors, NUMBER_OF_MOTORS);
+    will_return_maybe(Config_GetNumberOfMotors, NUMBER_OF_MOTORS);
     expect_function_call(Motor_Brake);
     expect_function_calls(PID_Reset, 2);
     MotorController_Brake(0);
@@ -236,13 +236,13 @@ static void test_MotorController_Brake(void **state)
 
 static void test_MotorController_GetPosition_Invalid(void **state)
 {
-    will_return_maybe(Board_GetNumberOfMotors, NUMBER_OF_MOTORS);
+    will_return_maybe(Config_GetNumberOfMotors, NUMBER_OF_MOTORS);
     expect_assert_failure(MotorController_GetPosition(NUMBER_OF_MOTORS + 1));
 }
 
 static void test_MotorController_GetPosition(void **state)
 {
-    will_return_maybe(Board_GetNumberOfMotors, NUMBER_OF_MOTORS);
+    will_return_maybe(Config_GetNumberOfMotors, NUMBER_OF_MOTORS);
 
     const uint32_t data[] = {0, UINT32_MAX};
     for (size_t i = 0; i < ElementsIn(data); ++i)
@@ -254,13 +254,13 @@ static void test_MotorController_GetPosition(void **state)
 
 static void test_MotorController_GetStatus_Invalid(void **state)
 {
-    will_return_maybe(Board_GetNumberOfMotors, NUMBER_OF_MOTORS);
+    will_return_maybe(Config_GetNumberOfMotors, NUMBER_OF_MOTORS);
     expect_assert_failure(MotorController_GetStatus(NUMBER_OF_MOTORS + 1));
 }
 
 static void test_MotorController_GetStatus(void **state)
 {
-    will_return_maybe(Board_GetNumberOfMotors, NUMBER_OF_MOTORS);
+    will_return_maybe(Config_GetNumberOfMotors, NUMBER_OF_MOTORS);
 
     const struct motor_controller_motor_status_t data[] =
     {
@@ -307,7 +307,7 @@ static void test_MotorController_GetStatus(void **state)
 
 static void test_MotorControllerCmd_SetRPM_InvalidFormat(void **state)
 {
-    will_return_maybe(Board_GetNumberOfMotors, NUMBER_OF_MOTORS);
+    will_return_maybe(Config_GetNumberOfMotors, NUMBER_OF_MOTORS);
 
     /* Invalid format on index */
     will_return(Console_GetInt32Argument, false);
@@ -324,7 +324,7 @@ static void test_MotorControllerCmd_SetRPM_InvalidFormat(void **state)
 
 static void test_MotorControllerCmd_SetRPM_InvalidIndex(void **state)
 {
-    will_return_always(Board_GetNumberOfMotors, NUMBER_OF_MOTORS);
+    will_return_always(Config_GetNumberOfMotors, NUMBER_OF_MOTORS);
 
     const int32_t data[] = {INT32_MIN, NUMBER_OF_MOTORS + 1, INT32_MAX};
     for (size_t i = 0; i < ElementsIn(data); ++i)
@@ -339,7 +339,7 @@ static void test_MotorControllerCmd_SetRPM_InvalidIndex(void **state)
 
 static void test_MotorControllerCmd_SetRPM_InvalidRPM(void **state)
 {
-    will_return_maybe(Board_GetNumberOfMotors, NUMBER_OF_MOTORS);
+    will_return_maybe(Config_GetNumberOfMotors, NUMBER_OF_MOTORS);
 
     const int32_t data[] = {INT32_MIN, INT16_MIN - 1, INT16_MAX + 1, INT32_MAX};
     for (size_t i = 0; i < ElementsIn(data); ++i)
@@ -358,7 +358,7 @@ static void test_MotorControllerCmd_SetRPM_InvalidRPM(void **state)
 
 static void test_MotorControllerCmd_SetRPM(void **state)
 {
-    will_return_maybe(Board_GetNumberOfMotors, NUMBER_OF_MOTORS);
+    will_return_maybe(Config_GetNumberOfMotors, NUMBER_OF_MOTORS);
 
     const int32_t data[] = {INT16_MIN, 0, 50, INT16_MAX};
     for (size_t i = 0; i < ElementsIn(data); ++i)
@@ -379,7 +379,7 @@ static void test_MotorControllerCmd_SetRPM(void **state)
 
 static void test_MotorControllerCmd_SetCurrent_InvalidFormat(void **state)
 {
-    will_return_maybe(Board_GetNumberOfMotors, NUMBER_OF_MOTORS);
+    will_return_maybe(Config_GetNumberOfMotors, NUMBER_OF_MOTORS);
 
     /* Invalid format on index */
     will_return(Console_GetInt32Argument, false);
@@ -396,7 +396,7 @@ static void test_MotorControllerCmd_SetCurrent_InvalidFormat(void **state)
 
 static void test_MotorControllerCmd_SetCurrent_InvalidIndex(void **state)
 {
-    will_return_always(Board_GetNumberOfMotors, NUMBER_OF_MOTORS);
+    will_return_always(Config_GetNumberOfMotors, NUMBER_OF_MOTORS);
 
     const int32_t data[] = {INT32_MIN, NUMBER_OF_MOTORS + 1, INT32_MAX};
     for (size_t i = 0; i < ElementsIn(data); ++i)
@@ -411,7 +411,7 @@ static void test_MotorControllerCmd_SetCurrent_InvalidIndex(void **state)
 
 static void test_MotorControllerCmd_SetCurrent_InvalidCurrent(void **state)
 {
-    will_return_maybe(Board_GetNumberOfMotors, NUMBER_OF_MOTORS);
+    will_return_maybe(Config_GetNumberOfMotors, NUMBER_OF_MOTORS);
 
     const int32_t data[] = {INT32_MIN, INT16_MIN - 1, INT16_MAX + 1, INT32_MAX};
     for (size_t i = 0; i < ElementsIn(data); ++i)
@@ -431,7 +431,7 @@ static void test_MotorControllerCmd_SetCurrent_InvalidCurrent(void **state)
 
 static void test_MotorControllerCmd_SetCurrent(void **state)
 {
-    will_return_maybe(Board_GetNumberOfMotors, NUMBER_OF_MOTORS);
+    will_return_maybe(Config_GetNumberOfMotors, NUMBER_OF_MOTORS);
 
     const int32_t data[] = {INT16_MIN, 0, 2000, INT16_MAX};
     for (size_t i = 0; i < ElementsIn(data); ++i)
@@ -452,7 +452,7 @@ static void test_MotorControllerCmd_SetCurrent(void **state)
 
 static void test_MotorControllerCmd_Run_InvalidFormat(void **state)
 {
-    will_return_maybe(Board_GetNumberOfMotors, NUMBER_OF_MOTORS);
+    will_return_maybe(Config_GetNumberOfMotors, NUMBER_OF_MOTORS);
 
     /* Invalid format on index */
     will_return(Console_GetInt32Argument, false);
@@ -461,7 +461,7 @@ static void test_MotorControllerCmd_Run_InvalidFormat(void **state)
 
 static void test_MotorControllerCmd_Run_InvalidIndex(void **state)
 {
-    will_return_always(Board_GetNumberOfMotors, NUMBER_OF_MOTORS);
+    will_return_always(Config_GetNumberOfMotors, NUMBER_OF_MOTORS);
 
     const int32_t data[] = {INT32_MIN, NUMBER_OF_MOTORS + 1, INT32_MAX};
     for (size_t i = 0; i < ElementsIn(data); ++i)
@@ -475,7 +475,7 @@ static void test_MotorControllerCmd_Run_InvalidIndex(void **state)
 
 static void test_MotorControllerCmd_Run(void **state)
 {
-    will_return_always(Board_GetNumberOfMotors, NUMBER_OF_MOTORS);
+    will_return_always(Config_GetNumberOfMotors, NUMBER_OF_MOTORS);
 
     const int32_t index = 0;
     will_return(Console_GetInt32Argument, true);
@@ -486,7 +486,7 @@ static void test_MotorControllerCmd_Run(void **state)
 
 static void test_MotorControllerCmd_Coast_InvalidFormat(void **state)
 {
-    will_return_maybe(Board_GetNumberOfMotors, NUMBER_OF_MOTORS);
+    will_return_maybe(Config_GetNumberOfMotors, NUMBER_OF_MOTORS);
 
     /* Invalid format on index */
     will_return(Console_GetInt32Argument, false);
@@ -495,7 +495,7 @@ static void test_MotorControllerCmd_Coast_InvalidFormat(void **state)
 
 static void test_MotorControllerCmd_Coast_InvalidIndex(void **state)
 {
-    will_return_always(Board_GetNumberOfMotors, NUMBER_OF_MOTORS);
+    will_return_always(Config_GetNumberOfMotors, NUMBER_OF_MOTORS);
 
     const int32_t data[] = {INT32_MIN, NUMBER_OF_MOTORS + 1, INT32_MAX};
     for (size_t i = 0; i < ElementsIn(data); ++i)
@@ -509,7 +509,7 @@ static void test_MotorControllerCmd_Coast_InvalidIndex(void **state)
 
 static void test_MotorControllerCmd_Coast(void **state)
 {
-    will_return_always(Board_GetNumberOfMotors, NUMBER_OF_MOTORS);
+    will_return_always(Config_GetNumberOfMotors, NUMBER_OF_MOTORS);
 
     const int32_t index = 0;
     will_return(Console_GetInt32Argument, true);
@@ -522,7 +522,7 @@ static void test_MotorControllerCmd_Coast(void **state)
 
 static void test_MotorControllerCmd_Brake_InvalidFormat(void **state)
 {
-    will_return_maybe(Board_GetNumberOfMotors, NUMBER_OF_MOTORS);
+    will_return_maybe(Config_GetNumberOfMotors, NUMBER_OF_MOTORS);
 
     /* Invalid format on index */
     will_return(Console_GetInt32Argument, false);
@@ -531,7 +531,7 @@ static void test_MotorControllerCmd_Brake_InvalidFormat(void **state)
 
 static void test_MotorControllerCmd_Brake_InvalidIndex(void **state)
 {
-    will_return_always(Board_GetNumberOfMotors, NUMBER_OF_MOTORS);
+    will_return_always(Config_GetNumberOfMotors, NUMBER_OF_MOTORS);
 
     const int32_t data[] = {INT32_MIN, NUMBER_OF_MOTORS + 1, INT32_MAX};
     for (size_t i = 0; i < ElementsIn(data); ++i)
@@ -545,7 +545,7 @@ static void test_MotorControllerCmd_Brake_InvalidIndex(void **state)
 
 static void test_MotorControllerCmd_Brake(void **state)
 {
-    will_return_always(Board_GetNumberOfMotors, NUMBER_OF_MOTORS);
+    will_return_always(Config_GetNumberOfMotors, NUMBER_OF_MOTORS);
 
     const int32_t index = 0;
     will_return(Console_GetInt32Argument, true);
