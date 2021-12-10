@@ -44,6 +44,7 @@ along with CANDrive firmware.  If not, see <http://www.gnu.org/licenses/>.
 #include "utility.h"
 #include "nvs.h"
 #include "nvs_cmd.h"
+#include "config.h"
 #include "application.h"
 
 //////////////////////////////////////////////////////////////////////////
@@ -87,6 +88,7 @@ static void HandleActiveState(void);
 static void BrakeAllMotors(void);
 static inline void PrintResetFlags(void);
 static inline void PrintIdAndRevision(void);
+static inline void PrintConfig(void);
 static void SendMotorStatus(void);
 
 //////////////////////////////////////////////////////////////////////////
@@ -103,6 +105,7 @@ void Application_Init(void)
 
     SystemMonitor_Init();
     NVS_Init(Board_GetNVSAddress(), Board_GetNumberOfPagesInNVS());
+    Config_Init();
     CANInterface_Init();
     ADC_Init();
     MotorController_Init();
@@ -115,14 +118,12 @@ void Application_Init(void)
 
     PrintResetFlags();
     PrintIdAndRevision();
+    PrintConfig();
 
     Logging_Info(module.logger, "Application ready");
 
     Console_Init(ConsoleWrite, ConsoleRead);
     RegisterConsoleCommands();
-
-    MotorController_SetRPM(0, 0);
-    MotorController_SetCurrent(0, 2000);
 }
 
 void Application_Run(void)
@@ -176,8 +177,11 @@ static void ConfigureSignalHandler(void)
 
     CANInterface_RegisterListener(SignalHandler_Listener);
     CANInterface_AddFilter(motor_control_frame_id, id_mask);
-    SignalHandler_RegisterHandler(SIGNAL_CONTROL_RPM1, HandleRPM1Signal);
-    SignalHandler_RegisterHandler(SIGNAL_CONTROL_CURRENT1, HandleCurrent1Signal);
+    if (Config_GetNumberOfMotors() > 0)
+    {
+        SignalHandler_RegisterHandler(SIGNAL_CONTROL_RPM1, HandleRPM1Signal);
+        SignalHandler_RegisterHandler(SIGNAL_CONTROL_CURRENT1, HandleCurrent1Signal);
+    }
 }
 
 static void HandleRPM1Signal(struct signal_t *signal_p)
@@ -220,7 +224,7 @@ static void HandleStateChanges(void)
 
 static void HandleActiveState(void)
 {
-    const size_t number_of_motors = Board_GetNumberOfMotors();
+    const size_t number_of_motors = Config_GetNumberOfMotors();
     for (size_t i = 0; i < number_of_motors; ++i)
     {
         MotorController_Run(i);
@@ -229,7 +233,7 @@ static void HandleActiveState(void)
 
 static void BrakeAllMotors(void)
 {
-    const size_t number_of_motors = Board_GetNumberOfMotors();
+    const size_t number_of_motors = Config_GetNumberOfMotors();
     for (size_t i = 0; i < number_of_motors; ++i)
     {
         MotorController_Brake(i);
@@ -259,11 +263,23 @@ static inline void PrintIdAndRevision(void)
                 );
 }
 
+static inline void PrintConfig(void)
+{
+    Logging_Info(module.logger, "config: {valid: %s, number_of_motors: %u, counts_per_rev: %u, no_load_rpm: %u, no_load_current: %u, stall_current: %u}",
+                 Config_IsValid() ? "true" : "false",
+                 Config_GetNumberOfMotors(),
+                 Config_GetCountsPerRev(),
+                 Config_GetNoLoadRpm(),
+                 Config_GetNoLoadCurrent(),
+                 Config_GetStallCurrent()
+                );
+}
+
 static void SendMotorStatus(void)
 {
     struct motor_controller_motor_status_t motors[2] = {0};
 
-    const size_t number_of_motors = Board_GetNumberOfMotors();
+    const size_t number_of_motors = Config_GetNumberOfMotors();
     assert(number_of_motors <= ElementsIn(motors));
     for (size_t i = 0; i < number_of_motors; ++i)
     {

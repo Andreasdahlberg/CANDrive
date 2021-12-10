@@ -88,13 +88,6 @@ struct board_id_t Board_GetId(void);
 const struct motor_config_t *Board_GetMotorConfig(size_t index);
 
 /**
- * Get the number of motors.
- *
- * @return Number of motors.
- */
-size_t Board_GetNumberOfMotors(void);
-
-/**
  * Toggle the status LED.
  */
 void Board_ToggleStatusLED(void);

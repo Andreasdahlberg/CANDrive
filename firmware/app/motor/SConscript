@@ -25,7 +25,8 @@ env.Append(CPPPATH=[
     '#app/utility',
     '#app/logging',
     '#app/pwm',
-    '#app/adc'
+    '#app/adc',
+    '#app/config'
 ])
 
 OBJECTS = env.Object(SOURCE)

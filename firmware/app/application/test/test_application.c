@@ -87,6 +87,7 @@ void SignalHandler_RegisterHandler(enum signal_id_t id, signalhandler_handler_cb
 
 static int Setup(void **state)
 {
+    const size_t number_of_motors = 1;
     number_of_handlers = 0;
 
     expect_function_call(SysTime_Init);
@@ -96,6 +97,7 @@ static int Setup(void **state)
     will_return(Board_GetNVSAddress, 0x801F800);
     will_return(Board_GetNumberOfPagesInNVS, 2);
     expect_function_call(NVS_Init);
+    expect_function_call(Config_Init);
     expect_function_call(CANInterface_Init);
     expect_function_call(ADC_Init);
     expect_function_call(MotorController_Init);
@@ -104,14 +106,17 @@ static int Setup(void **state)
     expect_function_call(CANInterface_RegisterListener);
     expect_any(CANInterface_AddFilter, id);
     expect_any(CANInterface_AddFilter, mask);
+    will_return_always(Config_GetNumberOfMotors, number_of_motors);
     expect_any_always(SignalHandler_RegisterHandler, id);
     will_return_maybe(Board_GetResetFlags, 0);
     will_return_maybe(Board_GetHardwareRevision, 1);
     will_return_maybe(Board_GetSoftwareRevision, 2);
-    expect_any(MotorController_SetRPM, index);
-    expect_any(MotorController_SetRPM, rpm);
-    expect_any(MotorController_SetCurrent, index);
-    expect_any(MotorController_SetCurrent, current);
+    will_return_maybe(Config_IsValid, true);
+    will_return_maybe(Config_GetCountsPerRev, 0);
+    will_return_maybe(Config_GetNoLoadRpm, 0);
+    will_return_maybe(Config_GetNoLoadCurrent, 0);
+    will_return_maybe(Config_GetStallCurrent, 0);
+    will_return_maybe(Config_GetMaxCurrent, 0);
 
     Application_Init();
     return 0;
@@ -139,6 +144,7 @@ signalhandler_handler_cb_t GetCallback(enum signal_id_t id)
 
 static void test_Application_Init(void **state)
 {
+    const size_t number_of_motors = 1;
     number_of_handlers = 0;
 
     expect_function_call(SysTime_Init);
@@ -148,6 +154,7 @@ static void test_Application_Init(void **state)
     will_return(Board_GetNVSAddress, 0x801F800);
     will_return(Board_GetNumberOfPagesInNVS, 2);
     expect_function_call(NVS_Init);
+    expect_function_call(Config_Init);
     expect_function_call(CANInterface_Init);
     expect_function_call(ADC_Init);
     expect_function_call(MotorController_Init);
@@ -156,14 +163,17 @@ static void test_Application_Init(void **state)
     expect_function_call(CANInterface_RegisterListener);
     expect_any(CANInterface_AddFilter, id);
     expect_any(CANInterface_AddFilter, mask);
+    will_return_always(Config_GetNumberOfMotors, number_of_motors);
     expect_any_always(SignalHandler_RegisterHandler, id);
     will_return_maybe(Board_GetResetFlags, 0);
     will_return_maybe(Board_GetHardwareRevision, 1);
     will_return_maybe(Board_GetSoftwareRevision, 2);
-    expect_value(MotorController_SetRPM, index, 0);
-    expect_value(MotorController_SetRPM, rpm, 0);
-    expect_value(MotorController_SetCurrent, index, 0);
-    expect_value(MotorController_SetCurrent, current, 2000);
+    will_return_maybe(Config_IsValid, true);
+    will_return_maybe(Config_GetCountsPerRev, 0);
+    will_return_maybe(Config_GetNoLoadRpm, 0);
+    will_return_maybe(Config_GetNoLoadCurrent, 0);
+    will_return_maybe(Config_GetStallCurrent, 0);
+    will_return_maybe(Config_GetMaxCurrent, 0);
 
     Application_Init();
 }
@@ -202,7 +212,7 @@ static void test_Application_Run(void **state)
         },
         .status = MOTOR_COAST
     };
-    will_return(Board_GetNumberOfMotors, number_of_motors);
+    will_return(Config_GetNumberOfMotors, number_of_motors);
     will_return(MotorController_GetStatus, &status);
     expect_value(SignalHandler_SendMotorStatus, rpm1, status.rpm.actual);
     expect_value(SignalHandler_SendMotorStatus, current1, status.current.actual);
@@ -220,7 +230,7 @@ static void test_Application_Run_StateChanges(void **state)
 {
     const uint32_t motor_status_period_ms = 200;
     const size_t number_of_motors = 2;
-    will_return_always(Board_GetNumberOfMotors, number_of_motors);
+    will_return_always(Config_GetNumberOfMotors, number_of_motors);
 
     /* Active */
     expect_function_call(SignalHandler_Process);
@@ -254,7 +264,6 @@ static void test_Application_Run_StateChanges(void **state)
     expect_function_call(Console_Process);
     expect_function_call(SystemMonitor_Update);
     will_return(SystemMonitor_GetState, SYSTEM_MONITOR_EMERGENCY);
-    //will_return_always(Board_GetNumberOfMotors, number_of_motors);
     for (size_t i = 0; i < number_of_motors; ++i)
     {
         expect_value(MotorController_Brake, index, i);

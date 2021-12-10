@@ -30,6 +30,7 @@ along with CANDrive firmware.  If not, see <http://www.gnu.org/licenses/>.
 #include "utility.h"
 #include "logging.h"
 #include "board.h"
+#include "config.h"
 #include "systime.h"
 #include "pid.h"
 #include "system_monitor.h"
@@ -120,7 +121,7 @@ void MotorController_Update(void)
 
 void MotorController_SetRPM(size_t index, int16_t rpm)
 {
-    assert(index < Board_GetNumberOfMotors());
+    assert(index < Config_GetNumberOfMotors());
 
     PID_SetSetpoint(&module.instances[index].rpm_pid, rpm);
     Logging_Debug(module.logger_p, "M%u sp: {rpm: %i}", index, rpm);
@@ -128,7 +129,7 @@ void MotorController_SetRPM(size_t index, int16_t rpm)
 
 void MotorController_SetCurrent(size_t index, int16_t current)
 {
-    assert(index < Board_GetNumberOfMotors());
+    assert(index < Config_GetNumberOfMotors());
 
     PID_SetSetpoint(&module.instances[index].current_pid, current);
     Logging_Debug(module.logger_p, "M%u sp: {current: %i}", index, current);
@@ -136,7 +137,7 @@ void MotorController_SetCurrent(size_t index, int16_t current)
 
 void MotorController_Run(size_t index)
 {
-    assert(index < Board_GetNumberOfMotors());
+    assert(index < Config_GetNumberOfMotors());
     if (Motor_GetStatus(&module.instances[index].motor) != MOTOR_RUN)
     {
         Motor_SetSpeed(&module.instances[index].motor, 0);
@@ -145,28 +146,28 @@ void MotorController_Run(size_t index)
 
 void MotorController_Coast(size_t index)
 {
-    assert(index < Board_GetNumberOfMotors());
+    assert(index < Config_GetNumberOfMotors());
     Motor_Coast(&module.instances[index].motor);
     ResetPIDControllers(&module.instances[index]);
 }
 
 void MotorController_Brake(size_t index)
 {
-    assert(index < Board_GetNumberOfMotors());
+    assert(index < Config_GetNumberOfMotors());
     Motor_Brake(&module.instances[index].motor);
     ResetPIDControllers(&module.instances[index]);
 }
 
 uint32_t MotorController_GetPosition(size_t index)
 {
-    assert(index < Board_GetNumberOfMotors());
+    assert(index < Config_GetNumberOfMotors());
 
     return Motor_GetPosition(&module.instances[index].motor);
 }
 
 struct motor_controller_motor_status_t MotorController_GetStatus(size_t index)
 {
-    assert(index < Board_GetNumberOfMotors());
+    assert(index < Config_GetNumberOfMotors());
 
     const struct motor_instance_t *instance_p = &module.instances[index];
     struct motor_controller_motor_status_t status;
@@ -185,7 +186,7 @@ struct motor_controller_motor_status_t MotorController_GetStatus(size_t index)
 
 static inline void InitializeMotors(void)
 {
-    const size_t number_of_motors = Board_GetNumberOfMotors();
+    const size_t number_of_motors = Config_GetNumberOfMotors();
     assert(number_of_motors <= ElementsIn(module.instances));
 
     for (size_t i = 0; i < number_of_motors; ++i)
@@ -205,7 +206,7 @@ static inline void InitializeMotors(void)
 
 static inline void UpdateMotors(void)
 {
-    const size_t number_of_motors = Board_GetNumberOfMotors();
+    const size_t number_of_motors = Config_GetNumberOfMotors();
     for (size_t i = 0; i < number_of_motors; ++i)
     {
         Motor_Update(&module.instances[i].motor);
@@ -214,7 +215,7 @@ static inline void UpdateMotors(void)
 
 static inline void UpdateMotorSpeeds(void)
 {
-    const size_t number_of_motors = Board_GetNumberOfMotors();
+    const size_t number_of_motors = Config_GetNumberOfMotors();
     for (size_t i = 0; i < number_of_motors; ++i)
     {
         struct motor_instance_t *instance_p = &module.instances[i];

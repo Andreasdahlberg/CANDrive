@@ -39,8 +39,6 @@ along with CANDrive firmware.  If not, see <http://www.gnu.org/licenses/>.
 //DEFINES
 //////////////////////////////////////////////////////////////////////////
 
-#define MOTOR_COUNTS_PER_REVOLUTION 9600
-
 //////////////////////////////////////////////////////////////////////////
 //TYPE DEFINITIONS
 //////////////////////////////////////////////////////////////////////////
@@ -106,6 +104,7 @@ struct motor_t
     int16_t speed;
     enum motor_status_t status;
     int32_t count;
+    int32_t counts_per_revolution;
     int16_t rpm;
     uint32_t timer;
 };
