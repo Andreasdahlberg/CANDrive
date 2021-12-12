@@ -60,3 +60,4 @@ BA_ "GenMsgCycleTime" BO_ 9 100;
 BA_ "GenMsgSendType" BO_ 9 0;
 
 VAL_ 9 ControllerMsgMotorControlSigRPM1 10 "VAL_0" 50 "VAL_1";
+VAL_ 10 MotorMsgStatusSigStatus1 0 "UNKNOWN" 1 "RUN" 2 "COAST" 3 "BRAKE" 4 "SHORT_TO_GROUND" 5 "SHORT_TO_VCC" 6 "OPEN_LOAD" 7 "THERMAL_SHUTDOWN";
