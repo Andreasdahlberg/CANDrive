@@ -88,11 +88,6 @@ __attribute__((weak)) uint32_t Config_GetStallCurrent(void)
     return mock_type(uint32_t);
 }
 
-__attribute__((weak)) uint32_t Config_GetMaxCurrent(void)
-{
-    return mock_type(uint32_t);
-}
-
 //////////////////////////////////////////////////////////////////////////
 //LOCAL FUNCTIONS
 //////////////////////////////////////////////////////////////////////////
