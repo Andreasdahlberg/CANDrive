@@ -51,10 +51,10 @@ enum motor_direction_t
 
 enum motor_status_t
 {
-    MOTOR_RUN = 0,
+    MOTOR_UNKNOWN = 0,
+    MOTOR_RUN,
     MOTOR_COAST,
     MOTOR_BRAKE,
-    MOTOR_UNKNOWN,
     MOTOR_SHORT_TO_GROUND,
     MOTOR_SHORT_TO_VCC,
     MOTOR_OPEN_LOAD,
