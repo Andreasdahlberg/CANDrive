@@ -142,6 +142,41 @@ signalhandler_handler_cb_t GetCallback(enum signal_id_t id)
 //TESTS
 //////////////////////////////////////////////////////////////////////////
 
+static void test_Application_Init_NoMotors(void **state)
+{
+    const size_t number_of_motors = 0;
+    number_of_handlers = 0;
+
+    expect_function_call(SysTime_Init);
+    expect_value(Serial_Init, baud_rate, BAUD_RATE);
+    expect_function_call(Logging_Init);
+    expect_function_call(SystemMonitor_Init);
+    will_return(Board_GetNVSAddress, 0x801F800);
+    will_return(Board_GetNumberOfPagesInNVS, 2);
+    expect_function_call(NVS_Init);
+    expect_function_call(Config_Init);
+    expect_function_call(CANInterface_Init);
+    expect_function_call(ADC_Init);
+    expect_function_call(MotorController_Init);
+    expect_function_call(SignalHandler_Init);
+    will_return(Logging_GetLogger, dummy_logger);
+    expect_function_call(CANInterface_RegisterListener);
+    expect_any(CANInterface_AddFilter, id);
+    expect_any(CANInterface_AddFilter, mask);
+    will_return_always(Config_GetNumberOfMotors, number_of_motors);
+    will_return_maybe(Board_GetResetFlags, 0);
+    will_return_maybe(Board_GetHardwareRevision, 1);
+    will_return_maybe(Board_GetSoftwareRevision, 2);
+    will_return_maybe(Config_IsValid, false);
+    will_return_maybe(Config_GetCountsPerRev, 0);
+    will_return_maybe(Config_GetNoLoadRpm, 0);
+    will_return_maybe(Config_GetNoLoadCurrent, 0);
+    will_return_maybe(Config_GetStallCurrent, 0);
+    will_return_maybe(Config_GetMaxCurrent, 0);
+
+    Application_Init();
+}
+
 static void test_Application_Init(void **state)
 {
     const size_t number_of_motors = 1;
@@ -310,6 +345,7 @@ int main(int argc, char *argv[])
 {
     const struct CMUnitTest test_application[] =
     {
+        cmocka_unit_test(test_Application_Init_NoMotors),
         cmocka_unit_test(test_Application_Init),
         cmocka_unit_test_setup(test_Application_Run, Setup),
         cmocka_unit_test_setup(test_Application_Run_StateChanges, Setup),
