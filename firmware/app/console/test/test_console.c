@@ -302,7 +302,7 @@ static void test_Console_NoInput(void **state)
 
 int main(int argc, char *argv[])
 {
-    const struct CMUnitTest test_ADC[] =
+    const struct CMUnitTest test_console[] =
     {
         cmocka_unit_test(test_Console_Init_Invalid),
         cmocka_unit_test(test_Console_Init),
@@ -321,5 +321,5 @@ int main(int argc, char *argv[])
         cmocka_set_test_filter(argv[1]);
     }
 
-    return cmocka_run_group_tests(test_ADC, NULL, NULL);
+    return cmocka_run_group_tests(test_console, NULL, NULL);
 }
