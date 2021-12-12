@@ -34,6 +34,7 @@ along with CANDrive firmware.  If not, see <http://www.gnu.org/licenses/>.
 #include <stdbool.h>
 #include <string.h>
 #include "utility.h"
+#include "board.h"
 #include "signal_handler.h"
 #include "system_monitor.h"
 #include "motor_controller.h"
@@ -87,7 +88,7 @@ void SignalHandler_RegisterHandler(enum signal_id_t id, signalhandler_handler_cb
 
 static int Setup(void **state)
 {
-    const size_t number_of_motors = 1;
+    const size_t number_of_motors = 2;
     number_of_handlers = 0;
 
     expect_function_call(SysTime_Init);
@@ -326,13 +327,25 @@ static void test_Application_SignalHandlers(void **state)
 
     data = 1;
     signal.id = SIGNAL_CONTROL_RPM1;
-    expect_value(MotorController_SetRPM, index, 0);
+    expect_value(MotorController_SetRPM, index, BOARD_M1_INDEX);
     expect_value(MotorController_SetRPM, rpm, data);
     GetCallback(signal.id)(&signal);
 
     data = 2;
     signal.id = SIGNAL_CONTROL_CURRENT1;
-    expect_value(MotorController_SetCurrent, index, 0);
+    expect_value(MotorController_SetCurrent, index, BOARD_M1_INDEX);
+    expect_value(MotorController_SetCurrent, current, data);
+    GetCallback(signal.id)(&signal);
+
+    data = 3;
+    signal.id = SIGNAL_CONTROL_RPM2;
+    expect_value(MotorController_SetRPM, index, BOARD_M2_INDEX);
+    expect_value(MotorController_SetRPM, rpm, data);
+    GetCallback(signal.id)(&signal);
+
+    data = 4;
+    signal.id = SIGNAL_CONTROL_CURRENT2;
+    expect_value(MotorController_SetCurrent, index, BOARD_M2_INDEX);
     expect_value(MotorController_SetCurrent, current, data);
     GetCallback(signal.id)(&signal);
 }
