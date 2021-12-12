@@ -83,6 +83,8 @@ static void RegisterConsoleCommands(void);
 static void ConfigureSignalHandler(void);
 static void HandleRPM1Signal(struct signal_t *signal_p);
 static void HandleCurrent1Signal(struct signal_t *signal_p);
+static void HandleRPM2Signal(struct signal_t *signal_p);
+static void HandleCurrent2Signal(struct signal_t *signal_p);
 static void HandleStateChanges(void);
 static void HandleActiveState(void);
 static void BrakeAllMotors(void);
@@ -182,6 +184,11 @@ static void ConfigureSignalHandler(void)
         SignalHandler_RegisterHandler(SIGNAL_CONTROL_RPM1, HandleRPM1Signal);
         SignalHandler_RegisterHandler(SIGNAL_CONTROL_CURRENT1, HandleCurrent1Signal);
     }
+    if (Config_GetNumberOfMotors() > 1)
+    {
+        SignalHandler_RegisterHandler(SIGNAL_CONTROL_RPM2, HandleRPM2Signal);
+        SignalHandler_RegisterHandler(SIGNAL_CONTROL_CURRENT2, HandleCurrent2Signal);
+    }
 }
 
 static void HandleRPM1Signal(struct signal_t *signal_p)
@@ -194,6 +201,18 @@ static void HandleCurrent1Signal(struct signal_t *signal_p)
 {
     Signal_Log(signal_p, module.logger);
     MotorController_SetCurrent(BOARD_M1_INDEX, *(int16_t *)signal_p->data_p);
+}
+
+static void HandleRPM2Signal(struct signal_t *signal_p)
+{
+    Signal_Log(signal_p, module.logger);
+    MotorController_SetRPM(BOARD_M2_INDEX, *(int16_t *)signal_p->data_p);
+}
+
+static void HandleCurrent2Signal(struct signal_t *signal_p)
+{
+    Signal_Log(signal_p, module.logger);
+    MotorController_SetCurrent(BOARD_M2_INDEX, *(int16_t *)signal_p->data_p);
 }
 
 static void HandleStateChanges(void)
