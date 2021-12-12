@@ -88,6 +88,14 @@ struct board_id_t Board_GetId(void);
 const struct motor_config_t *Board_GetMotorConfig(size_t index);
 
 /**
+ * Get the max number of motors that can be connected.
+ *
+ * @return Max number of motors.
+ */
+size_t Board_GetMaxNumberOfMotors(void);
+
+
+/**
  * Toggle the status LED.
  */
 void Board_ToggleStatusLED(void);
@@ -124,5 +132,13 @@ uint32_t Board_GetNVSAddress(void);
  * @return Number of pages.
  */
 uint32_t Board_GetNumberOfPagesInNVS(void);
+
+/**
+ * Get the max current that the board can deliver.
+ *
+ * @return Max current in mA.
+ */
+uint32_t Board_GetMaxCurrent(void);
+
 
 #endif

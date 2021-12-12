@@ -145,6 +145,11 @@ const struct motor_config_t *Board_GetMotorConfig(size_t index)
     return &module.motor_configs[index];
 }
 
+size_t Board_GetMaxNumberOfMotors(void)
+{
+    return ElementsIn(module.motor_configs);
+}
+
 void Board_ToggleStatusLED(void)
 {
     gpio_toggle(GPIO_STATUS_LED_PORT, GPIO_STATUS_LED);
@@ -173,6 +178,11 @@ uint32_t Board_GetNVSAddress(void)
 uint32_t Board_GetNumberOfPagesInNVS(void)
 {
     return 2;
+}
+
+uint32_t Board_GetMaxCurrent(void)
+{
+    return 5000;
 }
 
 //////////////////////////////////////////////////////////////////////////

@@ -79,6 +79,11 @@ __attribute__((weak)) const struct motor_config_t *Board_GetMotorConfig(size_t i
     return mock_type(struct motor_config_t *);
 }
 
+__attribute__((weak)) size_t Board_GetMaxNumberOfMotors(void)
+{
+    return mock_type(size_t);
+}
+
 __attribute__((weak)) void Board_ToggleStatusLED(void)
 {
     function_called();
@@ -105,6 +110,11 @@ __attribute__((weak)) uint32_t Board_GetNVSAddress(void)
 }
 
 __attribute__((weak)) uint32_t Board_GetNumberOfPagesInNVS(void)
+{
+    return mock_type(uint32_t);
+}
+
+__attribute__((weak)) uint32_t Board_GetMaxCurrent(void)
 {
     return mock_type(uint32_t);
 }
