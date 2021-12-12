@@ -43,7 +43,6 @@ struct config_t
     uint32_t no_load_rpm;
     uint32_t no_load_current;
     uint32_t stall_current;
-    uint32_t max_current;
 };
 
 struct module_t
@@ -73,8 +72,7 @@ void Config_Init(void)
                           NVS_Retrieve("counts_per_rev", &module.config.counts_per_rev) &&
                           NVS_Retrieve("no_load_rpm", &module.config.no_load_rpm) &&
                           NVS_Retrieve("no_load_current", &module.config.no_load_current) &&
-                          NVS_Retrieve("stall_current", &module.config.stall_current) &&
-                          NVS_Retrieve("max_current", &module.config.max_current);
+                          NVS_Retrieve("stall_current", &module.config.stall_current);
 
     /* Clear all parameters if the configuration is invalid. */
     if (!Config_IsValid())
@@ -111,11 +109,6 @@ uint32_t Config_GetNoLoadCurrent(void)
 uint32_t Config_GetStallCurrent(void)
 {
     return module.config.stall_current;
-}
-
-uint32_t Config_GetMaxCurrent(void)
-{
-    return module.config.max_current;
 }
 
 //////////////////////////////////////////////////////////////////////////

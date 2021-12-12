@@ -91,10 +91,3 @@ uint32_t Config_GetNoLoadCurrent(void);
  * @return Stall current in mA.
  */
 uint32_t Config_GetStallCurrent(void);
-
-/**
- * Get max current that the motor driver can deliver.
- *
- * @return Max current in mA.
- */
-uint32_t Config_GetMaxCurrent(void);

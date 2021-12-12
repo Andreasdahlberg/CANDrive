@@ -50,7 +50,6 @@ struct test_config_t
     uint32_t no_load_rpm;
     uint32_t no_load_current;
     uint32_t stall_current;
-    uint32_t max_current;
 };
 
 //////////////////////////////////////////////////////////////////////////
@@ -77,8 +76,7 @@ static void test_Config_Valid(void **state)
         .counts_per_rev = 4800,
         .no_load_rpm = 120,
         .no_load_current = 200,
-        .stall_current = 3000,
-        .max_current = 4000
+        .stall_current = 3000
     };
 
     will_return(NVS_Retrieve, config.number_of_motors);
@@ -91,8 +89,6 @@ static void test_Config_Valid(void **state)
     will_return(NVS_Retrieve, true);
     will_return(NVS_Retrieve, config.stall_current);
     will_return(NVS_Retrieve, true);
-    will_return(NVS_Retrieve, config.max_current);
-    will_return(NVS_Retrieve, true);
 
     Config_Init();
 
@@ -102,12 +98,11 @@ static void test_Config_Valid(void **state)
     assert_int_equal(Config_GetNoLoadRpm(), config.no_load_rpm);
     assert_int_equal(Config_GetNoLoadCurrent(), config.no_load_current);
     assert_int_equal(Config_GetStallCurrent(), config.stall_current);
-    assert_int_equal(Config_GetMaxCurrent(), config.max_current);
 }
 
 static void test_Config_Invalid(void **state)
 {
-    size_t number_of_parameters = 6;
+    size_t number_of_parameters = 5;
     for (size_t i = 0; i < number_of_parameters; ++i)
     {
         for (size_t n = 0; n < i; ++n)
@@ -141,7 +136,6 @@ static void test_Config_Invalid_ParameterZeroCheck(void **state)
     assert_int_equal(Config_GetNoLoadRpm(), 0);
     assert_int_equal(Config_GetNoLoadCurrent(), 0);
     assert_int_equal(Config_GetStallCurrent(), 0);
-    assert_int_equal(Config_GetMaxCurrent(), 0);
 }
 
 //////////////////////////////////////////////////////////////////////////
