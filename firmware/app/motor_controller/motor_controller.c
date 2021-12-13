@@ -90,6 +90,7 @@ static inline void InitializeMotors(void);
 static inline void UpdateMotors(void);
 static inline void UpdateMotorSpeeds(void);
 static void ResetPIDControllers(struct motor_instance_t *instance_p);
+static int32_t LimitValue(int32_t value, int32_t min, int32_t max);
 
 //////////////////////////////////////////////////////////////////////////
 //FUNCTIONS
@@ -123,16 +124,26 @@ void MotorController_SetRPM(size_t index, int16_t rpm)
 {
     assert(index < Config_GetNumberOfMotors());
 
-    PID_SetSetpoint(&module.instances[index].rpm_pid, rpm);
-    Logging_Debug(module.logger_p, "M%u sp: {rpm: %i}", index, rpm);
+    const int32_t max_rpm = (int32_t)Config_GetNoLoadRpm();
+    const int32_t min_rpm = max_rpm * -1;
+    const int32_t limited_rpm = LimitValue(rpm, min_rpm, max_rpm);
+
+    PID_SetSetpoint(&module.instances[index].rpm_pid, limited_rpm);
+    Logging_Debug(module.logger_p, "M%u sp: {rpm: %i}", index, limited_rpm);
 }
 
 void MotorController_SetCurrent(size_t index, int16_t current)
 {
     assert(index < Config_GetNumberOfMotors());
 
-    PID_SetSetpoint(&module.instances[index].current_pid, current);
-    Logging_Debug(module.logger_p, "M%u sp: {current: %i}", index, current);
+    const uint32_t max_board_current = Board_GetMaxCurrent();
+    const uint32_t stall_current = Config_GetStallCurrent();
+    const int32_t max_current = (max_board_current < stall_current) ? (int32_t)max_board_current : (int32_t)stall_current;
+    const int32_t min_current = max_current * -1;
+    const int32_t limited_current = LimitValue(current, min_current, max_current);
+
+    PID_SetSetpoint(&module.instances[index].current_pid, limited_current);
+    Logging_Debug(module.logger_p, "M%u sp: {current: %i}", index, limited_current);
 }
 
 void MotorController_Run(size_t index)
@@ -234,4 +245,24 @@ static void ResetPIDControllers(struct motor_instance_t *instance_p)
 {
     PID_Reset(&instance_p->rpm_pid);
     PID_Reset(&instance_p->current_pid);
+}
+
+static inline int32_t LimitValue(int32_t value, int32_t min, int32_t max)
+{
+    int32_t limited_value;
+
+    if (value < min)
+    {
+        limited_value = min;
+    }
+    else if (value > max)
+    {
+        limited_value = max;
+    }
+    else
+    {
+        limited_value = value;
+    }
+
+    return limited_value;
 }
