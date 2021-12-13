@@ -160,12 +160,35 @@ static void test_MotorController_SetRpm_Invalid(void **state)
 static void test_MotorController_SetRpm(void **state)
 {
     will_return_maybe(Config_GetNumberOfMotors, NUMBER_OF_MOTORS);
+    will_return_maybe(Config_GetNoLoadRpm, abs(INT16_MIN));
 
     const int16_t data[] = {INT16_MIN, 0, 50, INT16_MAX};
     for (size_t i = 0; i < ElementsIn(data); ++i)
     {
         expect_value(PID_SetSetpoint, setpoint, data[i]);
         MotorController_SetRPM(0, data[i]);
+    }
+}
+
+static void test_MotorController_SetRpm_LimitedByNoLoadRpm(void **state)
+{
+    const int16_t rpm_limit = 1000;
+
+    will_return_maybe(Config_GetNumberOfMotors, NUMBER_OF_MOTORS);
+    will_return_maybe(Config_GetNoLoadRpm, rpm_limit);
+
+    const int16_t data_below[] = {INT16_MIN, -rpm_limit - 1};
+    for (size_t i = 0; i < ElementsIn(data_below); ++i)
+    {
+        expect_value(PID_SetSetpoint, setpoint, -rpm_limit);
+        MotorController_SetRPM(0, data_below[i]);
+    }
+
+    const int16_t data_over[] = {rpm_limit + 1, INT16_MAX};
+    for (size_t i = 0; i < ElementsIn(data_over); ++i)
+    {
+        expect_value(PID_SetSetpoint, setpoint, rpm_limit);
+        MotorController_SetRPM(0, data_over[i]);
     }
 }
 
@@ -178,12 +201,60 @@ static void test_MotorController_SetCurrent_Invalid(void **state)
 static void test_MotorController_SetCurrent(void **state)
 {
     will_return_maybe(Config_GetNumberOfMotors, NUMBER_OF_MOTORS);
+    will_return_maybe(Config_GetStallCurrent, abs(INT16_MIN));
+    will_return_maybe(Board_GetMaxCurrent, abs(INT16_MIN));
 
     const int16_t data[] = {INT16_MIN, 0, 50, INT16_MAX};
     for (size_t i = 0; i < ElementsIn(data); ++i)
     {
         expect_value(PID_SetSetpoint, setpoint, data[i]);
         MotorController_SetCurrent(0, data[i]);
+    }
+}
+
+static void test_MotorController_SetCurrent_LimitedByStallCurrent(void **state)
+{
+    const int16_t stall_current = 3000;
+
+    will_return_maybe(Config_GetNumberOfMotors, NUMBER_OF_MOTORS);
+    will_return_maybe(Config_GetStallCurrent, stall_current);
+    will_return_maybe(Board_GetMaxCurrent, abs(INT16_MIN));
+
+    const int16_t data_below[] = {INT16_MIN, -stall_current - 1};
+    for (size_t i = 0; i < ElementsIn(data_below); ++i)
+    {
+        expect_value(PID_SetSetpoint, setpoint, -stall_current);
+        MotorController_SetCurrent(0, data_below[i]);
+    }
+
+    const int16_t data_over[] = {stall_current + 1, INT16_MAX};
+    for (size_t i = 0; i < ElementsIn(data_over); ++i)
+    {
+        expect_value(PID_SetSetpoint, setpoint, stall_current);
+        MotorController_SetCurrent(0, data_over[i]);
+    }
+}
+
+static void test_MotorController_SetCurrent_LimitedByMaxBoardCurrent(void **state)
+{
+    const int16_t max_board_current = 5000;
+
+    will_return_maybe(Config_GetNumberOfMotors, NUMBER_OF_MOTORS);
+    will_return_maybe(Config_GetStallCurrent, abs(INT16_MIN));
+    will_return_maybe(Board_GetMaxCurrent, max_board_current);
+
+    const int16_t data_below[] = {INT16_MIN, -max_board_current - 1};
+    for (size_t i = 0; i < ElementsIn(data_below); ++i)
+    {
+        expect_value(PID_SetSetpoint, setpoint, -max_board_current);
+        MotorController_SetCurrent(0, data_below[i]);
+    }
+
+    const int16_t data_over[] = {max_board_current + 1, INT16_MAX};
+    for (size_t i = 0; i < ElementsIn(data_over); ++i)
+    {
+        expect_value(PID_SetSetpoint, setpoint, max_board_current);
+        MotorController_SetCurrent(0, data_over[i]);
     }
 }
 
@@ -359,6 +430,7 @@ static void test_MotorControllerCmd_SetRPM_InvalidRPM(void **state)
 static void test_MotorControllerCmd_SetRPM(void **state)
 {
     will_return_maybe(Config_GetNumberOfMotors, NUMBER_OF_MOTORS);
+    will_return_maybe(Config_GetNoLoadRpm, abs(INT16_MIN));
 
     const int32_t data[] = {INT16_MIN, 0, 50, INT16_MAX};
     for (size_t i = 0; i < ElementsIn(data); ++i)
@@ -432,6 +504,8 @@ static void test_MotorControllerCmd_SetCurrent_InvalidCurrent(void **state)
 static void test_MotorControllerCmd_SetCurrent(void **state)
 {
     will_return_maybe(Config_GetNumberOfMotors, NUMBER_OF_MOTORS);
+    will_return_maybe(Config_GetStallCurrent, abs(INT16_MIN));
+    will_return_maybe(Board_GetMaxCurrent, abs(INT16_MIN));
 
     const int32_t data[] = {INT16_MIN, 0, 2000, INT16_MAX};
     for (size_t i = 0; i < ElementsIn(data); ++i)
@@ -569,8 +643,11 @@ int main(int argc, char *argv[])
         cmocka_unit_test_setup(test_MotorController_Update, Setup),
         cmocka_unit_test_setup(test_MotorController_SetRpm_Invalid, Setup),
         cmocka_unit_test_setup(test_MotorController_SetRpm, Setup),
+        cmocka_unit_test_setup(test_MotorController_SetRpm_LimitedByNoLoadRpm, Setup),
         cmocka_unit_test_setup(test_MotorController_SetCurrent_Invalid, Setup),
         cmocka_unit_test_setup(test_MotorController_SetCurrent, Setup),
+        cmocka_unit_test_setup(test_MotorController_SetCurrent_LimitedByStallCurrent, Setup),
+        cmocka_unit_test_setup(test_MotorController_SetCurrent_LimitedByMaxBoardCurrent, Setup),
         cmocka_unit_test_setup(test_MotorController_Run_Invalid, Setup),
         cmocka_unit_test_setup(test_MotorController_Run, Setup),
         cmocka_unit_test_setup(test_MotorController_Coast_Invalid, Setup),
