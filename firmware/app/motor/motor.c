@@ -203,7 +203,7 @@ enum motor_direction_t Motor_GetDirection(const struct motor_t *self_p)
 uint32_t Motor_GetPosition(const struct motor_t *self_p)
 {
     assert(self_p != NULL);
-    return (GetPosition(self_p) * 360) / self_p->counts_per_revolution;
+    return (GetPosition(self_p) * 360) / (uint32_t)self_p->counts_per_revolution;
 }
 
 const char *Motor_DirectionToString(const struct motor_t *self_p, enum motor_direction_t direction)
@@ -247,7 +247,7 @@ static inline void SetupTimer(const struct motor_t *self_p)
     rcc_periph_clock_enable(self_p->config_p->encoder.timer_clock);
     rcc_periph_reset_pulse(self_p->config_p->encoder.timer_rst);
 
-    timer_set_period(self_p->config_p->encoder.timer, self_p->counts_per_revolution - 1);
+    timer_set_period(self_p->config_p->encoder.timer, (uint32_t)self_p->counts_per_revolution - 1);
     timer_slave_set_mode(self_p->config_p->encoder.timer, encoder_mode);
     timer_ic_disable(self_p->config_p->encoder.timer, TIM_IC1);
     timer_ic_disable(self_p->config_p->encoder.timer, TIM_IC2);
