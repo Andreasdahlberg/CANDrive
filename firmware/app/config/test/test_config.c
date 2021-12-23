@@ -50,6 +50,10 @@ struct test_config_t
     uint32_t no_load_rpm;
     uint32_t no_load_current;
     uint32_t stall_current;
+    uint32_t kp;
+    uint32_t ki;
+    uint32_t kd;
+    uint32_t imax;
 };
 
 //////////////////////////////////////////////////////////////////////////
@@ -66,7 +70,7 @@ struct test_config_t
 
 static int Setup(void **state)
 {
-    size_t number_of_parameters = 5;
+    size_t number_of_parameters = 9;
     for (size_t i = 0; i < number_of_parameters; ++i)
     {
         will_return(NVS_Retrieve, 2);
@@ -89,7 +93,11 @@ static void test_Config_Valid(void **state)
         .counts_per_rev = 4800,
         .no_load_rpm = 120,
         .no_load_current = 200,
-        .stall_current = 3000
+        .stall_current = 3000,
+        .kp = 50,
+        .ki = 60,
+        .kd = 10,
+        .imax = 200,
     };
 
     will_return(NVS_Retrieve, config.number_of_motors);
@@ -102,6 +110,14 @@ static void test_Config_Valid(void **state)
     will_return(NVS_Retrieve, true);
     will_return(NVS_Retrieve, config.stall_current);
     will_return(NVS_Retrieve, true);
+    will_return(NVS_Retrieve, config.kp);
+    will_return(NVS_Retrieve, true);
+    will_return(NVS_Retrieve, config.ki);
+    will_return(NVS_Retrieve, true);
+    will_return(NVS_Retrieve, config.kd);
+    will_return(NVS_Retrieve, true);
+    will_return(NVS_Retrieve, config.imax);
+    will_return(NVS_Retrieve, true);
 
     Config_Init();
 
@@ -111,11 +127,15 @@ static void test_Config_Valid(void **state)
     assert_int_equal(Config_GetNoLoadRpm(), config.no_load_rpm);
     assert_int_equal(Config_GetNoLoadCurrent(), config.no_load_current);
     assert_int_equal(Config_GetStallCurrent(), config.stall_current);
+    assert_int_equal(Config_GetValue("kp"), config.kp);
+    assert_int_equal(Config_GetValue("ki"), config.ki);
+    assert_int_equal(Config_GetValue("kd"), config.kd);
+    assert_int_equal(Config_GetValue("imax"), config.imax);
 }
 
 static void test_Config_Invalid(void **state)
 {
-    size_t number_of_parameters = 5;
+    size_t number_of_parameters = 9;
     for (size_t i = 0; i < number_of_parameters; ++i)
     {
         for (size_t n = 0; n < i; ++n)
@@ -149,6 +169,10 @@ static void test_Config_Invalid_ParameterZeroCheck(void **state)
     assert_int_equal(Config_GetNoLoadRpm(), 0);
     assert_int_equal(Config_GetNoLoadCurrent(), 0);
     assert_int_equal(Config_GetStallCurrent(), 0);
+    assert_int_equal(Config_GetValue("kp"), 0);
+    assert_int_equal(Config_GetValue("ki"), 0);
+    assert_int_equal(Config_GetValue("kd"), 0);
+    assert_int_equal(Config_GetValue("imax"), 0);
 }
 
 static void test_Config_GetValue_NULL(void **state)
