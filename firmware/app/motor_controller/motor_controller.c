@@ -72,15 +72,6 @@ struct motor_controller_t
 //////////////////////////////////////////////////////////////////////////
 
 static struct motor_controller_t module;
-static struct pid_parameters_t default_parameters =
-{
-    .kp = 50,
-    .ki = 50,
-    .kd = 50,
-    .imax = 200,
-    .cvmax = 100,
-    .scale = 100
-};
 
 //////////////////////////////////////////////////////////////////////////
 //LOCAL FUNCTION PROTOTYPES
@@ -200,18 +191,28 @@ static inline void InitializeMotors(void)
     const size_t number_of_motors = Config_GetNumberOfMotors();
     assert(number_of_motors <= ElementsIn(module.instances));
 
+    struct pid_parameters_t pid_parameters =
+    {
+        .kp = Config_GetValue("kp"),
+        .ki = Config_GetValue("ki"),
+        .kd = Config_GetValue("kd"),
+        .imax = Config_GetValue("imax"),
+        .cvmax = 100,
+        .scale = 100
+    };
+
     for (size_t i = 0; i < number_of_motors; ++i)
     {
         char name[8];
         snprintf(name, sizeof(name), "M%u", i);
         Motor_Init(&module.instances[i].motor, name, Board_GetMotorConfig(i));
 
-        assert(default_parameters.cvmax >= INT16_MIN && default_parameters.cvmax <= INT16_MAX &&
+        assert(pid_parameters.cvmax >= INT16_MIN && pid_parameters.cvmax <= INT16_MAX &&
                "Invalid PID parameter cvmax");
         PID_Init(&module.instances[i].rpm_pid);
-        PID_SetParameters(&module.instances[i].rpm_pid, &default_parameters);
+        PID_SetParameters(&module.instances[i].rpm_pid, &pid_parameters);
         PID_Init(&module.instances[i].current_pid);
-        PID_SetParameters(&module.instances[i].current_pid, &default_parameters);
+        PID_SetParameters(&module.instances[i].current_pid, &pid_parameters);
     }
 }
 

@@ -65,6 +65,8 @@ static int Setup(void **state)
     will_return(SystemMonitor_GetWatchdogHandle, WATCHDOG_HANDLE);
     will_return_maybe(Logging_GetLogger, dummy_logger);
     will_return_maybe(Config_GetNumberOfMotors, NUMBER_OF_MOTORS);
+    will_return_maybe(Config_GetValue, 0);
+
     for (size_t i = 0; i < NUMBER_OF_MOTORS; ++i)
     {
         will_return(Board_GetMotorConfig, &motor_configs[i]);
@@ -114,6 +116,7 @@ static void test_MotorController_Init(void **state)
     will_return(SystemMonitor_GetWatchdogHandle, WATCHDOG_HANDLE);
     will_return_maybe(Logging_GetLogger, dummy_logger);
     will_return_maybe(Config_GetNumberOfMotors, NUMBER_OF_MOTORS);
+    will_return_maybe(Config_GetValue, 0);
     for (size_t i = 0; i < NUMBER_OF_MOTORS; ++i)
     {
         will_return(Board_GetMotorConfig, &motor_configs[i]);
