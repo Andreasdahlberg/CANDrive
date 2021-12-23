@@ -74,7 +74,7 @@ struct parameter_t
 //////////////////////////////////////////////////////////////////////////
 
 static struct module_t module;
-static const struct parameter_t parameters[] =
+static const struct parameter_t parameters[9] =
 {
     {"number_of_motors", &module.config.number_of_motors},
     {"counts_per_rev", &module.config.counts_per_rev},
