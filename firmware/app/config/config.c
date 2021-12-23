@@ -39,6 +39,14 @@ along with CANDrive firmware.  If not, see <http://www.gnu.org/licenses/>.
 //TYPE DEFINITIONS
 //////////////////////////////////////////////////////////////////////////
 
+struct pid_t
+{
+    uint32_t kp;
+    uint32_t ki;
+    uint32_t kd;
+    uint32_t imax;
+};
+
 struct config_t
 {
     uint32_t number_of_motors;
@@ -46,6 +54,7 @@ struct config_t
     uint32_t no_load_rpm;
     uint32_t no_load_current;
     uint32_t stall_current;
+    struct pid_t pid;
 };
 
 struct module_t
@@ -71,7 +80,11 @@ static const struct parameter_t parameters[] =
     {"counts_per_rev", &module.config.counts_per_rev},
     {"no_load_rpm", &module.config.no_load_rpm},
     {"no_load_current", &module.config.no_load_current},
-    {"stall_current", &module.config.stall_current}
+    {"stall_current", &module.config.stall_current},
+    {"kp", &module.config.pid.kp},
+    {"ki", &module.config.pid.ki},
+    {"kd", &module.config.pid.kd},
+    {"imax", &module.config.pid.imax}
 };
 
 //////////////////////////////////////////////////////////////////////////
