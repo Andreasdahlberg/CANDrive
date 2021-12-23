@@ -102,9 +102,9 @@ void Config_Init(void)
     module.valid_config = true;
     for (size_t i = 0; i < ElementsIn(parameters); ++i)
     {
-        module.valid_config &= NVS_Retrieve(parameters[i].name, parameters[i].storage_p);
-        if (!module.valid_config)
+        if (!NVS_Retrieve(parameters[i].name, parameters[i].storage_p))
         {
+            module.valid_config = false;
             break;
         }
     }
