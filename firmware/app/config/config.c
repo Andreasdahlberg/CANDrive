@@ -25,7 +25,10 @@ along with CANDrive firmware.  If not, see <http://www.gnu.org/licenses/>.
 //INCLUDES
 //////////////////////////////////////////////////////////////////////////
 
+#include <assert.h>
+#include <string.h>
 #include "nvs.h"
+#include "utility.h"
 #include "config.h"
 
 //////////////////////////////////////////////////////////////////////////
@@ -51,11 +54,25 @@ struct module_t
     bool valid_config;
 };
 
+struct parameter_t
+{
+    char name[24];
+    uint32_t *storage_p;
+};
+
 //////////////////////////////////////////////////////////////////////////
 //VARIABLES
 //////////////////////////////////////////////////////////////////////////
 
 static struct module_t module;
+static const struct parameter_t parameters[] =
+{
+    {"number_of_motors", &module.config.number_of_motors},
+    {"counts_per_rev", &module.config.counts_per_rev},
+    {"no_load_rpm", &module.config.no_load_rpm},
+    {"no_load_current", &module.config.no_load_current},
+    {"stall_current", &module.config.stall_current}
+};
 
 //////////////////////////////////////////////////////////////////////////
 //LOCAL FUNCTION PROTOTYPES
@@ -68,11 +85,16 @@ static struct module_t module;
 void Config_Init(void)
 {
     module = (__typeof__(module)) {0};
-    module.valid_config = NVS_Retrieve("number_of_motors", &module.config.number_of_motors) &&
-                          NVS_Retrieve("counts_per_rev", &module.config.counts_per_rev) &&
-                          NVS_Retrieve("no_load_rpm", &module.config.no_load_rpm) &&
-                          NVS_Retrieve("no_load_current", &module.config.no_load_current) &&
-                          NVS_Retrieve("stall_current", &module.config.stall_current);
+
+    module.valid_config = true;
+    for (size_t i = 0; i < ElementsIn(parameters); ++i)
+    {
+        module.valid_config &= NVS_Retrieve(parameters[i].name, parameters[i].storage_p);
+        if (!module.valid_config)
+        {
+            break;
+        }
+    }
 
     /* Clear all parameters if the configuration is invalid. */
     if (!Config_IsValid())
@@ -84,6 +106,23 @@ void Config_Init(void)
 bool Config_IsValid(void)
 {
     return module.valid_config;
+}
+
+uint32_t Config_GetValue(const char *name_p)
+{
+    assert(name_p != NULL);
+
+    uint32_t value = 0;
+    for (size_t i = 0; i < ElementsIn(parameters); ++i)
+    {
+        if (strncmp(name_p, parameters[i].name, sizeof(parameters[i].name)) == 0)
+        {
+            value = *parameters[i].storage_p;
+            break;
+        }
+    }
+
+    return value;
 }
 
 uint32_t Config_GetNumberOfMotors(void)
