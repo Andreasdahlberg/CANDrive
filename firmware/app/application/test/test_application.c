@@ -118,6 +118,7 @@ static int Setup(void **state)
     will_return_maybe(Config_GetNoLoadCurrent, 0);
     will_return_maybe(Config_GetStallCurrent, 0);
     will_return_maybe(Config_GetMaxCurrent, 0);
+    will_return_maybe(Config_GetValue, 0);
 
     Application_Init();
     return 0;
@@ -174,6 +175,7 @@ static void test_Application_Init_NoMotors(void **state)
     will_return_maybe(Config_GetNoLoadCurrent, 0);
     will_return_maybe(Config_GetStallCurrent, 0);
     will_return_maybe(Config_GetMaxCurrent, 0);
+    will_return_maybe(Config_GetValue, 0);
 
     Application_Init();
 }
@@ -210,6 +212,7 @@ static void test_Application_Init(void **state)
     will_return_maybe(Config_GetNoLoadCurrent, 0);
     will_return_maybe(Config_GetStallCurrent, 0);
     will_return_maybe(Config_GetMaxCurrent, 0);
+    will_return_maybe(Config_GetValue, 0);
 
     Application_Init();
 }
