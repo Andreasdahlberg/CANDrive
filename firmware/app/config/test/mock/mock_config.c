@@ -63,6 +63,12 @@ __attribute__((weak)) bool Config_IsValid(void)
     return mock_type(bool);
 }
 
+__attribute__((weak)) uint32_t Config_GetValue(const char *name_p)
+{
+    assert_non_null(name_p);
+    return mock_type(uint32_t);
+}
+
 __attribute__((weak)) uint32_t Config_GetNumberOfMotors(void)
 {
     return mock_type(uint32_t);
