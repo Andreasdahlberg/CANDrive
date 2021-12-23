@@ -40,7 +40,7 @@ along with CANDrive firmware.  If not, see <http://www.gnu.org/licenses/>.
 
 #define SIGH_LOGGER_NAME "SigH"
 #ifndef SIGH_LOGGER_DEBUG_LEVEL
-#define SIGH_LOGGER_DEBUG_LEVEL LOGGING_DEBUG
+#define SIGH_LOGGER_DEBUG_LEVEL LOGGING_INFO
 #endif
 
 #define FRAME_BUFFER_SIZE 5
