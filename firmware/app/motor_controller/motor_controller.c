@@ -193,10 +193,10 @@ static inline void InitializeMotors(void)
 
     struct pid_parameters_t pid_parameters =
     {
-        .kp = Config_GetValue("kp"),
-        .ki = Config_GetValue("ki"),
-        .kd = Config_GetValue("kd"),
-        .imax = Config_GetValue("imax"),
+        .kp = (int32_t)Config_GetValue("kp"),
+        .ki = (int32_t)Config_GetValue("ki"),
+        .kd = (int32_t)Config_GetValue("kd"),
+        .imax = (int32_t)Config_GetValue("imax"),
         .cvmax = 100,
         .scale = 100
     };
