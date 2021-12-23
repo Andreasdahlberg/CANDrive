@@ -59,7 +59,17 @@ void Config_Init(void);
 bool Config_IsValid(void);
 
 /**
+ * Get a value by name.
+ *
+ * @param  name_p Name of value.
+ *
+ * @return Value.
+ */
+uint32_t Config_GetValue(const char *name_p);
+
+/**
  * Get the number of connected motors.
+ *
  * @return Number of connected motors.
  */
 uint32_t Config_GetNumberOfMotors(void);

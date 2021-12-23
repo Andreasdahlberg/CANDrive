@@ -64,6 +64,19 @@ struct test_config_t
 //LOCAL FUNCTIONS
 //////////////////////////////////////////////////////////////////////////
 
+static int Setup(void **state)
+{
+    size_t number_of_parameters = 5;
+    for (size_t i = 0; i < number_of_parameters; ++i)
+    {
+        will_return(NVS_Retrieve, 2);
+        will_return(NVS_Retrieve, true);
+    }
+    Config_Init();
+
+    return 0;
+}
+
 //////////////////////////////////////////////////////////////////////////
 //TESTS
 //////////////////////////////////////////////////////////////////////////
@@ -138,6 +151,20 @@ static void test_Config_Invalid_ParameterZeroCheck(void **state)
     assert_int_equal(Config_GetStallCurrent(), 0);
 }
 
+static void test_Config_GetValue_NULL(void **state)
+{
+    expect_assert_failure(Config_GetValue(NULL));
+}
+
+static void test_Config_GetValue(void **state)
+{
+    /* Invalid name */
+    assert_int_equal(Config_GetValue("Foo"), 0);
+
+    /* Valid name */
+    assert_int_equal(Config_GetValue("number_of_motors"), 2);
+}
+
 //////////////////////////////////////////////////////////////////////////
 //FUNCTIONS
 //////////////////////////////////////////////////////////////////////////
@@ -149,6 +176,9 @@ int main(int argc, char *argv[])
         cmocka_unit_test(test_Config_Valid),
         cmocka_unit_test(test_Config_Invalid),
         cmocka_unit_test(test_Config_Invalid_ParameterZeroCheck),
+        cmocka_unit_test_setup(test_Config_GetValue_NULL, Setup),
+        cmocka_unit_test_setup(test_Config_GetValue, Setup),
+
     };
 
     if (argc >= 2)
