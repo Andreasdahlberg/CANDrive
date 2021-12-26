@@ -20,7 +20,12 @@ import subprocess
 import argparse
 import sys
 import os
+import time
+import threading
 import serial
+from prompt_toolkit.patch_stdout import patch_stdout
+from prompt_toolkit import PromptSession
+from prompt_toolkit.auto_suggest import AutoSuggestFromHistory
 
 __author__ = 'andreas.dahlberg90@gmail.com (Andreas Dahlberg)'
 __version__ = '0.1.0'
@@ -137,6 +142,13 @@ class Monitor():
             return get_formated_output(values)
         return None
 
+    def write(self, data):
+        """Write data to the device"""
+        for char in data:
+            self._serial_port.write(char.encode('utf-8'))
+            time.sleep(0.005) #Sleep so that the device can keep up.
+        self._serial_port.write('\r'.encode('utf-8'))
+
     def _parse_line(self, data):
         """Parse line and return values"""
         pattern = r'\[(?P<timestamp>\d*)\] (?P<level>\w*):(?P<module>\w*)\s(?P<file>\D*):(?P<line>\d*)\s(?P<message>.*)\r\n'
@@ -149,7 +161,6 @@ class Monitor():
 
             result = re.match(pattern, line)
             if result:
-
                 values = {
                     'timestamp': result.group('timestamp'),
                     'level': result.group('level'),
@@ -159,11 +170,16 @@ class Monitor():
                     'message': result.group('message'),
                 }
                 return values
-            elif line.startswith('assertion'):
+
+            if line.startswith('assertion'):
                 datetime_obj = datetime.now()
                 print('{} {}'.format(
                     Colors.BOLD + datetime_obj.strftime('%H:%M:%S.%f')[:-3] + Colors.END,
                     Colors.RED + line + Colors.END))
+            elif line.startswith('[FAIL]'):
+                print(Colors.RED + 'Command failed' + Colors.END)
+            elif line.startswith('[OK]'):
+                print(Colors.GREEN + 'Command successful' + Colors.END)
         return None
 
     def _add_host_timestamp(self, values):
@@ -207,18 +223,35 @@ class Monitor():
         return log_level_match and exclude_match
 
 
+def wait_for_commands(monitor):
+    """Wait for commands from the user"""
+    try:
+        session = PromptSession()
+        while 1:
+            with patch_stdout(raw=True):
+                result = session.prompt("CANDrive> ", auto_suggest=AutoSuggestFromHistory())
+                monitor.write(result)
+    except KeyboardInterrupt:
+        pass
+
+
 def start_monitor(args):
     """Start the monitor and print output"""
     with Monitor(port=args.port, baudrate=args.baudrate, exclude=args.exclude) as monitor:
         monitor.log_level = args.level
         monitor.elf = args.elf
-        try:
+
+        def read_thread_func():
             while 1:
                 output = monitor.read()
                 if output:
                     print(output)
-        except KeyboardInterrupt:
-            pass
+
+        read_thread = threading.Thread(target=read_thread_func)
+        read_thread.daemon = True
+        read_thread.start()
+
+        wait_for_commands(monitor)
     return 0
 
 
