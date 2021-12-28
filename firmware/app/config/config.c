@@ -45,6 +45,7 @@ struct pid_t
     uint32_t ki;
     uint32_t kd;
     uint32_t imax;
+    uint32_t imin;
 };
 
 struct config_t
@@ -74,7 +75,7 @@ struct parameter_t
 //////////////////////////////////////////////////////////////////////////
 
 static struct module_t module;
-static const struct parameter_t parameters[9] =
+static const struct parameter_t parameters[10] =
 {
     {"number_of_motors", &module.config.number_of_motors},
     {"counts_per_rev", &module.config.counts_per_rev},
@@ -84,7 +85,8 @@ static const struct parameter_t parameters[9] =
     {"kp", &module.config.pid.kp},
     {"ki", &module.config.pid.ki},
     {"kd", &module.config.pid.kd},
-    {"imax", &module.config.pid.imax}
+    {"imax", &module.config.pid.imax},
+    {"imin", &module.config.pid.imin}
 };
 
 //////////////////////////////////////////////////////////////////////////
