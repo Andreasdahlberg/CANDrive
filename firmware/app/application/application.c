@@ -284,7 +284,7 @@ static inline void PrintIdAndRevision(void)
 
 static inline void PrintConfig(void)
 {
-    Logging_Info(module.logger, "config: {valid: %s, number_of_motors: %u, counts_per_rev: %u, no_load_rpm: %u, no_load_current: %u, stall_current: %u, kp: %u, ki: %u, kd: %u}",
+    Logging_Info(module.logger, "config: {valid: %s, number_of_motors: %u, counts_per_rev: %u, no_load_rpm: %u, no_load_current: %u, stall_current: %u, kp: %u, ki: %u, kd: %u, imax: %i, imin: %i}",
                  Config_IsValid() ? "true" : "false",
                  Config_GetNumberOfMotors(),
                  Config_GetCountsPerRev(),
@@ -293,7 +293,9 @@ static inline void PrintConfig(void)
                  Config_GetStallCurrent(),
                  Config_GetValue("kp"),
                  Config_GetValue("ki"),
-                 Config_GetValue("kd")
+                 Config_GetValue("kd"),
+                 Config_GetValue("imax"),
+                 Config_GetValue("imin")
                 );
 }
 
