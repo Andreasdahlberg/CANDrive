@@ -53,7 +53,7 @@ along with CANDrive firmware.  If not, see <http://www.gnu.org/licenses/>.
 
 #define APPLICATION_LOGGER_NAME "App"
 #ifndef APPLICATION_LOGGER_DEBUG_LEVEL
-#define APPLICATION_LOGGER_DEBUG_LEVEL LOGGING_DEBUG
+#define APPLICATION_LOGGER_DEBUG_LEVEL LOGGING_INFO
 #endif
 
 //////////////////////////////////////////////////////////////////////////
