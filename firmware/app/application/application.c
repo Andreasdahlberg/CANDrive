@@ -300,7 +300,7 @@ static inline void PrintResetFlags(void)
 static inline void PrintIdAndRevision(void)
 {
     struct board_id_t device_id = Board_GetId();
-    Logging_Info(module.logger, "Id=%x%x%x HW=%u SW=%u",
+    Logging_Info(module.logger, "board_info: {id: %x%x%x, hw: %u,  sw: %u}",
                  device_id.offset_0,
                  device_id.offset_4,
                  device_id.offset_8,
