@@ -102,6 +102,8 @@ void Motor_Init(struct motor_t *self_p,
     PWM_SetFrequency(&self_p->pwm_output, PWM_FREQUENCY);
     PWM_SetDuty(&self_p->pwm_output, 0);
 
+    self_p->direction = timer_get_direction(self_p->config_p->encoder.timer);
+
     Logging_Info(self_p->logger_p, "Motor(%s) initialized", name);
 }
 
@@ -113,14 +115,14 @@ void Motor_Update(struct motor_t *self_p)
     if (SysTime_GetDifference(self_p->timer) >= update_period_ms)
     {
         const int32_t count = (int32_t)GetPosition(self_p);
-        const int32_t difference = GetCountDifference(self_p, count);
-
-        /* TODO: Check direction here! */
-        if (difference >= 0)
+        const uint32_t direction = timer_get_direction(self_p->config_p->encoder.timer);
+        if (direction == self_p->direction)
         {
+            const int32_t difference = GetCountDifference(self_p, count);
             self_p->rpm = (int16_t)CountToRPM(self_p, difference);
         }
 
+        self_p->direction = direction;
         self_p->count = count;
         self_p->timer = SysTime_GetSystemTime();
     }
@@ -327,12 +329,11 @@ static inline int16_t SenseVoltageToCurrent(const struct motor_t *self_p, uint32
 
 static inline int32_t GetCountDifference(const struct motor_t *self_p, int32_t count)
 {
-    const uint32_t dir = timer_get_direction(self_p->config_p->encoder.timer);
-    const bool wrap_around = (dir != 0) ? self_p->count < count : self_p->count > count;
+    const bool wrap_around = (self_p->direction != 0) ? self_p->count < count : self_p->count > count;
     int32_t difference;
     if (wrap_around)
     {
-        if (dir != 0)
+        if (self_p->direction != 0)
         {
             difference = (count - self_p->counts_per_revolution) - self_p->count - 1;
         }
