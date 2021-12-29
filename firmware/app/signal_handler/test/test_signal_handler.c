@@ -78,6 +78,12 @@ static void SignalHandlerFunc2(struct signal_t *signal_p)
     function_called();
 }
 
+static void SignalHandlerFunc3(struct signal_t *signal_p)
+{
+    assert_non_null(signal_p);
+    function_called();
+}
+
 //////////////////////////////////////////////////////////////////////////
 //TESTS
 //////////////////////////////////////////////////////////////////////////
@@ -99,6 +105,7 @@ static void test_SignalHandler_Process(void **state)
 
     SignalHandler_RegisterHandler(SIGNAL_CONTROL_RPM1, SignalHandlerFunc1);
     SignalHandler_RegisterHandler(SIGNAL_CONTROL_CURRENT1, SignalHandlerFunc2);
+    SignalHandler_RegisterHandler(SIGNAL_CONTROL_MODE1, SignalHandlerFunc3);
 
     frame.id = 0x00;
     SignalHandler_Listener(&frame);
@@ -110,6 +117,7 @@ static void test_SignalHandler_Process(void **state)
     SignalHandler_Listener(&frame);
     expect_function_call(SignalHandlerFunc1);
     expect_function_call(SignalHandlerFunc2);
+    expect_function_call(SignalHandlerFunc3);
     expect_function_call(SystemMonitor_ReportActivity);
     expect_value(SystemMonitor_FeedWatchdog, handle, WATCHDOG_HANDLE);
     SignalHandler_Process();
@@ -210,7 +218,9 @@ static void test_Signal_IDToString(void **state)
         "SIGNAL_CONTROL_RPM1",
         "SIGNAL_CONTROL_RPM2",
         "SIGNAL_CONTROL_CURRENT1",
-        "SIGNAL_CONTROL_CURRENT2"
+        "SIGNAL_CONTROL_CURRENT2",
+        "SIGNAL_CONTROL_MODE1",
+        "SIGNAL_CONTROL_MODE2"
     };
 
     for (size_t i = 0; i < ElementsIn(signal_names); ++i)

@@ -69,6 +69,10 @@ const char *Signal_IDToString(enum signal_id_t id)
             return STRINGIFY(SIGNAL_CONTROL_CURRENT1);
         case SIGNAL_CONTROL_CURRENT2:
             return STRINGIFY(SIGNAL_CONTROL_CURRENT2);
+        case SIGNAL_CONTROL_MODE1:
+            return STRINGIFY(SIGNAL_CONTROL_MODE1);
+        case SIGNAL_CONTROL_MODE2:
+            return STRINGIFY(SIGNAL_CONTROL_MODE2);
         default:
             return "INVALID";
     }

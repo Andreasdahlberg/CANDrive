@@ -208,6 +208,14 @@ static void HandleMotorControlFrame(const struct can_frame_t *frame_p)
         control_signal.data_p = &msg.controller_msg_motor_control_sig_current2;
         DistributeSignal(&control_signal);
 
+        control_signal.id = SIGNAL_CONTROL_MODE1;
+        control_signal.data_p = &msg.controller_msg_motor_control_sig_mode1;
+        DistributeSignal(&control_signal);
+
+        control_signal.id = SIGNAL_CONTROL_MODE2;
+        control_signal.data_p = &msg.controller_msg_motor_control_sig_mode2;
+        DistributeSignal(&control_signal);
+
         SystemMonitor_ReportActivity();
     }
     else
