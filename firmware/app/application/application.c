@@ -83,10 +83,12 @@ static void RegisterConsoleCommands(void);
 static void ConfigureSignalHandler(void);
 static void HandleRPM1Signal(struct signal_t *signal_p);
 static void HandleCurrent1Signal(struct signal_t *signal_p);
+static void HandleMode1Signal(struct signal_t *signal_p);
 static void HandleRPM2Signal(struct signal_t *signal_p);
 static void HandleCurrent2Signal(struct signal_t *signal_p);
+static void HandleMode2Signal(struct signal_t *signal_p);
+static void HandleModeSignal(struct signal_t *signal_p, uint8_t index);
 static void HandleStateChanges(void);
-static void HandleActiveState(void);
 static void BrakeAllMotors(void);
 static inline void PrintResetFlags(void);
 static inline void PrintIdAndRevision(void);
@@ -183,11 +185,13 @@ static void ConfigureSignalHandler(void)
     {
         SignalHandler_RegisterHandler(SIGNAL_CONTROL_RPM1, HandleRPM1Signal);
         SignalHandler_RegisterHandler(SIGNAL_CONTROL_CURRENT1, HandleCurrent1Signal);
+        SignalHandler_RegisterHandler(SIGNAL_CONTROL_MODE1, HandleMode1Signal);
     }
     if (Config_GetNumberOfMotors() > 1)
     {
         SignalHandler_RegisterHandler(SIGNAL_CONTROL_RPM2, HandleRPM2Signal);
         SignalHandler_RegisterHandler(SIGNAL_CONTROL_CURRENT2, HandleCurrent2Signal);
+        SignalHandler_RegisterHandler(SIGNAL_CONTROL_MODE2, HandleMode2Signal);
     }
 }
 
@@ -203,6 +207,11 @@ static void HandleCurrent1Signal(struct signal_t *signal_p)
     MotorController_SetCurrent(BOARD_M1_INDEX, *(int16_t *)signal_p->data_p);
 }
 
+static void HandleMode1Signal(struct signal_t *signal_p)
+{
+    HandleModeSignal(signal_p, BOARD_M1_INDEX);
+}
+
 static void HandleRPM2Signal(struct signal_t *signal_p)
 {
     Signal_Log(signal_p, module.logger);
@@ -213,6 +222,34 @@ static void HandleCurrent2Signal(struct signal_t *signal_p)
 {
     Signal_Log(signal_p, module.logger);
     MotorController_SetCurrent(BOARD_M2_INDEX, *(int16_t *)signal_p->data_p);
+}
+
+static void HandleMode2Signal(struct signal_t *signal_p)
+{
+    HandleModeSignal(signal_p, BOARD_M2_INDEX);
+}
+
+static void HandleModeSignal(struct signal_t *signal_p, uint8_t index)
+{
+    Signal_Log(signal_p, module.logger);
+    const uint8_t mode = *(uint8_t *)signal_p->data_p;
+    switch (mode)
+    {
+        case 0:
+            /* Do nothing */
+            break;
+        case 1:
+            MotorController_Run(index);
+            break;
+        case 2:
+            MotorController_Coast(index);
+            break;
+        case 3:
+            MotorController_Brake(index);
+            break;
+        default:
+            Logging_Warning(module.logger, "Unknown mode: {index: %u, mode: %u}", index, mode);
+    }
 }
 
 static void HandleStateChanges(void)
@@ -226,7 +263,7 @@ static void HandleStateChanges(void)
         switch (state)
         {
             case SYSTEM_MONITOR_ACTIVE:
-                HandleActiveState();
+                /* Do nothing */
                 break;
 
             case SYSTEM_MONITOR_EMERGENCY:
@@ -236,17 +273,7 @@ static void HandleStateChanges(void)
 
             default:
                 break;
-
         }
-    }
-}
-
-static void HandleActiveState(void)
-{
-    const size_t number_of_motors = Config_GetNumberOfMotors();
-    for (size_t i = 0; i < number_of_motors; ++i)
-    {
-        MotorController_Run(i);
     }
 }
 
