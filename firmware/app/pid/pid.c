@@ -192,5 +192,5 @@ static inline int32_t LimitCV(const struct pid_t *self_p, int64_t cv)
 
 static inline bool IsCVSaturated(const struct pid_t *self_p)
 {
-    return self_p->cv <= self_p->parameters.cvmin || self_p->cv >= self_p->parameters.cvmax;
+    return (self_p->cv <= self_p->parameters.cvmin) || (self_p->cv >= self_p->parameters.cvmax);
 }
