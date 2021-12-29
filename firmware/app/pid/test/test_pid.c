@@ -196,6 +196,7 @@ int main(int argc, char *argv[])
         cmocka_unit_test_setup(test_PID_Update_NegativeControlVariable, Setup),
         cmocka_unit_test(test_PID_SetSetpoint_Invalid),
         cmocka_unit_test(test_PID_GetSetpoint_Invalid),
+        cmocka_unit_test(test_PID_SetAndGetSetpoint),
         cmocka_unit_test(test_PID_SetParameters_Invalid),
         cmocka_unit_test(test_PID_GetParameters_Invalid),
         cmocka_unit_test_setup(test_PID_SetGetParameters, Setup),
