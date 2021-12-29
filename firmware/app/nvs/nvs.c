@@ -41,7 +41,7 @@ along with CANDrive firmware.  If not, see <http://www.gnu.org/licenses/>.
 
 #define NVS_LOGGER_NAME "NVS"
 #ifndef NVS_LOGGER_DEBUG_LEVEL
-#define NVS_LOGGER_DEBUG_LEVEL LOGGING_DEBUG
+#define NVS_LOGGER_DEBUG_LEVEL LOGGING_INFO
 #endif
 
 #define FLASH_START 0x08000000

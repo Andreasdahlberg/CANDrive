@@ -41,7 +41,7 @@ along with CANDrive firmware.  If not, see <http://www.gnu.org/licenses/>.
 
 #define ADC_LOGGER_NAME "ADC"
 #ifndef ADC_LOGGER_DEBUG_LEVEL
-#define ADC_LOGGER_DEBUG_LEVEL LOGGING_DEBUG
+#define ADC_LOGGER_DEBUG_LEVEL LOGGING_INFO
 #endif
 
 #define NUMBER_OF_READINGS_PER_SAMPLE 16
@@ -192,7 +192,7 @@ static void SetupADC(void)
     adc_set_sample_time_on_all_channels(ADC1, ADC_SMPR_SMP_28DOT5CYC);
     adc_power_on(ADC1);
 
-    Logging_Debug(module.logger, "Calibrate ADC...");
+    Logging_Info(module.logger, "Calibrate ADC...");
     Delay();
     adc_reset_calibration(ADC1);
     adc_calibrate(ADC1);

@@ -40,7 +40,7 @@ along with CANDrive firmware.  If not, see <http://www.gnu.org/licenses/>.
 
 #define SYSTEMMONITOR_LOGGER_NAME "SysMon"
 #ifndef SYSTEMMONITOR_LOGGER_DEBUG_LEVEL
-#define SYSTEMMONITOR_LOGGER_DEBUG_LEVEL LOGGING_DEBUG
+#define SYSTEMMONITOR_LOGGER_DEBUG_LEVEL LOGGING_INFO
 #endif
 
 #define WATCHDOG_PERIOD_MS 200
@@ -88,14 +88,14 @@ void SystemMonitor_Init(void)
     module.state = SYSTEM_MONITOR_INACTIVE;
 
     module.logger = Logging_GetLogger("SysMon");
-    Logging_SetLevel(module.logger, LOGGING_DEBUG);
+    Logging_SetLevel(module.logger, SYSTEMMONITOR_LOGGER_DEBUG_LEVEL);
 
-    Logging_Debug(module.logger, "{restarts: %u, magic_number: %X, cold: %u, wdt: %u}",
-                  number_of_watchdog_restarts,
-                  cold_restart_magic_number,
-                  (uint32_t)IsColdRestart(),
-                  (uint32_t)IsWatchdogRestart()
-                 );
+    Logging_Info(module.logger, "{restarts: %u, magic_number: %X, cold: %u, wdt: %u}",
+                 number_of_watchdog_restarts,
+                 cold_restart_magic_number,
+                 (uint32_t)IsColdRestart(),
+                 (uint32_t)IsWatchdogRestart()
+                );
 
     if (IsColdRestart())
     {

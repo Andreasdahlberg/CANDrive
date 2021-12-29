@@ -40,7 +40,7 @@ along with CANDrive firmware.  If not, see <http://www.gnu.org/licenses/>.
 //////////////////////////////////////////////////////////////////////////
 
 #ifndef MOTOR_LOGGER_DEBUG_LEVEL
-#define MOTOR_LOGGER_DEBUG_LEVEL LOGGING_DEBUG
+#define MOTOR_LOGGER_DEBUG_LEVEL LOGGING_INFO
 #endif
 
 //////////////////////////////////////////////////////////////////////////
@@ -169,7 +169,7 @@ void Motor_Coast(struct motor_t *self_p)
     PWM_SetDuty(&self_p->pwm_output, 0);
     self_p->status = MOTOR_COAST;
 
-    Logging_Debug(self_p->logger_p, "Coasting enabled");
+    Logging_Info(self_p->logger_p, "Coasting enabled");
 }
 
 void Motor_Brake(struct motor_t *self_p)
@@ -186,7 +186,7 @@ void Motor_Brake(struct motor_t *self_p)
     PWM_Enable(&self_p->pwm_output);
     self_p->status = MOTOR_BRAKE;
 
-    Logging_Debug(self_p->logger_p, "Braking enabled");
+    Logging_Info(self_p->logger_p, "Braking enabled");
 }
 
 enum motor_status_t Motor_GetStatus(const struct motor_t *self_p)

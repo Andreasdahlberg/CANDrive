@@ -43,7 +43,7 @@ along with CANDrive firmware.  If not, see <http://www.gnu.org/licenses/>.
 
 #define LOGGING_LOGGER_NAME "Log"
 #ifndef LOGGING_LOGGER_DEBUG_LEVEL
-#define LOGGING_LOGGER_DEBUG_LEVEL LOGGING_DEBUG
+#define LOGGING_LOGGER_DEBUG_LEVEL LOGGING_INFO
 #endif
 
 //////////////////////////////////////////////////////////////////////////

@@ -43,7 +43,7 @@ along with CANDrive firmware.  If not, see <http://www.gnu.org/licenses/>.
 
 #define MOTOR_CONTROLLER_LOGGER_NAME "MoCon"
 #ifndef MOTOR_CONTROLLER_LOGGER_DEBUG_LEVEL
-#define MOTOR_CONTROLLER_LOGGER_DEBUG_LEVEL LOGGING_DEBUG
+#define MOTOR_CONTROLLER_LOGGER_DEBUG_LEVEL LOGGING_INFO
 #endif
 
 #define MAX_NUMBER_OF_MOTORS 2
