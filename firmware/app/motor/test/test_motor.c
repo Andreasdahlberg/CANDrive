@@ -109,6 +109,8 @@ static int Setup(void **state)
     expect_function_call(PWM_Disable);
     expect_value(PWM_SetFrequency, frequency, DEFAULT_PWM_FREQUENCY);
     expect_value(PWM_SetDuty, duty, 0);
+    expect_value(timer_get_direction, timer_peripheral, motor_config.encoder.timer);
+    will_return(timer_get_direction, TIM_CR1_DIR_UP);
 
     Motor_Init(&motor, motor_name, &motor_config);
     return 0;
@@ -171,6 +173,8 @@ static void test_Motor_Init(void **state)
     expect_function_call(PWM_Disable);
     expect_value(PWM_SetFrequency, frequency, DEFAULT_PWM_FREQUENCY);
     expect_value(PWM_SetDuty, duty, 0);
+    expect_value(timer_get_direction, timer_peripheral, motor_config.encoder.timer);
+    will_return(timer_get_direction, TIM_CR1_DIR_UP);
 
     Motor_Init(&motor, motor_name, &motor_config);
 }
