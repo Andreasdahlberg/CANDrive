@@ -46,7 +46,9 @@ struct pid_parameters_t
     int32_t ki;
     int32_t kd;
     int32_t imax;
+    int32_t imin;
     int32_t cvmax;
+    int32_t cvmin;
     int32_t scale;
 };
 
