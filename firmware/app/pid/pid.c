@@ -148,13 +148,13 @@ static inline int32_t GetIntegral(const struct pid_t *self_p, int32_t error)
         {
             integral = self_p->parameters.imax;
         }
-        else if (integral < 0)
+        else if (integral < self_p->parameters.imin)
         {
-            integral = 0;
+            integral = self_p->parameters.imin;
         }
         else
         {
-            /* No need to update the integral if it's not saturated. */
+            /* No need to limit the integral if it's not saturated. */
         }
     }
     else
@@ -174,9 +174,9 @@ static inline int32_t LimitCV(const struct pid_t *self_p, int64_t cv)
 {
     int32_t limited_cv;
 
-    if (cv < 0)
+    if (cv < self_p->parameters.cvmin)
     {
-        limited_cv = 0;
+        limited_cv = self_p->parameters.cvmin;
     }
     else if (cv > self_p->parameters.cvmax)
     {
@@ -192,5 +192,5 @@ static inline int32_t LimitCV(const struct pid_t *self_p, int64_t cv)
 
 static inline bool IsCVSaturated(const struct pid_t *self_p)
 {
-    return self_p->cv >= self_p->parameters.cvmax;
+    return self_p->cv <= self_p->parameters.cvmin || self_p->cv >= self_p->parameters.cvmax;
 }

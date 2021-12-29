@@ -63,7 +63,9 @@ static int Setup(void **state)
     parameters.ki = 10;
     parameters.kd = 1;
     parameters.imax = 1000;
+    parameters.imin = -1000;
     parameters.cvmax = 100;
+    parameters.cvmin = -100;
     parameters.scale = 100;
 
     return 0;
@@ -83,14 +85,13 @@ static void test_PID_Update_Invalid(void **state)
     expect_assert_failure(PID_Update(NULL, 0));
 }
 
-static void test_PID_Update_ControlVariableLimit(void **state)
+static void test_PID_Update_PositiveControlVariableLimit(void **state)
 {
     assert_int_equal(PID_GetOutput(&pid), 0);
 
     const int32_t cv_limits[] = {0, 1, 100};
     for (size_t i = 0; i < ElementsIn(cv_limits); ++i)
     {
-        parameters.kp = cv_limits[i];
         parameters.cvmax = cv_limits[i];
 
         PID_SetParameters(&pid, &parameters);
@@ -105,12 +106,25 @@ static void test_PID_Update_ControlVariableLimit(void **state)
     }
 }
 
-static void test_PID_Update_NegativeControlVariable(void **state)
+static void test_PID_Update_NegativeControlVariableLimit(void **state)
 {
-    PID_SetParameters(&pid, &parameters);
-    PID_SetSetpoint(&pid, 1);
-    PID_Update(&pid, 1000);
     assert_int_equal(PID_GetOutput(&pid), 0);
+
+    const int32_t cv_limits[] = {0, -1, -100};
+    for (size_t i = 0; i < ElementsIn(cv_limits); ++i)
+    {
+        parameters.cvmin = cv_limits[i];
+
+        PID_SetParameters(&pid, &parameters);
+        PID_SetSetpoint(&pid, -50);
+
+        for (size_t i = 0; i < 50; ++i)
+        {
+            PID_Update(&pid, 0);
+        }
+
+        assert_int_equal(PID_GetOutput(&pid), parameters.cvmin);
+    }
 }
 
 static void test_PID_SetSetpoint_Invalid(void **state)
@@ -157,7 +171,9 @@ static void test_PID_SetGetParameters(void **state)
     assert_int_equal(set_parameters->ki, parameters.ki);
     assert_int_equal(set_parameters->kd, parameters.kd);
     assert_int_equal(set_parameters->imax, parameters.imax);
+    assert_int_equal(set_parameters->imin, parameters.imin);
     assert_int_equal(set_parameters->cvmax, parameters.cvmax);
+    assert_int_equal(set_parameters->cvmin, parameters.cvmin);
     assert_int_equal(set_parameters->scale, parameters.scale);
 }
 
@@ -192,8 +208,8 @@ int main(int argc, char *argv[])
     {
         cmocka_unit_test(test_PID_Init_Invalid),
         cmocka_unit_test(test_PID_Update_Invalid),
-        cmocka_unit_test_setup(test_PID_Update_ControlVariableLimit, Setup),
-        cmocka_unit_test_setup(test_PID_Update_NegativeControlVariable, Setup),
+        cmocka_unit_test_setup(test_PID_Update_PositiveControlVariableLimit, Setup),
+        cmocka_unit_test_setup(test_PID_Update_NegativeControlVariableLimit, Setup),
         cmocka_unit_test(test_PID_SetSetpoint_Invalid),
         cmocka_unit_test(test_PID_GetSetpoint_Invalid),
         cmocka_unit_test(test_PID_SetAndGetSetpoint),
