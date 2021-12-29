@@ -277,10 +277,6 @@ static void test_Application_Run_StateChanges(void **state)
     expect_function_call(Console_Process);
     expect_function_call(SystemMonitor_Update);
     will_return(SystemMonitor_GetState, SYSTEM_MONITOR_ACTIVE);
-    for (size_t i = 0; i < number_of_motors; ++i)
-    {
-        expect_value(MotorController_Run, index, i);
-    }
     will_return(SysTime_GetDifference, 0);
     Application_Run();
 
@@ -340,6 +336,19 @@ static void test_Application_SignalHandlers(void **state)
     expect_value(MotorController_SetCurrent, current, data);
     GetCallback(signal.id)(&signal);
 
+    data = 2;
+    signal.id = SIGNAL_CONTROL_MODE1;
+    expect_value(MotorController_Coast, index, BOARD_M1_INDEX);
+    GetCallback(signal.id)(&signal);
+
+    data = 0;
+    signal.id = SIGNAL_CONTROL_MODE1;
+    GetCallback(signal.id)(&signal);
+
+    data = 4;
+    signal.id = SIGNAL_CONTROL_MODE1;
+    GetCallback(signal.id)(&signal);
+
     data = 3;
     signal.id = SIGNAL_CONTROL_RPM2;
     expect_value(MotorController_SetRPM, index, BOARD_M2_INDEX);
@@ -350,6 +359,16 @@ static void test_Application_SignalHandlers(void **state)
     signal.id = SIGNAL_CONTROL_CURRENT2;
     expect_value(MotorController_SetCurrent, index, BOARD_M2_INDEX);
     expect_value(MotorController_SetCurrent, current, data);
+    GetCallback(signal.id)(&signal);
+
+    data = 3;
+    signal.id = SIGNAL_CONTROL_MODE2;
+    expect_value(MotorController_Brake, index, BOARD_M2_INDEX);
+    GetCallback(signal.id)(&signal);
+
+    data = 1;
+    signal.id = SIGNAL_CONTROL_MODE2;
+    expect_value(MotorController_Run, index, BOARD_M2_INDEX);
     GetCallback(signal.id)(&signal);
 }
 
