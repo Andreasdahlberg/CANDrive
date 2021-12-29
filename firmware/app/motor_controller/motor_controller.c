@@ -197,7 +197,9 @@ static inline void InitializeMotors(void)
         .ki = (int32_t)Config_GetValue("ki"),
         .kd = (int32_t)Config_GetValue("kd"),
         .imax = (int32_t)Config_GetValue("imax"),
+        .imin = (int32_t)Config_GetValue("imin"),
         .cvmax = 100,
+        .cvmin = -100,
         .scale = 100
     };
 
