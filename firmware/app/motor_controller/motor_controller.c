@@ -27,6 +27,7 @@ along with CANDrive firmware.  If not, see <http://www.gnu.org/licenses/>.
 
 #include <assert.h>
 #include <stdio.h>
+#include <inttypes.h>
 #include "utility.h"
 #include "logging.h"
 #include "board.h"
@@ -206,7 +207,7 @@ static inline void InitializeMotors(void)
     for (size_t i = 0; i < number_of_motors; ++i)
     {
         char name[8];
-        snprintf(name, sizeof(name), "M%u", i);
+        snprintf(name, sizeof(name), "M%" PRIu32 , (uint32_t)i);
         Motor_Init(&module.instances[i].motor, name, Board_GetMotorConfig(i));
 
         assert(pid_parameters.cvmax >= INT16_MIN && pid_parameters.cvmax <= INT16_MAX &&
