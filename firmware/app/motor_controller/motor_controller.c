@@ -150,15 +150,21 @@ void MotorController_Run(size_t index)
 void MotorController_Coast(size_t index)
 {
     assert(index < Config_GetNumberOfMotors());
-    Motor_Coast(&module.instances[index].motor);
-    ResetPIDControllers(&module.instances[index]);
+    if (Motor_GetStatus(&module.instances[index].motor) != MOTOR_COAST)
+    {
+        Motor_Coast(&module.instances[index].motor);
+        ResetPIDControllers(&module.instances[index]);
+    }
 }
 
 void MotorController_Brake(size_t index)
 {
     assert(index < Config_GetNumberOfMotors());
-    Motor_Brake(&module.instances[index].motor);
-    ResetPIDControllers(&module.instances[index]);
+    if (Motor_GetStatus(&module.instances[index].motor) != MOTOR_BRAKE)
+    {
+        Motor_Brake(&module.instances[index].motor);
+        ResetPIDControllers(&module.instances[index]);
+    }
 }
 
 uint32_t MotorController_GetPosition(size_t index)
@@ -207,7 +213,7 @@ static inline void InitializeMotors(void)
     for (size_t i = 0; i < number_of_motors; ++i)
     {
         char name[8];
-        snprintf(name, sizeof(name), "M%" PRIu32 , (uint32_t)i);
+        snprintf(name, sizeof(name), "M%" PRIu32, (uint32_t)i);
         Motor_Init(&module.instances[i].motor, name, Board_GetMotorConfig(i));
 
         assert(pid_parameters.cvmax >= INT16_MIN && pid_parameters.cvmax <= INT16_MAX &&

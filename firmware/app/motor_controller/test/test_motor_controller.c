@@ -289,8 +289,12 @@ static void test_MotorController_Coast_Invalid(void **state)
 static void test_MotorController_Coast(void **state)
 {
     will_return_maybe(Config_GetNumberOfMotors, NUMBER_OF_MOTORS);
+    will_return(Motor_GetStatus, MOTOR_RUN);
     expect_function_call(Motor_Coast);
     expect_function_calls(PID_Reset, 2);
+    MotorController_Coast(0);
+
+    will_return(Motor_GetStatus, MOTOR_COAST);
     MotorController_Coast(0);
 }
 
@@ -303,8 +307,12 @@ static void test_MotorController_Brake_Invalid(void **state)
 static void test_MotorController_Brake(void **state)
 {
     will_return_maybe(Config_GetNumberOfMotors, NUMBER_OF_MOTORS);
+    will_return(Motor_GetStatus, MOTOR_RUN);
     expect_function_call(Motor_Brake);
     expect_function_calls(PID_Reset, 2);
+    MotorController_Brake(0);
+
+    will_return(Motor_GetStatus, MOTOR_BRAKE);
     MotorController_Brake(0);
 }
 
@@ -592,6 +600,7 @@ static void test_MotorControllerCmd_Coast(void **state)
     will_return(Console_GetInt32Argument, true);
     will_return(Console_GetInt32Argument, index);
 
+    will_return(Motor_GetStatus, MOTOR_BRAKE);
     expect_function_call(Motor_Coast);
     expect_function_calls(PID_Reset, 2);
     MotorControllerCmd_Coast();
@@ -628,6 +637,7 @@ static void test_MotorControllerCmd_Brake(void **state)
     will_return(Console_GetInt32Argument, true);
     will_return(Console_GetInt32Argument, index);
 
+    will_return(Motor_GetStatus, MOTOR_COAST);
     expect_function_call(Motor_Brake);
     expect_function_calls(PID_Reset, 2);
     MotorControllerCmd_Brake();
