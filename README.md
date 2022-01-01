@@ -53,12 +53,15 @@ scons app/motor/test test_Motor_SetSpeed
 
 #### Monitor
 The monitor tool is a serial terminal which parses serial output from the device and formats the
-output to make it easier to read.
+output to make it easier to read. It also incorporates a simple command line used for debug commands 
+and device configuration. The debug commands are not intended for controlling the motors during normal 
+operation since they bypass several of the safety features.
 
 ##### Features
 * Host timestamps
 * Color coded debug levels
 * Translation from addresses to file and line
+* Command line
 * Filtering[Not implemented]
 
 ![Example of monitor output](doc/images/monitor.png)
@@ -68,14 +71,8 @@ The monitor is started by typing *scons monitor*.
 Serial port and baudrate can be configured [here](firmware/config.py) or on the command line, e.g.
 *scons monitor SERIAL_PORT=/dev/ttyACM0 BAUD_RATE=921600*
 
-#### Debug Console
-CANDrive incorporates a simple debug console used for traces and debug commands.
-The debug commands are not intended for controlling the motors during normal usage
-since they bypass several of the safety features.
-
-The debug console is available at JP1 and disabled by default. It can be enabled by moving jumper J1.
-Type *scons serial* to access the console, this is only a shortcut for minicom at the moment and will
-be incorporated into the serial monitor at some point.
+The serial port used by the monitor is available at JP1 and is disabled by default. It can be 
+enabled by moving jumper J1.
 
 ##### Available commands
 ###### rpm
@@ -83,7 +80,7 @@ rpm \[MOTOR_INDEX\] \[RPM\]
 
 Ex.
 ```
-> rpm 0 50
+CANDrive> rpm 0 50
 ```
 
 ###### current
@@ -91,7 +88,7 @@ current \[MOTOR_INDEX\] \[CURRENT\]
 
 Ex.
 ```
-> current 1 1500
+CANDrive> current 1 1500
 ```
 
 ###### run
@@ -99,7 +96,7 @@ run \[MOTOR_INDEX\]
 
 Ex.
 ```
-> run 0
+CANDrive> run 0
 ```
 
 ###### coast
@@ -107,7 +104,7 @@ coast \[MOTOR_INDEX\]
 
 Ex.
 ```
-> coast 0
+CANDrive> coast 0
 ```
 
 ###### brake
@@ -115,7 +112,7 @@ brake \[MOTOR_INDEX\]
 
 Ex.
 ```
-> brake 0
+CANDrive> brake 0
 ```
 
 ###### reset
@@ -123,7 +120,7 @@ reset
 
 Ex.
 ```
-> reset
+CANDrive> reset
 ```
 
 ###### level
@@ -131,7 +128,15 @@ level \[MODULE\] \[LEVEL\]
 
 Ex.
 ```
-> level App 10
+CANDrive> level App 10
+```
+
+###### store
+store \[PARAMETER\] \[VALUE\]
+
+Ex.
+```
+CANDrive> store number_of_motors 1
 ```
 
 ## Hardware
