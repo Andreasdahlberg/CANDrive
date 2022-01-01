@@ -21,12 +21,8 @@ Import(['*'])
 
 
 env.Append(CPPPATH=[
-    '#app/utility',
-    '#app/can_interface',
-    '#app/logging',
     '../test/candb',
-    '#app/signal_handler',
-    '#app/fifo'
+    '#app/signal_handler'
     ])
 
 env.Append(LINKFLAGS=[

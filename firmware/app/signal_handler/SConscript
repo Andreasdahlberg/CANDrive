@@ -26,6 +26,7 @@ env.Append(CPPPATH=[
     '#app/logging',
     '../candb',
     '#app/fifo',
+    '#app/can_interface',
     '#app/system_monitor'
 ])
 
