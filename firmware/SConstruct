@@ -18,7 +18,6 @@
 __author__ = 'andreas.dahlberg90@gmail.com (Andreas Dahlberg)'
 
 import os
-import sys
 
 PROJECT_NAME = 'CANDrive'
 
