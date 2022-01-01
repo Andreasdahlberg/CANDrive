@@ -56,6 +56,10 @@ along with CANDrive firmware.  If not, see <http://www.gnu.org/licenses/>.
 #define APPLICATION_LOGGER_DEBUG_LEVEL LOGGING_INFO
 #endif
 
+#ifndef GIT_DESC
+#define GIT_DESC "UNKNOWN"
+#endif
+
 //////////////////////////////////////////////////////////////////////////
 //TYPE DEFINITIONS
 //////////////////////////////////////////////////////////////////////////
@@ -300,12 +304,12 @@ static inline void PrintResetFlags(void)
 static inline void PrintIdAndRevision(void)
 {
     struct board_id_t device_id = Board_GetId();
-    Logging_Info(module.logger, "board_info: {id: %x%x%x, hw: %u,  sw: %u}",
+    Logging_Info(module.logger, "board_info: {id: %x%x%x, hw: %u,  sw: %s}",
                  device_id.offset_0,
                  device_id.offset_4,
                  device_id.offset_8,
                  Board_GetHardwareRevision(),
-                 Board_GetSoftwareRevision()
+                 GIT_DESC
                 );
 }
 

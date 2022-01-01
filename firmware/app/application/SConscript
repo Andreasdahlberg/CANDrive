@@ -16,10 +16,15 @@
 # along with CANDrive.  If not, see <http://www.gnu.org/licenses/>.
 
 import os
+import subprocess
+
+def get_git_desc():
+  return subprocess.Popen('git describe --always --dirty', stdout=subprocess.PIPE, shell=True).stdout.read().strip().decode('utf-8')
 
 Import(['*'])
 
 SOURCE = Glob('*.c')
+GIT_DESC = get_git_desc()
 
 env.Append(CPPPATH=[
     '#app/board',
@@ -39,6 +44,10 @@ env.Append(CPPPATH=[
     '#app/config'
 ])
 
-OBJECTS = env.Object(SOURCE)
+# Clone env to keep the GIT_DESC define in application only.
+application_env = env.Clone()
+application_env.Append(CPPDEFINES=['GIT_DESC=\\"{}\\"'.format(GIT_DESC)])
+
+OBJECTS = application_env.Object(SOURCE)
 
 Return('OBJECTS')
