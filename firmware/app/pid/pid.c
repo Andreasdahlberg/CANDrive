@@ -69,11 +69,11 @@ int32_t PID_Update(struct pid_t *self_p, int32_t input)
     const int32_t integral = GetIntegral(self_p, error);
     const int32_t derivative = GetDerivative(self_p, input);
 
-    const int32_t p = (error * self_p->parameters.kp) / self_p->parameters.scale;
-    const int32_t i = (integral * self_p->parameters.ki) / self_p->parameters.scale;
-    const int32_t d = (derivative * self_p->parameters.kd) / self_p->parameters.scale;
+    const int32_t p = (error * self_p->parameters.kp);
+    const int32_t i = (integral * self_p->parameters.ki);
+    const int32_t d = (derivative * self_p->parameters.kd);
 
-    const int64_t cv = p + i - d;
+    const int64_t cv = (p + i - d + (self_p->parameters.scale / 2)) / self_p->parameters.scale;
     self_p->cv = LimitCV(self_p, cv);
 
     self_p->last_input = input;
@@ -100,6 +100,7 @@ void PID_SetParameters(struct pid_t *self_p, const struct pid_parameters_t *para
 {
     assert(self_p != NULL);
     assert(parameters_p != NULL);
+    assert(parameters_p->scale % 2 == 0);
 
     self_p->parameters = *parameters_p;
 }
