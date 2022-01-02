@@ -155,6 +155,10 @@ static void test_PID_SetParameters_Invalid(void **state)
 
     expect_assert_failure(PID_SetParameters(NULL, &parameters));
     expect_assert_failure(PID_SetParameters(&pid, NULL));
+
+    /* Scale must be an even number */
+    parameters.scale = 3;
+    expect_assert_failure(PID_SetParameters(&pid, &parameters));
 }
 
 static void test_PID_GetParameters_Invalid(void **state)
