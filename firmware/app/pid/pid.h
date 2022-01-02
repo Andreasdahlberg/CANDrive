@@ -54,7 +54,7 @@ struct pid_parameters_t
 
 struct pid_t
 {
-    int32_t last_error;
+    int32_t last_input;
     int32_t last_integral;
     int32_t cv;
     int32_t sp;

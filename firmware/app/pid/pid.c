@@ -46,7 +46,7 @@ along with CANDrive firmware.  If not, see <http://www.gnu.org/licenses/>.
 
 static inline int32_t GetError(const struct pid_t *self_p, int32_t pv);
 static inline int32_t GetIntegral(const struct pid_t *self_p, int32_t error);
-static inline int32_t GetDerivative(const struct pid_t *self_p, int32_t error);
+static inline int32_t GetDerivative(const struct pid_t *self_p, int32_t input);
 static inline int32_t LimitCV(const struct pid_t *self_p, int64_t cv);
 static inline bool IsCVSaturated(const struct pid_t *self_p);
 
@@ -67,16 +67,16 @@ int32_t PID_Update(struct pid_t *self_p, int32_t input)
 
     const int32_t error = GetError(self_p, input);
     const int32_t integral = GetIntegral(self_p, error);
-    const int32_t derivative = GetDerivative(self_p, error);
+    const int32_t derivative = GetDerivative(self_p, input);
 
     const int32_t p = (error * self_p->parameters.kp) / self_p->parameters.scale;
     const int32_t i = (integral * self_p->parameters.ki) / self_p->parameters.scale;
     const int32_t d = (derivative * self_p->parameters.kd) / self_p->parameters.scale;
 
-    const int64_t cv = p + i + d;
+    const int64_t cv = p + i - d;
     self_p->cv = LimitCV(self_p, cv);
 
-    self_p->last_error = error;
+    self_p->last_input = input;
     self_p->last_integral = integral;
 
     return self_p->cv;
@@ -123,7 +123,7 @@ void PID_Reset(struct pid_t *self_p)
     assert(self_p != NULL);
 
     self_p->cv = 0;
-    self_p->last_error = 0;
+    self_p->last_input = 0;
     self_p->last_integral = 0;
 }
 
@@ -165,9 +165,9 @@ static inline int32_t GetIntegral(const struct pid_t *self_p, int32_t error)
     return integral;
 }
 
-static inline int32_t GetDerivative(const struct pid_t *self_p, int32_t error)
+static inline int32_t GetDerivative(const struct pid_t *self_p, int32_t input)
 {
-    return error - self_p->last_error;
+    return input - self_p->last_input;
 }
 
 static inline int32_t LimitCV(const struct pid_t *self_p, int64_t cv)
