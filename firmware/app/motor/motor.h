@@ -107,7 +107,6 @@ struct motor_t
     int32_t counts_per_revolution;
     int16_t rpm;
     uint32_t timer;
-    uint32_t direction;
 };
 
 //////////////////////////////////////////////////////////////////////////

@@ -30,6 +30,7 @@ along with CANDrive firmware.  If not, see <http://www.gnu.org/licenses/>.
 #include <libopencm3/stm32/timer.h>
 #include <libopencm3/cm3/nvic.h>
 #include <assert.h>
+#include <stdlib.h>
 #include "utility.h"
 #include "systime.h"
 #include "config.h"
@@ -102,8 +103,6 @@ void Motor_Init(struct motor_t *self_p,
     PWM_SetFrequency(&self_p->pwm_output, PWM_FREQUENCY);
     PWM_SetDuty(&self_p->pwm_output, 0);
 
-    self_p->direction = timer_get_direction(self_p->config_p->encoder.timer);
-
     Logging_Info(self_p->logger_p, "Motor(%s) initialized", name);
 }
 
@@ -115,14 +114,9 @@ void Motor_Update(struct motor_t *self_p)
     if (SysTime_GetDifference(self_p->timer) >= update_period_ms)
     {
         const int32_t count = (int32_t)GetPosition(self_p);
-        const uint32_t direction = timer_get_direction(self_p->config_p->encoder.timer);
-        if (direction == self_p->direction)
-        {
-            const int32_t difference = GetCountDifference(self_p, count);
-            self_p->rpm = (int16_t)CountToRPM(self_p, difference);
-        }
+        const int32_t difference = GetCountDifference(self_p, count);
 
-        self_p->direction = direction;
+        self_p->rpm = (int16_t)CountToRPM(self_p, difference);
         self_p->count = count;
         self_p->timer = SysTime_GetSystemTime();
     }
@@ -329,24 +323,19 @@ static inline int16_t SenseVoltageToCurrent(const struct motor_t *self_p, uint32
 
 static inline int32_t GetCountDifference(const struct motor_t *self_p, int32_t count)
 {
-    const bool wrap_around = (self_p->direction != 0) ? self_p->count < count : self_p->count > count;
-    int32_t difference;
+    int32_t difference = count - self_p->count;
+    const bool wrap_around = abs(difference) > (self_p->counts_per_revolution / 2);
     if (wrap_around)
     {
-        if (self_p->direction != 0)
+        if (difference > 0)
         {
-            difference = (count - self_p->counts_per_revolution) - self_p->count - 1;
+            difference = difference - self_p->counts_per_revolution - 1;
         }
         else
         {
-            difference = (self_p->counts_per_revolution - self_p->count) + count + 1;
+            difference = self_p->counts_per_revolution + difference + 1;
         }
     }
-    else
-    {
-        difference = count - self_p->count;
-    }
-
     return difference;
 }
 

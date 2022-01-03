@@ -109,8 +109,6 @@ static int Setup(void **state)
     expect_function_call(PWM_Disable);
     expect_value(PWM_SetFrequency, frequency, DEFAULT_PWM_FREQUENCY);
     expect_value(PWM_SetDuty, duty, 0);
-    expect_value(timer_get_direction, timer_peripheral, motor_config.encoder.timer);
-    will_return(timer_get_direction, TIM_CR1_DIR_UP);
 
     Motor_Init(&motor, motor_name, &motor_config);
     return 0;
@@ -122,15 +120,13 @@ static int16_t CountToRPM(int32_t count)
     return ((count * sample_frequency * 60) + (COUNTS_PER_REVOLUTION / 2)) /  COUNTS_PER_REVOLUTION;
 }
 
-static void ExpectUpdate(uint32_t time_difference, uint32_t count, uint32_t direction)
+static void ExpectUpdate(uint32_t time_difference, uint32_t count)
 {
     will_return(SysTime_GetDifference, time_difference);
     if (time_difference >= 10)
     {
         expect_value(timer_get_counter, timer_peripheral, motor_config.encoder.timer);
         will_return(timer_get_counter, count);
-        expect_value(timer_get_direction, timer_peripheral, motor_config.encoder.timer);
-        will_return(timer_get_direction, direction);
         will_return(SysTime_GetSystemTime, time_difference);
     }
 }
@@ -173,8 +169,6 @@ static void test_Motor_Init(void **state)
     expect_function_call(PWM_Disable);
     expect_value(PWM_SetFrequency, frequency, DEFAULT_PWM_FREQUENCY);
     expect_value(PWM_SetDuty, duty, 0);
-    expect_value(timer_get_direction, timer_peripheral, motor_config.encoder.timer);
-    will_return(timer_get_direction, TIM_CR1_DIR_UP);
 
     Motor_Init(&motor, motor_name, &motor_config);
 }
@@ -197,27 +191,27 @@ static void test_Motor_Update_Invalid(void **state)
 static void test_Motor_Update(void **state)
 {
     /* Not time for update */
-    ExpectUpdate(9, 0, TIM_CR1_DIR_UP);
+    ExpectUpdate(9, 0);
     Motor_Update(&motor);
     assert_int_equal(Motor_GetRPM(&motor), 0);
 
     const int32_t cv_counts[] = {0, 0, 1, 51, 158};
     for (size_t i = 1; i < ElementsIn(cv_counts); ++i)
     {
-        ExpectUpdate(10, cv_counts[i], TIM_CR1_DIR_UP);
+        ExpectUpdate(10, cv_counts[i]);
         Motor_Update(&motor);
         const int32_t count_diff = cv_counts[i] - cv_counts[i - 1];
         assert_int_equal(Motor_GetRPM(&motor), CountToRPM(count_diff));
     }
 
     /* Add an extra update since the first update after changing direction is ignored. */
-    ExpectUpdate(10, 158, TIM_CR1_DIR_DOWN);
+    ExpectUpdate(10, 158);
     Motor_Update(&motor);
 
     const int32_t ccv_counts[] = {158, 158, 51, 1, 0};
     for (size_t i = 1; i < ElementsIn(ccv_counts); ++i)
     {
-        ExpectUpdate(10, ccv_counts[i], TIM_CR1_DIR_DOWN);
+        ExpectUpdate(10, ccv_counts[i]);
         Motor_Update(&motor);
         const int32_t count_diff = ccv_counts[i] - ccv_counts[i - 1];
         assert_int_equal(Motor_GetRPM(&motor), CountToRPM(count_diff));
@@ -226,13 +220,19 @@ static void test_Motor_Update(void **state)
 
 static void test_Motor_Update_WrapAround(void **state)
 {
-    ExpectUpdate(10, 9550, TIM_CR1_DIR_UP);
+    /* First update to init the internal motor state to a known value. */
+    ExpectUpdate(10, 9550);
     Motor_Update(&motor);
-    ExpectUpdate(10, 49, TIM_CR1_DIR_UP);
+
+    /* Positive wrap around. */
+    ExpectUpdate(10, 49);
     Motor_Update(&motor);
     assert_int_equal(Motor_GetRPM(&motor), CountToRPM(100));
 
-    /* TODO: test reverse wrap around */
+    /* Negative wrap around. */
+    ExpectUpdate(10, 9550);
+    Motor_Update(&motor);
+    assert_int_equal(Motor_GetRPM(&motor), CountToRPM(-100));
 }
 
 static void test_Motor_GetCurrent_Invalid(void **state)
