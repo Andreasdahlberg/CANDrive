@@ -41,12 +41,12 @@ scons test
 
 Run a single test suite:
 ```
-scons app/motor/test
+scons app/motor/test && build/motor/test/TestRunner
 ```
 
 Run a single unit test:
 ```
-scons app/motor/test test_Motor_SetSpeed
+scons app/motor/test && build/motor/test/TestRunner test_Motor_SetSpeed
 ```
 
 ### Tools
