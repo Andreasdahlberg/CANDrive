@@ -223,6 +223,20 @@ class Monitor():
         return log_level_match and exclude_match
 
 
+def handle_command(monitor, command):
+    """Load commands from a file or run command directly"""
+    if command.startswith('exec'):
+        parts = command.split(' ')
+        if len(parts) == 2:
+            with open(parts[1]) as file:
+                lines = file.readlines()
+                for line in lines:
+                    monitor.write(line.strip())
+                    time.sleep(0.01)
+    else:
+        monitor.write(command)
+
+
 def wait_for_commands(monitor):
     """Wait for commands from the user"""
     try:
@@ -230,7 +244,8 @@ def wait_for_commands(monitor):
         while 1:
             with patch_stdout(raw=True):
                 result = session.prompt("CANDrive> ", auto_suggest=AutoSuggestFromHistory())
-                monitor.write(result)
+                handle_command(monitor, result)
+
     except KeyboardInterrupt:
         pass
 
