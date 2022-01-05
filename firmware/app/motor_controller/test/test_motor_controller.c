@@ -79,7 +79,7 @@ static int Setup(void **state)
 
 static void ExpectPIDUpdate(int32_t rpm_cv, int32_t current_cv, int32_t expected_cv)
 {
-    const uint32_t pid_update_period = 100;
+    const uint32_t pid_update_period = 10;
     will_return(SysTime_GetDifference, pid_update_period);
     expect_function_calls(Motor_Update, NUMBER_OF_MOTORS);
 
@@ -136,7 +136,7 @@ static void test_MotorController_Update(void **state)
     MotorController_Update();
 
     /* No PID update due to motor not running*/
-    const uint32_t pid_update_period = 100;
+    const uint32_t pid_update_period = 10;
     will_return(SysTime_GetDifference, pid_update_period);
     expect_function_calls(Motor_Update, NUMBER_OF_MOTORS);
     will_return(Motor_GetStatus, MOTOR_COAST);
