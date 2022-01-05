@@ -137,7 +137,7 @@ signalhandler_handler_cb_t GetCallback(enum signal_id_t id)
     }
 
     assert_non_null(callback);
-    return  callback;
+    return callback;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -322,6 +322,7 @@ static void test_Application_SignalHandlers(void **state)
     struct signal_t signal;
     signal.data_p = &data;
 
+    will_return_maybe(SystemMonitor_GetState, SYSTEM_MONITOR_ACTIVE);
     will_return_maybe(Signal_IDToString, "MockSignal");
 
     data = 1;
@@ -372,6 +373,24 @@ static void test_Application_SignalHandlers(void **state)
     GetCallback(signal.id)(&signal);
 }
 
+static void test_Application_SignalHandlers_Emergency(void **state)
+{
+    uint16_t data;
+    struct signal_t signal;
+    signal.data_p = &data;
+
+    will_return_maybe(SystemMonitor_GetState, SYSTEM_MONITOR_EMERGENCY);
+    will_return_maybe(Signal_IDToString, "MockSignal");
+
+    data = 1;
+    signal.id = SIGNAL_CONTROL_MODE1;
+    GetCallback(signal.id)(&signal);
+
+    data = 2;
+    signal.id = SIGNAL_CONTROL_MODE2;
+    GetCallback(signal.id)(&signal);
+}
+
 //////////////////////////////////////////////////////////////////////////
 //FUNCTIONS
 //////////////////////////////////////////////////////////////////////////
@@ -384,7 +403,8 @@ int main(int argc, char *argv[])
         cmocka_unit_test(test_Application_Init),
         cmocka_unit_test_setup(test_Application_Run, Setup),
         cmocka_unit_test_setup(test_Application_Run_StateChanges, Setup),
-        cmocka_unit_test_setup(test_Application_SignalHandlers, Setup)
+        cmocka_unit_test_setup(test_Application_SignalHandlers, Setup),
+        cmocka_unit_test_setup(test_Application_SignalHandlers_Emergency, Setup)
     };
 
     if (argc >= 2)

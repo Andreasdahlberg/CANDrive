@@ -236,23 +236,27 @@ static void HandleMode2Signal(struct signal_t *signal_p)
 static void HandleModeSignal(struct signal_t *signal_p, uint8_t index)
 {
     Signal_Log(signal_p, module.logger);
-    const uint8_t mode = *(uint8_t *)signal_p->data_p;
-    switch (mode)
+
+    if (SystemMonitor_GetState() != SYSTEM_MONITOR_EMERGENCY)
     {
-        case 0:
-            /* Do nothing */
-            break;
-        case 1:
-            MotorController_Run(index);
-            break;
-        case 2:
-            MotorController_Coast(index);
-            break;
-        case 3:
-            MotorController_Brake(index);
-            break;
-        default:
-            Logging_Warning(module.logger, "Unknown mode: {index: %u, mode: %u}", index, mode);
+        const uint8_t mode = *(uint8_t *)signal_p->data_p;
+        switch (mode)
+        {
+            case 0:
+                /* Do nothing */
+                break;
+            case 1:
+                MotorController_Run(index);
+                break;
+            case 2:
+                MotorController_Coast(index);
+                break;
+            case 3:
+                MotorController_Brake(index);
+                break;
+            default:
+                Logging_Warning(module.logger, "Unknown mode: {index: %u, mode: %u}", index, mode);
+        }
     }
 }
 
