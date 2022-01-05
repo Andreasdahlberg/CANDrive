@@ -249,6 +249,8 @@ static inline void SetupTimer(const struct motor_t *self_p)
     timer_ic_disable(self_p->config_p->encoder.timer, TIM_IC2);
     timer_ic_set_input(self_p->config_p->encoder.timer, TIM_IC1, TIM_IC_IN_TI1);
     timer_ic_set_input(self_p->config_p->encoder.timer, TIM_IC2, TIM_IC_IN_TI2);
+    timer_ic_set_filter(self_p->config_p->encoder.timer, TIM_IC1, TIM_IC_CK_INT_N_8);
+    timer_ic_set_filter(self_p->config_p->encoder.timer, TIM_IC2, TIM_IC_CK_INT_N_8);
     timer_ic_enable(self_p->config_p->encoder.timer, TIM_IC1);
     timer_ic_enable(self_p->config_p->encoder.timer, TIM_IC2);
     timer_enable_counter(self_p->config_p->encoder.timer);
