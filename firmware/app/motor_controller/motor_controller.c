@@ -47,7 +47,7 @@ along with CANDrive firmware.  If not, see <http://www.gnu.org/licenses/>.
 #endif
 
 #define MAX_NUMBER_OF_MOTORS 2
-#define UPDATE_TIME_MS 100
+#define UPDATE_TIME_MS 10
 
 //////////////////////////////////////////////////////////////////////////
 //TYPE DEFINITIONS
