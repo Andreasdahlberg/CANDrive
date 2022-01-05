@@ -151,7 +151,7 @@ class Monitor():
 
     def _parse_line(self, data):
         """Parse line and return values"""
-        pattern = r'\[(?P<timestamp>\d*)\] (?P<level>\w*):(?P<module>\w*)\s(?P<file>\D*):(?P<line>\d*)\s(?P<message>.*)\r\n'
+        pattern = r'.*\[(?P<timestamp>\d*)\] (?P<level>\w*):(?P<module>\w*)\s(?P<file>\D*):(?P<line>\d*)\s(?P<message>.*)\r\n'
 
         if data:
             try:
