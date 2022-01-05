@@ -271,7 +271,7 @@ static void test_Motor_SetSpeed_Invalid(void **state)
 {
     expect_assert_failure(Motor_SetSpeed(NULL, 0));
 
-    int16_t invalid_speeds[] = {INT16_MIN, -101, 101, INT16_MAX};
+    int16_t invalid_speeds[] = {INT16_MIN, -1001, 1001, INT16_MAX};
     for (size_t i = 0; i < ElementsIn(invalid_speeds); ++i)
     {
         expect_assert_failure(Motor_SetSpeed(&motor, invalid_speeds[i]));
@@ -280,7 +280,7 @@ static void test_Motor_SetSpeed_Invalid(void **state)
 
 static void test_Motor_SetSpeed(void **state)
 {
-    int16_t speeds[] = {-100, -25, 0, 50, 100};
+    int16_t speeds[] = {-1000, -250, 0, 500, 1000};
     for (size_t i = 0; i < ElementsIn(speeds); ++i)
     {
         const int16_t speed = speeds[i];
@@ -294,7 +294,7 @@ static void test_Motor_SetSpeed(void **state)
         Motor_SetSpeed(&motor, speed);
     }
 
-    const int16_t speed = 75;
+    const int16_t speed = 750;
     ExpectNewDuty(abs(speed));
     Motor_SetSpeed(&motor, speed);
 
@@ -334,7 +334,7 @@ static void test_Motor_Brake_Invalid(void **state)
 
 static void test_Motor_Brake(void **state)
 {
-    ExpectNewDuty(100);
+    ExpectNewDuty(1000);
     Motor_Brake(&motor);
     assert_int_equal(Motor_GetStatus(&motor), MOTOR_BRAKE);
 }

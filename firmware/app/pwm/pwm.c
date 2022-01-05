@@ -86,7 +86,7 @@ void PWM_SetFrequency(pwm_output_t *self_p, uint32_t frequency)
 void PWM_SetDuty(pwm_output_t *self_p, uint32_t duty)
 {
     assert(self_p != NULL);
-    assert(duty <= 100);
+    assert(duty <= 1000);
 
     self_p->duty = duty;
     const uint32_t oc_compare_value = DutyToOutputCompareValue(self_p);
@@ -149,6 +149,6 @@ static void SetupTimer(const struct pwm_config_t *config_p)
 
 static inline uint32_t DutyToOutputCompareValue(const pwm_output_t *self_p)
 {
-    const uint32_t scaling_factor = 100;
+    const uint32_t scaling_factor = 1000;
     return ((self_p->period * self_p->duty) + (scaling_factor / 2)) / scaling_factor;
 }

@@ -139,22 +139,22 @@ static void test_PWM_SetFrequency(void **state)
 static void test_PWM_SetDuty_InvalidParameters(void **state)
 {
     expect_assert_failure(PWM_SetDuty(NULL, 0));
-    expect_assert_failure(PWM_SetDuty(&pwm_output, 101));
-    expect_assert_failure(PWM_SetDuty(NULL, 101));
+    expect_assert_failure(PWM_SetDuty(&pwm_output, 1001));
+    expect_assert_failure(PWM_SetDuty(NULL, 1001));
 }
 
 static void test_PWM_SetDuty(void **state)
 {
-    const uint32_t duty_cycles[] = {0, 1, 50, 99, 100};
+    const uint32_t duty_cycles[] = {0, 10, 500, 999, 1000};
 
-    SetFrequency(720000);
+    SetFrequency(72000);
     for (size_t i = 0; i < ElementsIn(duty_cycles); ++i)
     {
         expect_value(timer_set_oc_value, value, duty_cycles[i]);
         PWM_SetDuty(&pwm_output, duty_cycles[i]);
     }
 
-    SetFrequency(360000);
+    SetFrequency(36000);
     for (size_t i = 0; i < ElementsIn(duty_cycles); ++i)
     {
         expect_value(timer_set_oc_value, value, duty_cycles[i] * 2);

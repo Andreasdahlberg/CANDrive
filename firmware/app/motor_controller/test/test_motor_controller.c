@@ -104,13 +104,13 @@ static void AssertCVLimits(int16_t data)
 {
     if (data > 0)
     {
-        assert_int_equal(pid_parameters.cvmax, 100);
+        assert_int_equal(pid_parameters.cvmax, 1000);
         assert_int_equal(pid_parameters.cvmin, 0);
     }
     else
     {
         assert_int_equal(pid_parameters.cvmax, 0);
-        assert_int_equal(pid_parameters.cvmin, -100);
+        assert_int_equal(pid_parameters.cvmin, -1000);
     }
 }
 

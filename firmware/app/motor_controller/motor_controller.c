@@ -48,8 +48,8 @@ along with CANDrive firmware.  If not, see <http://www.gnu.org/licenses/>.
 
 #define MAX_NUMBER_OF_MOTORS 2
 #define UPDATE_TIME_MS 10
-#define PID_SCALE 100
-#define PID_CV_MAX 100
+#define PID_SCALE 10
+#define PID_CV_MAX 1000
 #define PID_CV_MIN (-PID_CV_MAX)
 
 //////////////////////////////////////////////////////////////////////////

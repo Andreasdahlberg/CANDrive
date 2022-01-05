@@ -139,7 +139,7 @@ int16_t Motor_GetCurrent(const struct motor_t *self_p)
 void Motor_SetSpeed(struct motor_t *self_p, int16_t speed)
 {
     assert(self_p != NULL);
-    assert(speed >= -100 && speed <= 100);
+    assert(speed >= -1000 && speed <= 1000);
 
     if ((self_p->status != MOTOR_RUN) || (speed != self_p->speed))
     {
@@ -175,7 +175,7 @@ void Motor_Brake(struct motor_t *self_p)
     SetGpio(self_p, self_p->config_p->driver.ina, false);
     SetGpio(self_p, self_p->config_p->driver.inb, false);
 
-    const uint32_t max_duty = 100;
+    const uint32_t max_duty = 1000;
     PWM_SetDuty(&self_p->pwm_output, max_duty);
     PWM_Enable(&self_p->pwm_output);
     self_p->status = MOTOR_BRAKE;
