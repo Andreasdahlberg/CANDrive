@@ -48,6 +48,9 @@ along with CANDrive firmware.  If not, see <http://www.gnu.org/licenses/>.
 
 #define MAX_NUMBER_OF_MOTORS 2
 #define UPDATE_TIME_MS 10
+#define PID_SCALE 100
+#define PID_CV_MAX 100
+#define PID_CV_MIN (-PID_CV_MAX)
 
 //////////////////////////////////////////////////////////////////////////
 //TYPE DEFINITIONS
@@ -83,6 +86,7 @@ static inline void UpdateMotors(void);
 static inline void UpdateMotorSpeeds(void);
 static void ResetPIDControllers(struct motor_instance_t *instance_p);
 static int32_t LimitValue(int32_t value, int32_t min, int32_t max);
+static void UpdateCVLimits(struct pid_parameters_t *parameters_p, int32_t sp);
 
 //////////////////////////////////////////////////////////////////////////
 //FUNCTIONS
@@ -120,6 +124,9 @@ void MotorController_SetRPM(size_t index, int16_t rpm)
     const int32_t min_rpm = max_rpm * -1;
     const int32_t limited_rpm = LimitValue(rpm, min_rpm, max_rpm);
 
+    struct pid_parameters_t *parameters_p = PID_GetParameters(&module.instances[index].rpm_pid);
+    UpdateCVLimits(parameters_p, limited_rpm);
+
     PID_SetSetpoint(&module.instances[index].rpm_pid, limited_rpm);
     Logging_Debug(module.logger_p, "M%u sp: {rpm: %i}", index, limited_rpm);
 }
@@ -133,6 +140,9 @@ void MotorController_SetCurrent(size_t index, int16_t current)
     const int32_t max_current = (max_board_current < stall_current) ? (int32_t)max_board_current : (int32_t)stall_current;
     const int32_t min_current = max_current * -1;
     const int32_t limited_current = LimitValue(current, min_current, max_current);
+
+    struct pid_parameters_t *parameters_p = PID_GetParameters(&module.instances[index].current_pid);
+    UpdateCVLimits(parameters_p, limited_current);
 
     PID_SetSetpoint(&module.instances[index].current_pid, limited_current);
     Logging_Debug(module.logger_p, "M%u sp: {current: %i}", index, limited_current);
@@ -205,9 +215,9 @@ static inline void InitializeMotors(void)
         .kd = (int32_t)Config_GetValue("kd"),
         .imax = (int32_t)Config_GetValue("imax"),
         .imin = (int32_t)Config_GetValue("imin"),
-        .cvmax = 100,
-        .cvmin = -100,
-        .scale = 100
+        .cvmax = PID_CV_MAX,
+        .cvmin = PID_CV_MIN,
+        .scale = PID_SCALE
     };
 
     for (size_t i = 0; i < number_of_motors; ++i)
@@ -275,4 +285,22 @@ static inline int32_t LimitValue(int32_t value, int32_t min, int32_t max)
     }
 
     return limited_value;
+}
+
+static void UpdateCVLimits(struct pid_parameters_t *parameters_p, int32_t sp)
+{
+    if (sp > 0)
+    {
+        parameters_p->cvmax = PID_CV_MAX;
+        parameters_p->cvmin = 0;
+    }
+    else if (sp < 0)
+    {
+        parameters_p->cvmax = 0;
+        parameters_p->cvmin = PID_CV_MIN;
+    }
+    else
+    {
+        /* Keep the last cv limits if set point is set to zero. */
+    }
 }

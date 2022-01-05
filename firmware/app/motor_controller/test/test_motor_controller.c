@@ -34,6 +34,7 @@ along with CANDrive firmware.  If not, see <http://www.gnu.org/licenses/>.
 #include <stdbool.h>
 #include <stdlib.h>
 #include "utility.h"
+#include "pid.h"
 #include "motor.h"
 #include "motor_controller.h"
 #include "motor_controller_cmd.h"
@@ -55,6 +56,7 @@ along with CANDrive firmware.  If not, see <http://www.gnu.org/licenses/>.
 
 static struct logging_logger_t *dummy_logger;
 const static struct motor_config_t motor_configs[NUMBER_OF_MOTORS];
+struct pid_parameters_t pid_parameters;
 
 //////////////////////////////////////////////////////////////////////////
 //LOCAL FUNCTIONS
@@ -96,6 +98,20 @@ static void ExpectPIDUpdate(int32_t rpm_cv, int32_t current_cv, int32_t expected
     }
     expect_value(SystemMonitor_FeedWatchdog, handle, WATCHDOG_HANDLE);
     will_return(SysTime_GetSystemTime, 100);
+}
+
+static void AssertCVLimits(int16_t data)
+{
+    if (data > 0)
+    {
+        assert_int_equal(pid_parameters.cvmax, 100);
+        assert_int_equal(pid_parameters.cvmin, 0);
+    }
+    else
+    {
+        assert_int_equal(pid_parameters.cvmax, 0);
+        assert_int_equal(pid_parameters.cvmin, -100);
+    }
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -164,12 +180,14 @@ static void test_MotorController_SetRpm(void **state)
 {
     will_return_maybe(Config_GetNumberOfMotors, NUMBER_OF_MOTORS);
     will_return_maybe(Config_GetNoLoadRpm, abs(INT16_MIN));
+    will_return_maybe(PID_GetParameters, &pid_parameters);
 
     const int16_t data[] = {INT16_MIN, 0, 50, INT16_MAX};
     for (size_t i = 0; i < ElementsIn(data); ++i)
     {
         expect_value(PID_SetSetpoint, setpoint, data[i]);
         MotorController_SetRPM(0, data[i]);
+        AssertCVLimits(data[i]);
     }
 }
 
@@ -179,6 +197,7 @@ static void test_MotorController_SetRpm_LimitedByNoLoadRpm(void **state)
 
     will_return_maybe(Config_GetNumberOfMotors, NUMBER_OF_MOTORS);
     will_return_maybe(Config_GetNoLoadRpm, rpm_limit);
+    will_return_maybe(PID_GetParameters, &pid_parameters);
 
     const int16_t data_below[] = {INT16_MIN, -rpm_limit - 1};
     for (size_t i = 0; i < ElementsIn(data_below); ++i)
@@ -206,12 +225,14 @@ static void test_MotorController_SetCurrent(void **state)
     will_return_maybe(Config_GetNumberOfMotors, NUMBER_OF_MOTORS);
     will_return_maybe(Config_GetStallCurrent, abs(INT16_MIN));
     will_return_maybe(Board_GetMaxCurrent, abs(INT16_MIN));
+    will_return_maybe(PID_GetParameters, &pid_parameters);
 
     const int16_t data[] = {INT16_MIN, 0, 50, INT16_MAX};
     for (size_t i = 0; i < ElementsIn(data); ++i)
     {
         expect_value(PID_SetSetpoint, setpoint, data[i]);
         MotorController_SetCurrent(0, data[i]);
+        AssertCVLimits(data[i]);
     }
 }
 
@@ -222,6 +243,7 @@ static void test_MotorController_SetCurrent_LimitedByStallCurrent(void **state)
     will_return_maybe(Config_GetNumberOfMotors, NUMBER_OF_MOTORS);
     will_return_maybe(Config_GetStallCurrent, stall_current);
     will_return_maybe(Board_GetMaxCurrent, abs(INT16_MIN));
+    will_return_maybe(PID_GetParameters, &pid_parameters);
 
     const int16_t data_below[] = {INT16_MIN, -stall_current - 1};
     for (size_t i = 0; i < ElementsIn(data_below); ++i)
@@ -245,6 +267,7 @@ static void test_MotorController_SetCurrent_LimitedByMaxBoardCurrent(void **stat
     will_return_maybe(Config_GetNumberOfMotors, NUMBER_OF_MOTORS);
     will_return_maybe(Config_GetStallCurrent, abs(INT16_MIN));
     will_return_maybe(Board_GetMaxCurrent, max_board_current);
+    will_return_maybe(PID_GetParameters, &pid_parameters);
 
     const int16_t data_below[] = {INT16_MIN, -max_board_current - 1};
     for (size_t i = 0; i < ElementsIn(data_below); ++i)
@@ -442,6 +465,7 @@ static void test_MotorControllerCmd_SetRPM(void **state)
 {
     will_return_maybe(Config_GetNumberOfMotors, NUMBER_OF_MOTORS);
     will_return_maybe(Config_GetNoLoadRpm, abs(INT16_MIN));
+    will_return_maybe(PID_GetParameters, &pid_parameters);
 
     const int32_t data[] = {INT16_MIN, 0, 50, INT16_MAX};
     for (size_t i = 0; i < ElementsIn(data); ++i)
@@ -517,6 +541,7 @@ static void test_MotorControllerCmd_SetCurrent(void **state)
     will_return_maybe(Config_GetNumberOfMotors, NUMBER_OF_MOTORS);
     will_return_maybe(Config_GetStallCurrent, abs(INT16_MIN));
     will_return_maybe(Board_GetMaxCurrent, abs(INT16_MIN));
+    will_return_maybe(PID_GetParameters, &pid_parameters);
 
     const int32_t data[] = {INT16_MIN, 0, 2000, INT16_MAX};
     for (size_t i = 0; i < ElementsIn(data); ++i)
