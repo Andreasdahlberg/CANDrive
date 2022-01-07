@@ -58,6 +58,12 @@ _Static_assert((MAX_NUMBER_OF_FILTERS % 2) == 0, "MAX_NUMBER_OF_FILTERS must be 
 //TYPE DEFINITIONS
 //////////////////////////////////////////////////////////////////////////
 
+struct listener_t
+{
+    caninterface_listener_cb_t callback;
+    void *arg_p;
+};
+
 struct filter_t
 {
     uint16_t id;
@@ -67,7 +73,7 @@ struct filter_t
 struct module_t
 {
     logging_logger_t *logger;
-    caninterface_listener_cb_t listeners[MAX_NUMBER_OF_LISTENERS];
+    struct listener_t listeners[MAX_NUMBER_OF_LISTENERS];
     size_t number_of_listeners;
     struct filter_t filters[MAX_NUMBER_OF_FILTERS];
     size_t number_of_filters;
@@ -119,12 +125,13 @@ bool CANInterface_Transmit(uint32_t id, void *data_p, size_t size)
                         data_p) != -1;
 }
 
-void CANInterface_RegisterListener(caninterface_listener_cb_t listener_cb)
+void CANInterface_RegisterListener(caninterface_listener_cb_t listener_cb, void *arg_p)
 {
     assert(listener_cb != NULL);
     assert(module.number_of_listeners < ElementsIn(module.listeners));
 
-    module.listeners[module.number_of_listeners] = listener_cb;
+    module.listeners[module.number_of_listeners].callback = listener_cb;
+    module.listeners[module.number_of_listeners].arg_p = arg_p;
     ++module.number_of_listeners;
 
     Logging_Info(module.logger, "New listener registered: 0x%x", (uintptr_t)listener_cb);
@@ -210,7 +217,7 @@ static void NotifyListeners(const struct can_frame_t *frame_p)
 {
     for (size_t i = 0; i < module.number_of_listeners; ++i)
     {
-        module.listeners[i](frame_p);
+        module.listeners[i].callback(frame_p, module.listeners[i].arg_p);
     }
 }
 

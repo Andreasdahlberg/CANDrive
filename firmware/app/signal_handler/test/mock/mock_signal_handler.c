@@ -58,7 +58,7 @@ __attribute__((weak)) void SignalHandler_Init(void)
     function_called();
 }
 
-__attribute__((weak)) void SignalHandler_Listener(const struct can_frame_t *frame_p)
+__attribute__((weak)) void SignalHandler_Listener(const struct can_frame_t *frame_p, void *arg_p)
 {
     assert_non_null(frame_p);
     function_called();

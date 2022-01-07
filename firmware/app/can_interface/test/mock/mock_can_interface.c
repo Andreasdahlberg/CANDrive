@@ -65,7 +65,7 @@ __attribute__((weak)) bool CANInterface_Transmit(uint32_t id, void *data_p, size
     mock_type(bool);
 }
 
-__attribute__((weak)) void CANInterface_RegisterListener(caninterface_listener_cb_t listener_cb)
+__attribute__((weak)) void CANInterface_RegisterListener(caninterface_listener_cb_t listener_cb, void *arg_p)
 {
     function_called();
     assert_non_null(listener_cb);

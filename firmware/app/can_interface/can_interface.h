@@ -47,7 +47,7 @@ struct can_frame_t
 //DEFINES
 //////////////////////////////////////////////////////////////////////////
 
-typedef void (*caninterface_listener_cb_t)(const struct can_frame_t *frame_p);
+typedef void (*caninterface_listener_cb_t)(const struct can_frame_t *frame_p, void *arg_p);
 
 //////////////////////////////////////////////////////////////////////////
 //FUNCTION PROTOTYPES
@@ -64,9 +64,9 @@ void CANInterface_Init(void);
 /**
  * Transmit a CAN-frame
  *
- * @param  id     ID
+ * @param  id ID
  * @param  data_p Pointer to data.
- * @param  size   Size of data, max 8.
+ * @param  size Size of data, max 8.
  *
  * @return True if frame was sent/queued, otherwise false.
  */
@@ -79,11 +79,12 @@ bool CANInterface_Transmit(uint32_t id, void *data_p, size_t size);
  * Note that the callback is called from an ISR.
  *
  * @param listener_cb Callback.
+ * @param arg_p Argument passed to the callback.
  */
-void CANInterface_RegisterListener(caninterface_listener_cb_t listener_cb);
+void CANInterface_RegisterListener(caninterface_listener_cb_t listener_cb, void *arg_p);
 
 /**
- * Add a acceptance filter to the CAN interface.
+ * Add an acceptance filter to the CAN interface.
  *
  * Up to 28 filters can be added.
  *

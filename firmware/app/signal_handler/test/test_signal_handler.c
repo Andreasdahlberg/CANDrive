@@ -97,7 +97,7 @@ static void test_SignalHandler_Process(void **state)
     struct can_frame_t frame = {0};
     frame.size = 8;
     frame.id = CANDB_CONTROLLER_MSG_MOTOR_CONTROL_FRAME_ID;
-    SignalHandler_Listener(&frame);
+    SignalHandler_Listener(&frame, NULL);
     /* Expect nothing to happen(frame is discarded) since no signal handlers are registered. */
     expect_function_call(SystemMonitor_ReportActivity);
     expect_value(SystemMonitor_FeedWatchdog, handle, WATCHDOG_HANDLE);
@@ -108,13 +108,13 @@ static void test_SignalHandler_Process(void **state)
     SignalHandler_RegisterHandler(SIGNAL_CONTROL_MODE1, SignalHandlerFunc3);
 
     frame.id = 0x00;
-    SignalHandler_Listener(&frame);
+    SignalHandler_Listener(&frame, NULL);
     /* Expect nothing to happen since the frame is unsupported. */
     expect_value(SystemMonitor_FeedWatchdog, handle, WATCHDOG_HANDLE);
     SignalHandler_Process();
 
     frame.id = CANDB_CONTROLLER_MSG_MOTOR_CONTROL_FRAME_ID;
-    SignalHandler_Listener(&frame);
+    SignalHandler_Listener(&frame, NULL);
     expect_function_call(SignalHandlerFunc1);
     expect_function_call(SignalHandlerFunc2);
     expect_function_call(SignalHandlerFunc3);
@@ -127,12 +127,12 @@ static void test_SignalHandler_Process(void **state)
     const size_t max_number_of_frames = 5;
     for (size_t i = 0; i < max_number_of_frames; ++i)
     {
-        SignalHandler_Listener(&frame);
+        SignalHandler_Listener(&frame, NULL);
     }
 
     /* Send supported frame, expect it to be discarded since the buffer is full. */
     frame.id = CANDB_CONTROLLER_MSG_MOTOR_CONTROL_FRAME_ID;
-    SignalHandler_Listener(&frame);
+    SignalHandler_Listener(&frame, NULL);
     for (size_t i = 0; i < max_number_of_frames + 1; ++i)
     {
         expect_value(SystemMonitor_FeedWatchdog, handle, WATCHDOG_HANDLE);
@@ -152,7 +152,7 @@ static void test_SignalHandler_Process_InvalidFrameSize(void **state)
         frame.size = sizes[i];
         frame.id = CANDB_CONTROLLER_MSG_MOTOR_CONTROL_FRAME_ID;
 
-        SignalHandler_Listener(&frame);
+        SignalHandler_Listener(&frame, NULL);
         /* Expect nothing to happen since the frame is invalid. */
         expect_value(SystemMonitor_FeedWatchdog, handle, WATCHDOG_HANDLE);
         SignalHandler_Process();
@@ -178,7 +178,7 @@ static void test_SignalHandler_RegisterHandler_MaxNumberOfHandlers(void **state)
 
 static void test_SignalHandler_Listener_Invalid(void **state)
 {
-    expect_assert_failure(SignalHandler_Listener(NULL));
+    expect_assert_failure(SignalHandler_Listener(NULL, NULL));
 }
 
 static void test_SignalHandler_SendMotorStatus_OutOfRange(void **state)

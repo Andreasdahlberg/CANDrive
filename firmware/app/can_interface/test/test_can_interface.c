@@ -69,11 +69,16 @@ static int Setup(void **state)
     return 0;
 }
 
-static void Listener(const struct can_frame_t *frame_p)
+static void Listener(const struct can_frame_t *frame_p, void *arg_p)
 {
     check_expected(frame_p->id);
     check_expected(frame_p->size);
     check_expected(frame_p->data);
+
+    if (arg_p != NULL)
+    {
+        check_expected_ptr(arg_p);
+    }
 }
 
 static void ReceiveCANFrame(const struct can_frame_t *frame_p)
@@ -131,7 +136,7 @@ static void test_CANInterface_Init(void **state)
 
 static void test_CANInterface_RegisterListener_Invalid(void **state)
 {
-    expect_assert_failure(CANInterface_RegisterListener(NULL))
+    expect_assert_failure(CANInterface_RegisterListener(NULL, NULL))
 }
 
 static void test_CANInterface_RegisterListener_Full(void **state)
@@ -139,10 +144,10 @@ static void test_CANInterface_RegisterListener_Full(void **state)
     const size_t max_number_of_listeners = 1;
     for (size_t i = 0; i < max_number_of_listeners; ++i)
     {
-        CANInterface_RegisterListener(Listener);
+        CANInterface_RegisterListener(Listener, NULL);
     }
 
-    expect_assert_failure(CANInterface_RegisterListener(Listener));
+    expect_assert_failure(CANInterface_RegisterListener(Listener, NULL));
 }
 
 static void test_CANInterface_ReceiveWithNoListeners(void **state)
@@ -159,7 +164,7 @@ static void test_CANInterface_ReceiveWithListener(void **state)
     expect_value(Listener, frame_p->size,frame.size);
     expect_memory(Listener, frame_p->data, frame.data, frame.size);
 
-    CANInterface_RegisterListener(Listener);
+    CANInterface_RegisterListener(Listener, NULL);
     ReceiveCANFrame(&frame);
 }
 
