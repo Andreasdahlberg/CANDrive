@@ -129,7 +129,7 @@ void SignalHandler_RegisterHandler(enum signal_id_t id, signalhandler_handler_cb
     Logging_Info(module.logger, "New handler registered: 0x%x", (uintptr_t)handler_cb);
 }
 
-void SignalHandler_Listener(const struct can_frame_t *frame_p)
+void SignalHandler_Listener(const struct can_frame_t *frame_p, void *arg_p)
 {
     assert(frame_p != NULL);
 

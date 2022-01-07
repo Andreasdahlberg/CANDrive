@@ -183,7 +183,7 @@ static void ConfigureSignalHandler(void)
     const uint32_t motor_control_frame_id = 0x09;
     const uint32_t id_mask = 0xffff;
 
-    CANInterface_RegisterListener(SignalHandler_Listener);
+    CANInterface_RegisterListener(SignalHandler_Listener, NULL);
     CANInterface_AddFilter(motor_control_frame_id, id_mask);
     if (Config_GetNumberOfMotors() > 0)
     {
