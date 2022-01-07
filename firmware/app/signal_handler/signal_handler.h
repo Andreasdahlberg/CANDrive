@@ -59,7 +59,7 @@ void SignalHandler_Init(void);
  * @param frame_p Pointer to CAN frame.
  * @param arg_p Optional argument passed from caller.
  */
-void SignalHandler_Listener(const struct can_frame_t *frame_p, void *arg_p);
+void SignalHandler_Listener(const struct can_frame_t *frame_p, __attribute__((unused)) void *arg_p);
 
 /**
  * Process CAN frames into separate signals.
