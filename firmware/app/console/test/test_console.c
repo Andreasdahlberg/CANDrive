@@ -72,7 +72,7 @@ static bool MockCommandHandler(void)
     return mock_type(bool);
 }
 
-static bool MockCommandHandlerWithArgs(void)
+static bool MockCommandHandlerWithArgs()
 {
     bool status;
     int32_t arg_int32;
@@ -85,10 +85,13 @@ static bool MockCommandHandlerWithArgs(void)
              Console_GetArgument(&arg_uint32) &&
              Console_GetArgument(&arg_bool);
 
-    check_expected(arg_string);
-    check_expected(arg_int32);
-    check_expected(arg_uint32);
-    check_expected(arg_bool);
+    if (status)
+    {
+        check_expected(arg_string);
+        check_expected(arg_int32);
+        check_expected(arg_uint32);
+        check_expected(arg_bool);
+    }
 
     return status;
 }
@@ -217,28 +220,17 @@ static void test_Console_InvalidCommand(void **state)
 
 static void test_Console_InvalidArguments(void **state)
 {
-    Console_RegisterCommand("mock_cmd", MockCommandHandler);
-
+    Console_RegisterCommand("mock_cmd", MockCommandHandlerWithArgs);
     ExpectCommand("mock_cmd");
-    int32_t int32_arg;
-    uint32_t uint32_arg;
-    bool arg_bool;
-    char *arg_string;
-    assert_false(Console_GetArgument(&int32_arg));
-    assert_false(Console_GetArgument(&uint32_arg));
-    assert_false(Console_GetArgument(&arg_bool));
-    assert_false(Console_GetArgument(&arg_string));
-    will_return(MockCommandHandler, false);
     ExpectEndOfCommand(false);
 
-    ExpectCommand("mock_cmd foo");
-    assert_false(Console_GetArgument(&int32_arg));
-    will_return(MockCommandHandler, false);
+    ExpectCommand("mock_cmd foo bar 10 1");
     ExpectEndOfCommand(false);
 
-    ExpectCommand("mock_cmd 18446744073709551616");
-    assert_false(Console_GetArgument(&int32_arg));
-    will_return(MockCommandHandler, false);
+    ExpectCommand("mock_cmd foo 0 bar 1");
+    ExpectEndOfCommand(false);
+
+    ExpectCommand("mock_cmd foo 0 1 bar");
     ExpectEndOfCommand(false);
 }
 
