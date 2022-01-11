@@ -43,7 +43,8 @@ MODULES = [
     'system_monitor',
     'nvs',
     'crc',
-    'config'
+    'config',
+    'stream'
 ]
 
 module_objects = []
