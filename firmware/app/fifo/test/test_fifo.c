@@ -281,6 +281,37 @@ void test_FIFO_Clear_Full(void **state)
     assert_true(FIFO_IsEmpty(&fifo));
 }
 
+void test_FIFO_GetAvailableSlots_NULL(void **state)
+{
+    expect_assert_failure(FIFO_GetAvailableSlots(NULL));
+}
+
+void test_FIFO_GetAvailableSlots_Empty(void **state)
+{
+    uint8_t buffer[8];
+    struct fifo_t fifo = FIFO_New(buffer);
+
+    assert_int_equal(FIFO_GetAvailableSlots(&fifo), sizeof(buffer));
+}
+
+void test_FIFO_GetAvailableSlots_Full(void **state)
+{
+    uint8_t buffer[8];
+    struct fifo_t fifo = FIFO_New(buffer);
+    FillBuffer(&fifo, sizeof(buffer));
+
+    assert_int_equal(FIFO_GetAvailableSlots(&fifo), 0);
+}
+
+void test_FIFO_GetAvailableSlots_NotEmpty(void **state)
+{
+    uint8_t buffer[8];
+    struct fifo_t fifo = FIFO_New(buffer);
+    FillBuffer(&fifo, sizeof(buffer) / 2);
+
+    assert_int_equal(FIFO_GetAvailableSlots(&fifo), sizeof(buffer) / 2);
+}
+
 void test_FIFO_MaxSize(void **state)
 {
     struct dummy_item
@@ -334,6 +365,10 @@ int main(int argc, char *argv[])
         cmocka_unit_test(test_FIFO_IsFull_NotEmpty),
         cmocka_unit_test(test_FIFO_Clear_NULL),
         cmocka_unit_test(test_FIFO_Clear_Full),
+        cmocka_unit_test(test_FIFO_GetAvailableSlots_NULL),
+        cmocka_unit_test(test_FIFO_GetAvailableSlots_Empty),
+        cmocka_unit_test(test_FIFO_GetAvailableSlots_Full),
+        cmocka_unit_test(test_FIFO_GetAvailableSlots_NotEmpty),
         cmocka_unit_test(test_FIFO_MaxSize),
     };
 

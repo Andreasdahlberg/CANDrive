@@ -127,6 +127,13 @@ void FIFO_Clear(struct fifo_t *self_p)
     self_p->number_of_elements = 0;
 }
 
+uint8_t FIFO_GetAvailableSlots(const struct fifo_t *self_p)
+{
+    assert(self_p != NULL);
+
+    return self_p->max_number_of_elements - self_p->number_of_elements;
+}
+
 //////////////////////////////////////////////////////////////////////////
 //LOCAL FUNCTIONS
 //////////////////////////////////////////////////////////////////////////
