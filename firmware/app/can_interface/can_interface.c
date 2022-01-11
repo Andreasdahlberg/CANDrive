@@ -44,7 +44,7 @@ along with CANDrive firmware.  If not, see <http://www.gnu.org/licenses/>.
 #define CANIF_LOGGER_DEBUG_LEVEL LOGGING_INFO
 #endif
 
-#define MAX_NUMBER_OF_LISTENERS 1
+#define MAX_NUMBER_OF_LISTENERS 2
 
 /**
  * Since 16-bit filter scale is used, the max number of filters are twice the
