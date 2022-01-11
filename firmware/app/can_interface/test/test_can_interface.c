@@ -141,7 +141,7 @@ static void test_CANInterface_RegisterListener_Invalid(void **state)
 
 static void test_CANInterface_RegisterListener_Full(void **state)
 {
-    const size_t max_number_of_listeners = 1;
+    const size_t max_number_of_listeners = 2;
     for (size_t i = 0; i < max_number_of_listeners; ++i)
     {
         CANInterface_RegisterListener(Listener, NULL);
