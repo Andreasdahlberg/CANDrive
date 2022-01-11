@@ -114,4 +114,13 @@ bool FIFO_IsEmpty(const struct fifo_t *self_p);
  */
 void FIFO_Clear(struct fifo_t *self_p);
 
+/**
+ * Get the number of available slots in the FIFO.
+ *
+ * @param fifo Pointer to FIFO.
+ *
+ * @return Number of available slots.
+ */
+uint8_t FIFO_GetAvailableSlots(const struct fifo_t *self_p);
+
 #endif
