@@ -84,6 +84,12 @@ static void SignalHandlerFunc3(struct signal_t *signal_p)
     function_called();
 }
 
+static void SignalHandlerFuncWithSignalCheck(struct signal_t *signal_p)
+{
+    assert_non_null(signal_p);
+    check_expected(*((uint16_t *)signal_p->data_p));
+}
+
 //////////////////////////////////////////////////////////////////////////
 //TESTS
 //////////////////////////////////////////////////////////////////////////
@@ -122,7 +128,7 @@ static void test_SignalHandler_Process(void **state)
     expect_value(SystemMonitor_FeedWatchdog, handle, WATCHDOG_HANDLE);
     SignalHandler_Process();
 
-    /* Fill the frame buffer with unsupported frames. */
+    /* Try to fill the frame buffer with unsupported frames. */
     frame.id = 0x00;
     const size_t max_number_of_frames = 5;
     for (size_t i = 0; i < max_number_of_frames; ++i)
@@ -130,12 +136,46 @@ static void test_SignalHandler_Process(void **state)
         SignalHandler_Listener(&frame, NULL);
     }
 
-    /* Send supported frame, expect it to be discarded since the buffer is full. */
+    /* Send supported frame, expect it to be handled since the invalid frames are discarded. */
     frame.id = CANDB_CONTROLLER_MSG_MOTOR_CONTROL_FRAME_ID;
     SignalHandler_Listener(&frame, NULL);
-    for (size_t i = 0; i < max_number_of_frames + 1; ++i)
+    expect_function_call(SignalHandlerFunc1);
+    expect_function_call(SignalHandlerFunc2);
+    expect_function_call(SignalHandlerFunc3);
+    expect_function_call(SystemMonitor_ReportActivity);
+    expect_value(SystemMonitor_FeedWatchdog, handle, WATCHDOG_HANDLE);
+    SignalHandler_Process();
+}
+
+static void test_SignalHandler_Process_FullFIFO(void **state)
+{
+    SignalHandler_RegisterHandler(SIGNAL_CONTROL_RPM1, SignalHandlerFuncWithSignalCheck);
+
+    struct can_frame_t frame = {0};
+    frame.size = 8;
+    frame.id = CANDB_CONTROLLER_MSG_MOTOR_CONTROL_FRAME_ID;
+
+    struct candb_controller_msg_motor_control_t msg;
+    msg.controller_msg_motor_control_sig_rpm1 = 1;
+    candb_controller_msg_motor_control_pack(frame.data, &msg, sizeof(frame.data));
+
+    /* Fill the frame buffer. */
+    const size_t max_number_of_frames = 5;
+    for (size_t i = 0; i < max_number_of_frames; ++i)
     {
+        SignalHandler_Listener(&frame, NULL);
+    }
+
+    /* Expect this frame to be discarded. */
+    msg.controller_msg_motor_control_sig_rpm1 = 2;
+    candb_controller_msg_motor_control_pack(frame.data, &msg, sizeof(frame.data));
+    SignalHandler_Listener(&frame, NULL);
+
+    for (size_t i = 0; i < max_number_of_frames; ++i)
+    {
+        expect_function_call(SystemMonitor_ReportActivity);
         expect_value(SystemMonitor_FeedWatchdog, handle, WATCHDOG_HANDLE);
+        expect_value(SignalHandlerFuncWithSignalCheck, *((uint16_t *)signal_p->data_p), 1);
         SignalHandler_Process();
     }
 }
@@ -239,6 +279,7 @@ int main(int argc, char *argv[])
     const struct CMUnitTest test_SignalHandler[] =
     {
         cmocka_unit_test_setup(test_SignalHandler_Process, Setup),
+        cmocka_unit_test_setup(test_SignalHandler_Process_FullFIFO, Setup),
         cmocka_unit_test_setup(test_SignalHandler_Process_InvalidFrameSize, Setup),
         cmocka_unit_test_setup(test_SignalHandler_RegisterHandler_Invalid, Setup),
         cmocka_unit_test_setup(test_SignalHandler_RegisterHandler_MaxNumberOfHandlers, Setup),
