@@ -44,7 +44,7 @@ along with CANDrive firmware.  If not, see <http://www.gnu.org/licenses/>.
 #define CANIF_LOGGER_DEBUG_LEVEL LOGGING_INFO
 #endif
 
-#define MAX_NUMBER_OF_LISTENERS 2
+#define MAX_NUMBER_OF_LISTENERS 3
 
 /**
  * Since 16-bit filter scale is used, the max number of filters are twice the
@@ -134,7 +134,7 @@ void CANInterface_RegisterListener(caninterface_listener_cb_t listener_cb, void 
     module.listeners[module.number_of_listeners].arg_p = arg_p;
     ++module.number_of_listeners;
 
-    Logging_Info(module.logger, "New listener registered: 0x%x", (uintptr_t)listener_cb);
+    Logging_Info(module.logger, "New listener registered: {cb: 0x%x, arg: 0x%x}", (uintptr_t)listener_cb, (uintptr_t)arg_p);
 }
 
 void CANInterface_AddFilter(uint16_t id, uint16_t mask)
