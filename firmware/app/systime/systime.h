@@ -64,13 +64,6 @@ uint32_t SysTime_GetSystemTime(void);
 uint32_t SysTime_GetSystemTimestamp(void);
 
 /**
- * Get the number of seconds since the epoch.
- *
- * @return Timestamp in seconds.
- */
-uint32_t SysTime_GetTimestamp(void);
-
-/**
  * Get the difference between the current system time and the supplied system time.
  *
  * Protected against timer wrap-around. CAUTION: Does not detect several
