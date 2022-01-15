@@ -203,6 +203,9 @@ static inline void ConfigureRxLink(struct isotp_recv_link_t *link_p, void *rx_bu
     link_p->base.callback_fp = callback_fp;
     link_p->base.active = true;
     link_p->state = ISOTP_RX_WAIT_FOR_FF_SF;
+
+    const logging_logger_t *logger_p = Logging_GetLogger(ISOTP_LOGGER_NAME);
+    Logging_Info(logger_p, "RX-link: {id: 0x%x, separation_time: %u, cb: 0x%x}", link_p->base.rx_id, link_p->base.separation_time, (uintptr_t)link_p->base.callback_fp);
 }
 
 static inline void ConfigureTxLink(struct isotp_send_link_t *link_p,  uint16_t rx_id, uint16_t tx_id, isotp_status_callback_t callback_fp)
@@ -212,6 +215,9 @@ static inline void ConfigureTxLink(struct isotp_send_link_t *link_p,  uint16_t r
     link_p->base.frame_fifo = FIFO_New(link_p->base.frame_buffer);
     link_p->base.callback_fp = callback_fp;
     link_p->base.active = false;
+
+    const logging_logger_t *logger_p = Logging_GetLogger(ISOTP_LOGGER_NAME);
+    Logging_Info(logger_p, "TX-link: {id: 0x%x, cb: 0x%x}", link_p->base.tx_id, (uintptr_t)link_p->base.callback_fp);
 }
 
 static void ProccessRxLink(struct isotp_recv_link_t *link_p)
@@ -625,7 +631,7 @@ static void HandleFlowControlFrame(struct isotp_send_link_t *link_p, const struc
             Logging_Warning(logger_p, "Transfer aborted by receiver");
             break;
         default:
-            Logging_Warning(logger_p, "Invalid status flag: {flag: %u}", isotp_frame.flag);
+            Logging_Error(logger_p, "Invalid status flag: {flag: %u}", isotp_frame.flag);
             break;
     }
 }
