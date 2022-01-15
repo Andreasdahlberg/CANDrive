@@ -37,7 +37,7 @@ along with CANDrive firmware.  If not, see <http://www.gnu.org/licenses/>.
 
 #define ISOTP_LOGGER_NAME "ISOTP"
 #ifndef ISOTP_LOGGER_DEBUG_LEVEL
-#define ISOTP_LOGGER_DEBUG_LEVEL LOGGING_DEBUG
+#define ISOTP_LOGGER_DEBUG_LEVEL LOGGING_INFO
 #endif
 
 #define SF_DATA_LENGTH 7
