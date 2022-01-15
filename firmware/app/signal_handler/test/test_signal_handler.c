@@ -155,7 +155,7 @@ static void test_SignalHandler_Process_FullFIFO(void **state)
     frame.size = 8;
     frame.id = CANDB_CONTROLLER_MSG_MOTOR_CONTROL_FRAME_ID;
 
-    struct candb_controller_msg_motor_control_t msg;
+    struct candb_controller_msg_motor_control_t msg = {0};
     msg.controller_msg_motor_control_sig_rpm1 = 1;
     candb_controller_msg_motor_control_pack(frame.data, &msg, sizeof(frame.data));
 
