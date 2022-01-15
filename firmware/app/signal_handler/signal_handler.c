@@ -109,7 +109,7 @@ void SignalHandler_Process(void)
                 break;
 
             default:
-                Logging_Warning(module.logger, "Unknown: {id: 0x%02x}", frame.id);
+                /* Ignore unknown frames */
                 break;
         }
     }
@@ -133,10 +133,13 @@ void SignalHandler_Listener(const struct can_frame_t *frame_p, __attribute__((un
 {
     assert(frame_p != NULL);
 
-    bool status = FIFO_Push(&module.frame_fifo, frame_p);
-    if (!status)
+    if (frame_p->id == CANDB_CONTROLLER_MSG_MOTOR_CONTROL_FRAME_ID)
     {
-        Logging_Warning(module.logger, "Buffer full, discard frame: {id: 0x%02x}", frame_p->id);
+        bool status = FIFO_Push(&module.frame_fifo, frame_p);
+        if (!status)
+        {
+            Logging_Warning(module.logger, "Buffer full, discard frame: {id: 0x%02x}", frame_p->id);
+        }
     }
 }
 
