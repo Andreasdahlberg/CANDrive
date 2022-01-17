@@ -485,7 +485,7 @@ static void SendFlowControlFrame(struct isotp_recv_link_t *link_p, enum isotp_fl
     }
 
     link_p->wait_timer = SysTime_GetSystemTime();
-    isotp_frame.st = link_p->base.separation_time;
+    isotp_frame.st = (uint8_t)link_p->base.separation_time;
 
     Logging_Debug(logger_p, "Send FC {flag: %u, bs: %u, st: %u}", isotp_frame.flag, isotp_frame.block_size, isotp_frame.st);
     CANInterface_Transmit(link_p->base.tx_id, &isotp_frame, 3);
