@@ -120,9 +120,10 @@ static void CheckIfReadyForData(struct isotp_recv_link_t *link_p);
 static uint8_t GetBlockSize(const struct isotp_recv_link_t *link_p);
 static bool SendSingleFrame(const struct isotp_send_link_t *link_p, const void *data_p, size_t length);
 static bool SendFirstFrame(struct isotp_send_link_t *link_p, const void *data_p, size_t length);
+static void CheckIfSeparationTimeHasElapsed(struct isotp_send_link_t *link_p);
 static void CheckForFlowControlFrame(struct isotp_send_link_t *link_p);
 static void HandleFlowControlFrame(struct isotp_send_link_t *link_p, const struct can_frame_t *frame_p);
-static uint8_t SeparationTimeToMs(uint8_t st);
+static uint32_t SeparationTimeToUs(uint8_t st);
 static bool SendConsecutiveFrame(struct isotp_send_link_t *link_p);
 
 //////////////////////////////////////////////////////////////////////////
@@ -250,6 +251,9 @@ static void ProccessTxLink(struct isotp_send_link_t *link_p)
             break;
         case ISOTP_TX_SEND_CF:
             SendConsecutiveFrame(link_p);
+            break;
+        case ISOTP_TX_WAIT_FOR_ST:
+            CheckIfSeparationTimeHasElapsed(link_p);
             break;
         case ISOTP_TX_WAIT_FOR_FC:
             CheckForFlowControlFrame(link_p);
@@ -570,6 +574,15 @@ static bool SendFirstFrame(struct isotp_send_link_t *link_p, const void *data_p,
     return status;
 }
 
+static void CheckIfSeparationTimeHasElapsed(struct isotp_send_link_t *link_p)
+{
+    const uint32_t time_diff_us = SysTime_GetSystemTimeUs() - link_p->wait_timer;
+    if (time_diff_us >= link_p->base.separation_time)
+    {
+        link_p->state = ISOTP_TX_SEND_CF;
+    }
+}
+
 static void CheckForFlowControlFrame(struct isotp_send_link_t *link_p)
 {
     struct can_frame_t frame;
@@ -604,7 +617,7 @@ static void HandleFlowControlFrame(struct isotp_send_link_t *link_p, const struc
         case ISOTP_FC_CONTINUE_TO_SEND:
             link_p->base.block_size = isotp_frame.block_size;
             link_p->base.block_count = 0;
-            link_p->base.separation_time = SeparationTimeToMs(isotp_frame.st);
+            link_p->base.separation_time = SeparationTimeToUs(isotp_frame.st);
             link_p->state = ISOTP_TX_SEND_CF;
             break;
         case ISOTP_FC_WAIT:
@@ -636,16 +649,16 @@ static void HandleFlowControlFrame(struct isotp_send_link_t *link_p, const struc
     }
 }
 
-static uint8_t SeparationTimeToMs(uint8_t st)
+static uint32_t SeparationTimeToUs(uint8_t st)
 {
-    uint8_t result = 10;
+    uint32_t result = 10000;
     if (st <= 127)
     {
-        result = st;
+        result = st * 1000;
     }
     else if ((st >= 0xF1) && (st <= 0xF9))
     {
-        result = 1;
+        result = (st - 0xF0) * 100;
     }
     else
     {
@@ -682,7 +695,15 @@ static bool SendConsecutiveFrame(struct isotp_send_link_t *link_p)
 
             if ((link_p->base.block_count < link_p->base.block_size) || (link_p->base.block_size == 0))
             {
-                link_p->state = ISOTP_TX_SEND_CF;
+                if (link_p->base.separation_time == 0)
+                {
+                    link_p->state = ISOTP_TX_SEND_CF;
+                }
+                else
+                {
+                    link_p->wait_timer = SysTime_GetSystemTimeUs();
+                    link_p->state = ISOTP_TX_WAIT_FOR_ST;
+                }
             }
             else
             {

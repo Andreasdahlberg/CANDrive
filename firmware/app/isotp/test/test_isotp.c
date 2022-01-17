@@ -537,7 +537,7 @@ static void test_ISOTP_SeparationTime(void **state)
         expect_value(MockTxStatusHandler, status, ISOTP_STATUS_DONE);
 
         ProccessUntilStatus(&ctx, ISOTP_STATUS_DONE);
-        assert_int_equal(ctx.tx_link.base.separation_time, separation_times_ms[i]);
+        assert_int_equal(ctx.tx_link.base.separation_time, separation_times_ms[i] * 1000);
     }
 
     /* Microseconds range */
@@ -551,7 +551,7 @@ static void test_ISOTP_SeparationTime(void **state)
 
         ProccessUntilStatus(&ctx, ISOTP_STATUS_DONE);
         /* Microseconds timer is not implemented yet so always expect 1 ms. */
-        assert_int_equal(ctx.tx_link.base.separation_time, 1);
+        assert_int_equal(ctx.tx_link.base.separation_time, (separation_times_us[i] - 240)* 100);
     }
 
     /* Invalid range */
@@ -565,7 +565,7 @@ static void test_ISOTP_SeparationTime(void **state)
 
         ProccessUntilStatus(&ctx, ISOTP_STATUS_DONE);
         /* Expect default value (10 ms) when separation time is invalid. */
-        assert_int_equal(ctx.tx_link.base.separation_time, 10);
+        assert_int_equal(ctx.tx_link.base.separation_time, 10000);
     }
 }
 

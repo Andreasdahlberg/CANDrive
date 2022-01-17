@@ -61,6 +61,7 @@ enum isotp_tx_state_t
 {
     ISOTP_TX_INACTIVE = 0,
     ISOTP_TX_SEND_CF,
+    ISOTP_TX_WAIT_FOR_ST,
     ISOTP_TX_WAIT_FOR_FC
 };
 
@@ -81,12 +82,12 @@ struct isotp_link_t
 {
     uint16_t rx_id;
     uint16_t tx_id;
-    uint8_t separation_time;
+    uint32_t separation_time;
     uint8_t block_size;
     uint8_t block_count;
     uint8_t sequence_number;
-    size_t payload_size;
     uint8_t wf_count;
+    size_t payload_size;
     isotp_status_callback_t callback_fp;
     struct can_frame_t frame_buffer[ISOTP_FRAME_BUFFER_SIZE];
     struct fifo_t frame_fifo;
