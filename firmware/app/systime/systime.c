@@ -79,7 +79,7 @@ uint32_t SysTime_GetSystemTimeUs(void)
     const uint32_t ratio = systick_get_reload() + 1; /* 72000 */
     uint32_t counter = systick_get_value();
 
-    if (systick_get_countflag())
+    if (systick_get_countflag() > 0)
     {
         system_time = module.system_time;
         counter = systick_get_value();
