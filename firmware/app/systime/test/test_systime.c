@@ -85,7 +85,7 @@ static int Setup(void **state)
 static uint32_t MicrosecondsToTicks(uint32_t microseconds)
 {
     const uint32_t ratio = 72000;
-    return (microseconds * ratio + 500) / 1000;
+    return ratio - ((microseconds * ratio + 500) / 1000);
 }
 
 //////////////////////////////////////////////////////////////////////////
