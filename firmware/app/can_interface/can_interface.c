@@ -187,7 +187,7 @@ static void InitCANPeripheral(void)
     const bool automatic_wakeup_mode = false;
     const bool no_automatic_retransmission = false;
     const bool receive_fifo_locked_mode = false;
-    const bool transmit_fifo_priority = false;
+    const bool transmit_fifo_priority = true;
     const bool loopback = false;
     const bool silent = false;
 
