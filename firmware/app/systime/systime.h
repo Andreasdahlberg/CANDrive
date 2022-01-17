@@ -57,6 +57,15 @@ void SysTime_Init(void);
 uint32_t SysTime_GetSystemTime(void);
 
 /**
+ * Get the number of microseconds since system start.
+ *
+ * Wraps around in ~70 minutes.
+ *
+ * @return Timestamp in microseconds.
+ */
+uint32_t SysTime_GetSystemTimeUs(void);
+
+/**
  * Get the number of seconds since system start.
  *
  * @return Timestamp in seconds.
@@ -74,6 +83,5 @@ uint32_t SysTime_GetSystemTimestamp(void);
  * @return Difference in ms.
  */
 uint32_t SysTime_GetDifference(uint32_t system_time);
-
 
 #endif

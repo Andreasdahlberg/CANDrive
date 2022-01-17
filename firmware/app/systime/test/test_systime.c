@@ -82,6 +82,12 @@ static int Setup(void **state)
     return 0;
 }
 
+static uint32_t MicrosecondsToTicks(uint32_t microseconds)
+{
+    const uint32_t ratio = 72000;
+    return (microseconds * ratio + 500) / 1000;
+}
+
 //////////////////////////////////////////////////////////////////////////
 //TESTS
 //////////////////////////////////////////////////////////////////////////
@@ -97,6 +103,39 @@ static void test_SysTime_GetSystemTime(void **state)
     assert_int_equal(SysTime_GetSystemTime(), 0);
     AdvanceSystemTime(100);
     assert_int_equal(SysTime_GetSystemTime(), 100);
+}
+
+static void test_SysTime_GetSystemTimeUs(void **state)
+{
+    const uint32_t ratio = 72000;
+    const uint32_t us[] = {0, 1, 500, 999};
+
+    will_return_maybe(systick_get_reload, ratio - 1);
+
+    /* Only microseconds */
+    for (size_t i = 0; i < ElementsIn(us); ++i)
+    {
+        will_return_count(systick_get_countflag, false, 2);
+        will_return(systick_get_value, MicrosecondsToTicks(us[i]));
+        assert_int_equal(SysTime_GetSystemTimeUs(), us[i]);
+    }
+
+    const uint32_t milliseconds = 100;
+    AdvanceSystemTime(milliseconds);
+
+    /* Milliseconds and microseconds */
+    for (size_t i = 0; i < ElementsIn(us); ++i)
+    {
+        will_return_count(systick_get_countflag, false, 2);
+        will_return(systick_get_value, MicrosecondsToTicks(us[i]));
+        assert_int_equal(SysTime_GetSystemTimeUs(), 1000 * milliseconds + us[i]);
+    }
+
+    /* Millisecond wrap over */
+    will_return_count(systick_get_countflag, true, 2);
+    will_return(systick_get_value, MicrosecondsToTicks(999));
+    will_return(systick_get_value, MicrosecondsToTicks(1));
+    assert_int_equal(SysTime_GetSystemTimeUs(), 1000 * milliseconds + 1);
 }
 
 static void test_SysTime_GetSystemTimestamp(void **state)
@@ -145,10 +184,11 @@ void test_SysTime_GetDifference_wraparound(void **state)
 
 int main(int argc, char *argv[])
 {
-    const struct CMUnitTest test_ADC[] =
+    const struct CMUnitTest test_SystemTime[] =
     {
         cmocka_unit_test(test_SysTime_Init),
         cmocka_unit_test_setup(test_SysTime_GetSystemTime, Setup),
+        cmocka_unit_test_setup(test_SysTime_GetSystemTimeUs, Setup),
         cmocka_unit_test_setup(test_SysTime_GetSystemTimestamp, Setup),
         cmocka_unit_test_setup(test_SysTime_GetDifference_zero, Setup),
         cmocka_unit_test_setup(test_SysTime_GetDifference_nonzero, Setup),
@@ -160,5 +200,5 @@ int main(int argc, char *argv[])
         cmocka_set_test_filter(argv[1]);
     }
 
-    return cmocka_run_group_tests(test_ADC, NULL, NULL);
+    return cmocka_run_group_tests(test_SystemTime, NULL, NULL);
 }

@@ -70,6 +70,23 @@ uint32_t SysTime_GetSystemTime(void)
     return module.system_time;
 }
 
+uint32_t SysTime_GetSystemTimeUs(void)
+{
+    /* Reset the count flag by reading the SysTick control and status register. */
+    systick_get_countflag();
+    uint32_t system_time = module.system_time;
+
+    const uint32_t ratio = systick_get_reload() + 1; /* 72000 */
+    uint32_t counter = systick_get_value();
+
+    if (systick_get_countflag())
+    {
+        system_time = module.system_time;
+        counter = systick_get_value();
+    }
+    return (system_time * 1000) + ((counter * 1000 + (ratio / 2)) / ratio);
+}
+
 uint32_t SysTime_GetSystemTimestamp(void)
 {
     return module.system_timestamp;

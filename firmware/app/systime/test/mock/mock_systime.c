@@ -63,6 +63,11 @@ __attribute__((weak)) uint32_t SysTime_GetSystemTime(void)
     return mock_type(uint32_t);
 }
 
+__attribute__((weak)) uint32_t SysTime_GetSystemTimeUs(void)
+{
+    return mock_type(uint32_t);
+}
+
 __attribute__((weak)) uint32_t SysTime_GetSystemTimestamp(void)
 {
     return mock_type(uint32_t);
