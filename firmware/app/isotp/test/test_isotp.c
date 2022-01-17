@@ -61,6 +61,7 @@ static struct listener_t rx_listener;
 static struct listener_t tx_listener;
 static bool drop_frame;
 static bool got_callback;
+static uint32_t system_time_us;
 
 //////////////////////////////////////////////////////////////////////////
 //MOCKS
@@ -107,14 +108,10 @@ bool CANInterface_Transmit(uint32_t id, void *data_p, size_t size)
     return mock_type(bool);
 }
 
-static void InjectFlowControlFrame(uint32_t id)
+uint32_t SysTime_GetSystemTimeUs(void)
 {
-    struct can_frame_t frame;
-    frame.id = id;
-    frame.size = 3;
-    frame.data[0] = 0x31;
-
-    CANInterface_Transmit(frame.id, frame.data,frame.size);
+    system_time_us += 100;
+    return system_time_us;
 }
 
 static void MockRxStatusHandler(enum isotp_status_t status)
@@ -139,6 +136,7 @@ static int Setup(void **state)
     tx_listener = (__typeof__(tx_listener)) {0};
     drop_frame = false;
     got_callback = false;
+    system_time_us = 0;
     return 0;
 }
 
@@ -174,6 +172,16 @@ static void FillBuffer(uint8_t *buffer_p, size_t length)
     {
         buffer_p[i] = i % UINT8_MAX;
     }
+}
+
+static void InjectFlowControlFrame(uint32_t id)
+{
+    struct can_frame_t frame;
+    frame.id = id;
+    frame.size = 3;
+    frame.data[0] = 0x31;
+
+    CANInterface_Transmit(frame.id, frame.data,frame.size);
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -524,26 +532,35 @@ static void test_ISOTP_SeparationTime(void **state)
     will_return_maybe(SysTime_GetSystemTime, 0);
     will_return_maybe(SysTime_GetDifference, 1);
 
-    uint8_t rx_buffer[8];
-    const uint8_t tx_data[] = {0, 1, 2, 3, 4, 5, 6, 7};
+    uint8_t rx_buffer[32];
+    const uint8_t tx_data[] = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15};
 
     /* Millisecond range */
     const uint8_t separation_times_ms[] = {0, 1, 60, 126, 127};
     for (size_t i = 0; i < ElementsIn(separation_times_ms); ++i)
     {
+        const uint32_t start_system_time_us = system_time_us;
         ISOTP_Bind(&ctx, rx_buffer, sizeof(rx_buffer), 0x1, 0x2, separation_times_ms[i], MockRxStatusHandler, MockTxStatusHandler);
 
         assert_true(ISOTP_Send(&ctx, tx_data, sizeof(tx_data)));
         expect_value(MockTxStatusHandler, status, ISOTP_STATUS_DONE);
 
         ProccessUntilStatus(&ctx, ISOTP_STATUS_DONE);
-        assert_int_equal(ctx.tx_link.base.separation_time, separation_times_ms[i] * 1000);
+        if (separation_times_ms[i] > 0)
+        {
+            assert_int_equal(system_time_us - start_system_time_us - 100, separation_times_ms[i] * 1000);
+        }
+        else
+        {
+            assert_int_equal(system_time_us - start_system_time_us, 0);
+        }
     }
 
     /* Microseconds range */
     const uint8_t separation_times_us[] = {241, 242, 245, 248, 249};
     for (size_t i = 0; i < ElementsIn(separation_times_us); ++i)
     {
+        const uint32_t start_system_time_us = system_time_us;
         ISOTP_Bind(&ctx, rx_buffer, sizeof(rx_buffer), 0x1, 0x2, separation_times_us[i], MockRxStatusHandler, MockTxStatusHandler);
 
         assert_true(ISOTP_Send(&ctx, tx_data, sizeof(tx_data)));
@@ -551,13 +568,14 @@ static void test_ISOTP_SeparationTime(void **state)
 
         ProccessUntilStatus(&ctx, ISOTP_STATUS_DONE);
         /* Microseconds timer is not implemented yet so always expect 1 ms. */
-        assert_int_equal(ctx.tx_link.base.separation_time, (separation_times_us[i] - 240)* 100);
+        assert_int_equal(system_time_us - start_system_time_us - 100, (separation_times_us[i] - 240) * 100);
     }
 
     /* Invalid range */
     const uint8_t separation_times_invalid[] = {128, 240, 250, UINT8_MAX};
     for (size_t i = 0; i < ElementsIn(separation_times_invalid); ++i)
     {
+        const uint32_t start_system_time_us = system_time_us;
         ISOTP_Bind(&ctx, rx_buffer, sizeof(rx_buffer), 0x1, 0x2, separation_times_invalid[i], MockRxStatusHandler, MockTxStatusHandler);
 
         assert_true(ISOTP_Send(&ctx, tx_data, sizeof(tx_data)));
@@ -565,7 +583,7 @@ static void test_ISOTP_SeparationTime(void **state)
 
         ProccessUntilStatus(&ctx, ISOTP_STATUS_DONE);
         /* Expect default value (10 ms) when separation time is invalid. */
-        assert_int_equal(ctx.tx_link.base.separation_time, 10000);
+        assert_int_equal(system_time_us - start_system_time_us - 100, 10000);
     }
 }
 
