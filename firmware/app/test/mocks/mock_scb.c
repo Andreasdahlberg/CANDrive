@@ -1,7 +1,7 @@
 /**
- * @file   mock_rcc.c
+ * @file   mock_scb.c
  * @Author Andreas Dahlberg
- * @brief  Mock functions for rcc.
+ * @brief  Mock functions for scb.
  */
 
 /*
@@ -28,11 +28,10 @@ along with CANDrive firmware.  If not, see <http://www.gnu.org/licenses/>.
 #include <stdarg.h>
 #include <stddef.h>
 #include <stdint.h>
-#include <stdbool.h>
 #include <setjmp.h>
 #include <cmocka.h>
 #include <stdio.h>
-#include <libopencm3/stm32/rcc.h>
+#include <libopencm3/cm3/scb.h>
 
 //////////////////////////////////////////////////////////////////////////
 //DEFINES
@@ -46,8 +45,6 @@ along with CANDrive firmware.  If not, see <http://www.gnu.org/licenses/>.
 //VARIABLES
 //////////////////////////////////////////////////////////////////////////
 
-const struct rcc_clock_scale rcc_hse_configs[RCC_CLOCK_HSE_END];
-
 //////////////////////////////////////////////////////////////////////////
 //LOCAL FUNCTION PROTOTYPES
 //////////////////////////////////////////////////////////////////////////
@@ -56,84 +53,12 @@ const struct rcc_clock_scale rcc_hse_configs[RCC_CLOCK_HSE_END];
 //FUNCTIONS
 //////////////////////////////////////////////////////////////////////////
 
-__attribute__((weak))  void rcc_clock_setup_pll(const struct rcc_clock_scale *clock)
+__attribute__((weak)) void scb_reset_core(void)
 {
-
 }
 
-__attribute__((weak)) void rcc_peripheral_enable_clock(volatile uint32_t *reg, uint32_t en)
+__attribute__((weak)) void scb_reset_system(void)
 {
-
-}
-
-__attribute__((weak)) void rcc_peripheral_disable_clock(volatile uint32_t *reg, uint32_t en)
-{
-
-}
-
-__attribute__((weak)) void rcc_peripheral_reset(volatile uint32_t *reg, uint32_t reset)
-{
-
-}
-
-__attribute__((weak)) void rcc_peripheral_clear_reset(volatile uint32_t *reg, uint32_t clear_reset)
-{
-
-}
-
-__attribute__((weak)) void rcc_periph_clock_enable(enum rcc_periph_clken clken)
-{
-
-}
-
-__attribute__((weak)) void rcc_periph_clock_disable(enum rcc_periph_clken clken)
-{
-
-}
-
-__attribute__((weak)) void rcc_periph_reset_pulse(enum rcc_periph_rst rst)
-{
-
-}
-
-__attribute__((weak)) void rcc_periph_reset_hold(enum rcc_periph_rst rst)
-{
-
-}
-
-__attribute__((weak)) void rcc_periph_reset_release(enum rcc_periph_rst rst)
-{
-
-}
-
-__attribute__((weak)) void rcc_set_mco(uint32_t mcosrc)
-{
-
-}
-
-__attribute__((weak)) void rcc_osc_bypass_enable(enum rcc_osc osc)
-{
-
-}
-
-__attribute__((weak)) void rcc_osc_bypass_disable(enum rcc_osc osc)
-{
-
-}
-
-__attribute__((weak)) bool rcc_is_osc_ready(enum rcc_osc osc)
-{
-
-}
-
-__attribute__((weak)) void rcc_wait_for_osc_ready(enum rcc_osc osc)
-{
-
-}
-
-__attribute__((weak)) uint16_t rcc_get_div_from_hpre(uint8_t div_val)
-{
-    mock_type(uint16_t);
 }
 
 //////////////////////////////////////////////////////////////////////////

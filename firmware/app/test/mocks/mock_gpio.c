@@ -67,6 +67,16 @@ __attribute__((weak)) void gpio_set(uint32_t gpio_port, uint16_t gpios)
 
 }
 
+__attribute__((weak)) void gpio_toggle(uint32_t gpio_port, uint16_t gpios)
+{
+    function_called();
+}
+
+__attribute__((weak)) uint16_t gpio_get(uint32_t gpio_port, uint16_t gpios)
+{
+    return mock_type(uint16_t);
+}
+
 __attribute__((weak)) void gpio_set_eventout(uint8_t evoutport, uint8_t evoutpin)
 {
 }

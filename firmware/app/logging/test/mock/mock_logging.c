@@ -71,6 +71,7 @@ __attribute__((weak)) void Logging_SetLevel(logging_logger_t *logger_p, enum log
 __attribute__((weak)) void Logging_Log(const logging_logger_t *logger_p, enum logging_level_t level, const char *file_p, uint32_t line, const char *message_p, ...)
 {
 #ifdef ENABLE_MOCK_OUTPUT
+    printf("%s:%u ", file_p, line);
     va_list args;
     va_start(args, message_p);
     vprintf(message_p, args);
