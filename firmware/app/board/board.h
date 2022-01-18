@@ -32,8 +32,6 @@ along with CANDrive firmware.  If not, see <http://www.gnu.org/licenses/>.
 //INCLUDES
 //////////////////////////////////////////////////////////////////////////
 
-#include <libopencm3/stm32/timer.h>
-#include <libopencm3/stm32/rcc.h>
 #include "motor.h"
 #include <stdint.h>
 #include <stddef.h>

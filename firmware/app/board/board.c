@@ -25,6 +25,8 @@ along with CANDrive firmware.  If not, see <http://www.gnu.org/licenses/>.
 //INCLUDES
 //////////////////////////////////////////////////////////////////////////
 
+#include <libopencm3/stm32/timer.h>
+#include <libopencm3/stm32/rcc.h>
 #include <libopencm3/cm3/common.h>
 #include <libopencm3/stm32/gpio.h>
 #include <libopencm3/cm3/scb.h>
