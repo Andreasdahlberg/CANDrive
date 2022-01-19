@@ -24,8 +24,12 @@ SOURCE = Glob('*.c')
 env.Append(CPPPATH=[
     '#app/utility',
     '#app/logging',
+    '#app/systime',
+    '#app/board',
     '#app/motor',
+    '#app/pwm',
     '#app/pid',
+    '#app/adc',
     '#app/console',
     '#app/system_monitor',
     '#app/config'
@@ -34,4 +38,3 @@ env.Append(CPPPATH=[
 OBJECTS = env.Object(SOURCE)
 
 Return('OBJECTS')
-
