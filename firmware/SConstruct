@@ -39,7 +39,6 @@ cflags = [
 
 ldflags = [
     '-nostartfiles',
-    '-Tapp/stm32f103rb.ld',
     '-mcpu=cortex-m3',
     '-mthumb',
     '-specs=nano.specs',
@@ -60,28 +59,19 @@ TERM = os.getenv('TERM')
 if TERM:
     env['ENV']['TERM'] = TERM
 
+app_env = env.Clone()
 app, hex = env.SConscript('app/SConscript',
                       duplicate=0,
-                      variant_dir='build/',
-                      exports={'env': env, 'project_name': PROJECT_NAME})
+                      variant_dir='build/app/',
+                      exports={'env': app_env, 'project_name': PROJECT_NAME})
 
-env.Alias('build', app)
-Help('build: Build application.\n')
+bootloader_env = env.Clone()
+bootloader, hex_bootloader = env.SConscript('bootloader/SConscript',
+                      duplicate=0,
+                      variant_dir='build/bootloader/',
+                      exports={'env': bootloader_env, 'project_name': PROJECT_NAME})
 
-env.Command('libopencm3_stm32f1.a', '', 'cd libopencm3 && make TARGETS=stm32/f1 -j{}'.format(GetOption('num_jobs')))
-Alias('build-opencm3', 'libopencm3_stm32f1.a')
-Help('build-opencm3: Build the opencm3 library.\n')
-
-flash = Command('flash', hex, 'st-flash --reset --format ihex write {}'.format('${SOURCE}'))
-Help('flash: Flash application to target.\n')
-
-compdb = env.CompilationDatabase()
-Alias('compdb', compdb)
-Help('compdb: Generate a compilation database.\n')
-
-env.Command('size', app, 'arm-none-eabi-size {}'.format('${SOURCE}'))
-Help('size: Display the application size.\n')
-
+Help('Common\n')
 env.Command('serial', '', 'minicom -D ${SERIAL_PORT} -b ${BAUD_RATE} -t linux')
 Help('serial: Display serial output from the device.\n')
 
@@ -91,8 +81,39 @@ Help('monitor: Display formatted output from the device.\n')
 env.Command("format", None, 'astyle --options=.astylerc --recursive app/*.c app/*.h')
 Help('format: Format all source files.\n')
 
+compdb = env.CompilationDatabase()
+Alias('compdb', compdb)
+Help('compdb: Generate a compilation database.\n')
+
 env.Command("gdb-server", None, 'st-util -m -n')
 Help('gdb: Start a GDB server.\n')
 
+env.Command('libopencm3_stm32f1.a', '', 'cd libopencm3 && make TARGETS=stm32/f1 -j{}'.format(GetOption('num_jobs')))
+Alias('build-opencm3', 'libopencm3_stm32f1.a')
+Help('build-opencm3: Build the opencm3 library.\n')
+
+Help('\nApplication\n')
+env.Alias('build', app)
+Help('build: Build application.\n')
+
+flash = Command('flash', hex, 'st-flash --reset --format ihex write {}'.format('${SOURCE}'))
+Help('flash: Flash application to target.\n')
+
+env.Command('size', app, 'arm-none-eabi-size {}'.format('${SOURCE}'))
+Help('size: Display the application size.\n')
+
 env.Command("gdb", app, 'gdb-multiarch ${SOURCE} --eval-command="target remote localhost:4242"')
 Help('gdb: Start GDB and attach to target.\n')
+
+Help('\nBootloader\n')
+env.Alias('build-boot', bootloader)
+Help('build-boot: Build bootloader.\n')
+
+flash_boot = Command('flash-boot', hex_bootloader, 'st-flash --reset --format ihex write {}'.format('${SOURCE}'))
+Help('flash: Flash bootloader to target.\n')
+
+env.Command('size-boot', bootloader, 'arm-none-eabi-size {}'.format('${SOURCE}'))
+Help('size: Display the bootloader size.\n')
+
+env.Command("gdb-boot", bootloader, 'gdb-multiarch ${SOURCE} --eval-command="target remote localhost:4242"')
+Help('gdb-boot: Start GDB and attach to target.\n')
