@@ -77,7 +77,7 @@ test_env = Environment(
     CC='gcc',
     CCFLAGS=['-g', '-O0', '-std=c17'],
     CPPPATH=['#libopencm3/include'],
-    CPPDEFINES=['STM32F1', 'UNIT_TEST'],
+    CPPDEFINES=['STM32F1', 'UNIT_TEST', 'BAUD_RATE=921600'],
     LIBS=['cmocka', 'gcov']
 )
 
@@ -107,13 +107,6 @@ for module in MODULES:
     unit_env = test_env.Clone()
 
     if os.path.isfile(os.path.join(Dir('.').srcnode().abspath, module, 'test', 'SConscript')):
-        unit_test_dir = os.path.join(module, 'test', 'test')
-        unit_test_sconscript_file = os.path.join(module, 'test', 'SConscript')
-        unit_test_object = SConscript(unit_test_sconscript_file,
-            variant_dir=unit_test_dir,
-            duplicate=0,
-            exports={'env': unit_env})
-
         unit_env.Append(CCFLAGS='--coverage')
         unit_env.Append(CPPPATH='#app/test/mocks')
 
@@ -121,6 +114,13 @@ for module in MODULES:
         module_sconscript_file = os.path.join(module, 'SConscript')
         module_object = SConscript(module_sconscript_file,
             variant_dir=module_dir,
+            duplicate=0,
+            exports={'env': unit_env})
+
+        unit_test_dir = os.path.join(module, 'test', 'test')
+        unit_test_sconscript_file = os.path.join(module, 'test', 'SConscript')
+        unit_test_object = SConscript(unit_test_sconscript_file,
+            variant_dir=unit_test_dir,
             duplicate=0,
             exports={'env': unit_env})
 

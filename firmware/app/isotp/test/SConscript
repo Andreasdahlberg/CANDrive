@@ -19,27 +19,25 @@ import os
 
 Import(['*'])
 
-
-env.Append(CPPPATH=[
+test_env = env.Clone()
+test_env['CCFLAGS'].remove('--coverage')
+test_env.Append(CPPPATH=[
     '#app/utility',
     '#app/isotp'
     ])
 
-env.Append(LINKFLAGS=[
-])
-
 fifo_object = SConscript('#app/fifo/SConscript',
     variant_dir='fifo',
     duplicate=0,
-    exports={'env': env})
+    exports={'env': test_env})
 
 stream_object = SConscript('#app/stream/SConscript',
     variant_dir='stream',
     duplicate=0,
-    exports={'env': env})
+    exports={'env': test_env})
 
 source = Glob('*.c')
-objects = env.Object(source=source)
+objects = test_env.Object(source=source)
 objects.append(fifo_object)
 objects.append(stream_object)
 

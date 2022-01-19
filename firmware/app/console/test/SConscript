@@ -19,21 +19,19 @@ import os
 
 Import(['*'])
 
-
-env.Append(CPPPATH=[
+test_env = env.Clone()
+test_env['CCFLAGS'].remove('--coverage')
+test_env.Append(CPPPATH=[
     '#app/console',
     ])
-
-env.Append(LINKFLAGS=[
-])
 
 utility_object = SConscript('#app/utility/SConscript',
     variant_dir='utility',
     duplicate=0,
-    exports={'env': env})
+    exports={'env': test_env})
 
 source = Glob('*.c')
-objects = env.Object(source=source)
+objects = test_env.Object(source=source)
 objects.append(utility_object)
 
 Return('objects')
