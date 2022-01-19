@@ -66,6 +66,7 @@ size_t CopyString(char *dst_p, const char *src_p, size_t bufsize)
     if (length == bufsize)
     {
         *(dst_p + bufsize - 1) = '\0';
+        length -= 1;
     }
 
     return length;
