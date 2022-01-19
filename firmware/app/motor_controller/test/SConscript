@@ -22,16 +22,8 @@ Import(['*'])
 
 env.Append(CPPPATH=[
     '#app/utility',
-    '#app/systime',
-    '#app/motor',
-    '#app/pwm',
-    '#app/adc',
-    '#app/board',
     '#app/motor_controller'
     ])
-
-env.Append(LINKFLAGS=[
-])
 
 source = Glob('*.c')
 objects = env.Object(source=source)

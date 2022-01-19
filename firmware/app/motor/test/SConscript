@@ -22,7 +22,6 @@ Import(['*'])
 
 env.Append(CPPPATH=[
     '#app/utility',
-    '#app/systime',
     '#app/motor'
     ])
 
