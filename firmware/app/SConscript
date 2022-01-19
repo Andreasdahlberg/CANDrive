@@ -54,6 +54,10 @@ env.Append(CPPPATH=[
     '#libopencm3/include'
 ])
 
+env.Append(LINKFLAGS=[
+    '-Tapp/app.ld'
+])
+
 for module in MODULES:
     sconscript_file = os.path.join(module, 'SConscript')
 
