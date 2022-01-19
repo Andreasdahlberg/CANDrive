@@ -19,28 +19,29 @@ import os
 
 Import(['*'])
 
-
 env.Append(CPPPATH=[
-    '../test/candb',
+    '../test/candb'
+])
+
+test_env = env.Clone()
+test_env['CCFLAGS'].remove('--coverage')
+test_env.Append(CPPPATH=[
     '#app/signal_handler'
     ])
-
-env.Append(LINKFLAGS=[
-])
 
 fifo_object = SConscript('#app/fifo/SConscript',
     variant_dir='fifo',
     duplicate=0,
-    exports={'env': env})
+    exports={'env': test_env})
 
 candb_object = SConscript('#app/candb/SConscript',
     variant_dir='candb',
     duplicate=0,
-    exports={'env': env})
+    exports={'env': test_env})
 
 source = Glob('*.c')
-objects = env.Object(source=source)
-env.Depends(target = objects, dependency = [candb_object])
+objects = test_env.Object(source=source)
+test_env.Depends(target = objects, dependency = [candb_object])
 objects.append(candb_object)
 objects.append(fifo_object)
 

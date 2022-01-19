@@ -19,17 +19,17 @@ import os
 
 Import(['*'])
 
-
-env.Append(CPPPATH=[
-    '#app/nvs'
-    ])
-
 env.Append(LINKFLAGS=[
     '-Wl,--wrap=memcpy',
 ])
 
+test_env = env.Clone()
+test_env['CCFLAGS'].remove('--coverage')
+test_env.Append(CPPPATH=[
+    '#app/nvs'
+    ])
 
 source = Glob('*.c')
-objects = env.Object(source=source)
+objects = test_env.Object(source=source)
 
 Return('objects')

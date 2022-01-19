@@ -24,7 +24,6 @@ SOURCE = Glob('*.c')
 env.Append(CPPPATH=[
     '#app/utility',
     '#app/logging',
-    '../test/candb',
     '../candb',
     '#app/fifo',
     '#app/can_interface',
