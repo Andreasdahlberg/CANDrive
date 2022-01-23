@@ -8,7 +8,7 @@ jobs:
 
     steps:
       - name: Install cantools
-        run: sudo python3 -m pip install cantools
+        run: sudo python3 -m pip install cantools==37.0.1
       - name: Install build tools
         run: sudo apt-get update -y && sudo apt-get install -y gcc-arm-none-eabi libnewlib-arm-none-eabi libnewlib-nano-arm-none-eabi valgrind gcovr
       - name: Install SCons
