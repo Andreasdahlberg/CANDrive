@@ -517,9 +517,7 @@ static uint8_t GetBlockSize(const struct isotp_recv_link_t *link_p)
 {
     const size_t remaining_bytes = link_p->base.payload_size - link_p->received_bytes;
     const size_t stream_slot_size = remaining_bytes < CF_DATA_LENGTH ? remaining_bytes : CF_DATA_LENGTH;
-
-    assert(stream_slot_size > 0);
-    const size_t available_stream_slots = Stream_GetAvailableSpace(&link_p->rx_stream) / stream_slot_size;
+    const size_t available_stream_slots = stream_slot_size > 0 ? (Stream_GetAvailableSpace(&link_p->rx_stream) / stream_slot_size) : 0;
     const uint8_t available_frame_slots = FIFO_GetAvailableSlots(&link_p->base.frame_fifo);
 
     uint8_t block_size;

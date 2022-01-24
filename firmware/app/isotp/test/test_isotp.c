@@ -277,6 +277,37 @@ static void test_ISOTP_FirstFrameOverflow(void **state)
     ProccessUntilStatus(&ctx, ISOTP_STATUS_OVERFLOW_ABORT);
 }
 
+static void test_ISOTP_MultiplePacketsOverflow(void **state)
+{
+    will_return_maybe(Logging_GetLogger, dummy_logger);
+    expect_any_always(CANInterface_AddFilter, id);
+    expect_any_always(CANInterface_AddFilter, mask);
+    will_return_maybe(CANInterface_Transmit, true);
+    will_return_maybe(SysTime_GetSystemTime, 0);
+    will_return_maybe(SysTime_GetDifference, 101);
+
+    uint8_t rx_buffer[64];
+    ISOTP_Bind(&ctx, rx_buffer, sizeof(rx_buffer), 0x1, 0x2, 0, MockRxStatusHandler, MockTxStatusHandler);
+
+    const uint8_t tx_data[32] = {0};
+
+    assert_true(ISOTP_Send(&ctx, tx_data, sizeof(tx_data)));
+    expect_value(MockTxStatusHandler, status, ISOTP_STATUS_DONE);
+    ProccessUntilStatus(&ctx, ISOTP_STATUS_DONE);
+
+    assert_true(ISOTP_Send(&ctx, tx_data, sizeof(tx_data)));
+    expect_value(MockTxStatusHandler, status, ISOTP_STATUS_DONE);
+    ProccessUntilStatus(&ctx, ISOTP_STATUS_DONE);
+
+    assert_true(ISOTP_Send(&ctx, tx_data, sizeof(tx_data)));
+    expect_value(MockTxStatusHandler, status, ISOTP_STATUS_OVERFLOW_ABORT);
+    ProccessUntilStatus(&ctx, ISOTP_STATUS_OVERFLOW_ABORT);
+
+    uint8_t rx_data[32];
+    size_t res = ISOTP_Receive(&ctx, rx_data, sizeof(rx_data));
+    assert_int_equal(res, 0);
+}
+
 static void test_ISOTP_MulipleFrames(void **state)
 {
     will_return_maybe(Logging_GetLogger, dummy_logger);
@@ -602,6 +633,7 @@ int main(int argc, char *argv[])
         cmocka_unit_test_setup(test_ISOTP_SingleFrame, Setup),
         cmocka_unit_test_setup(test_ISOTP_SingleFrameOverflow, Setup),
         cmocka_unit_test_setup(test_ISOTP_FirstFrameOverflow, Setup),
+        cmocka_unit_test_setup(test_ISOTP_MultiplePacketsOverflow, Setup),
         cmocka_unit_test_setup(test_ISOTP_MulipleFrames, Setup),
         cmocka_unit_test_setup(test_ISOTP_MaxDataLength, Setup),
         cmocka_unit_test_setup(test_ISOTP_ConsecutiveFrameTimeout, Setup),
