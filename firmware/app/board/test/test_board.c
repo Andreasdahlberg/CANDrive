@@ -47,6 +47,9 @@ along with CANDrive firmware.  If not, see <http://www.gnu.org/licenses/>.
 //VARIABLES
 //////////////////////////////////////////////////////////////////////////
 
+uintptr_t __nvsrom_start__;
+uintptr_t __nvsrom_size__;
+
 //////////////////////////////////////////////////////////////////////////
 //LOCAL FUNCTIONS
 //////////////////////////////////////////////////////////////////////////
@@ -99,11 +102,12 @@ static void test_Board_GetEmergencyPinState(void **state)
 
 static void test_Board_GetNVSAddress(void **state)
 {
-    assert_int_equal(Board_GetNVSAddress(), 0x801F800);
+    assert_int_equal(Board_GetNVSAddress(), &__nvsrom_start__);
 }
 
 static void test_Board_GetNumberOfPagesInNVS(void **state)
 {
+    skip();
     assert_int_equal(Board_GetNumberOfPagesInNVS(), 2);
 }
 

@@ -61,7 +61,7 @@ static inline void USARTSetup(uint32_t baud_rate);
 static void USARTSend(const char *text_p);
 static inline void StartApplication(void) __attribute__((noreturn));
 static inline void PrepareForApplication(void);
-static void JumpToApplication(__attribute__((unused)) uint32_t pc, __attribute__((unused)) uint32_t sp) __attribute__((naked, noreturn));
+static void JumpToApplication(__attribute__((unused)) uintptr_t pc, __attribute__((unused)) uintptr_t sp) __attribute__((naked, noreturn));
 
 //////////////////////////////////////////////////////////////////////////
 //FUNCTIONS
@@ -124,9 +124,9 @@ static void USARTSend(const char *text_p)
 
 static inline void StartApplication(void)
 {
-    const uint32_t *app_code = &__approm_start__;
-    const uint32_t app_sp = *app_code;
-    const uint32_t app_start = *(app_code + 1);
+    const uintptr_t *app_code = &__approm_start__;
+    const uintptr_t app_sp = *app_code;
+    const uintptr_t app_start = *(app_code + 1);
 
     LOG_MESSAGE("Start application");
     PrepareForApplication();
@@ -141,12 +141,12 @@ static inline void PrepareForApplication(void)
     rcc_periph_clock_disable(RCC_USART2);
 
     /* Switch to application vector table. */
-    const uint32_t *app_code = &__approm_start__;
-    const uint32_t app_vector_table = (uint32_t)app_code;
+    const uintptr_t *app_code = &__approm_start__;
+    const uintptr_t app_vector_table = (uintptr_t)app_code;
     SCB_VTOR = app_vector_table;
 }
 
-static void JumpToApplication(__attribute__((unused)) uint32_t pc, __attribute__((unused)) uint32_t sp)
+static void JumpToApplication(__attribute__((unused)) uintptr_t pc, __attribute__((unused)) uintptr_t sp)
 {
     __asm("MSR MSP,r1");
     __asm("BX r0");

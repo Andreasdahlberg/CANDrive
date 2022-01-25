@@ -31,6 +31,7 @@ along with CANDrive firmware.  If not, see <http://www.gnu.org/licenses/>.
 #include <libopencm3/stm32/gpio.h>
 #include <libopencm3/cm3/scb.h>
 #include <assert.h>
+#include "memory_map.h"
 #include "utility.h"
 #include "board.h"
 
@@ -172,14 +173,19 @@ bool Board_GetEmergencyPinState(void)
     return !(bool)gpio_get(GPIO_EMERGENCY_PORT, GPIO_EMERGENCY);
 }
 
-uint32_t Board_GetNVSAddress(void)
+uintptr_t Board_GetNVSAddress(void)
 {
-    return 0x801F800;
+    const uintptr_t *nvs = &__nvsrom_start__;
+    return (uintptr_t)nvs;
 }
 
 uint32_t Board_GetNumberOfPagesInNVS(void)
 {
-    return 2;
+    const uint32_t sector_size = 1024;
+    const uintptr_t *nvs = &__nvsrom_size__;
+
+    assert((uintptr_t)nvs % sector_size == 0);
+    return (uintptr_t)nvs / sector_size;
 }
 
 uint32_t Board_GetMaxCurrent(void)

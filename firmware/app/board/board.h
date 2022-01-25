@@ -123,7 +123,7 @@ bool Board_GetEmergencyPinState(void);
  *
  * @return Address.
  */
-uint32_t Board_GetNVSAddress(void);
+uintptr_t Board_GetNVSAddress(void);
 
 /**
  * Get the number of flash pages in the NVS partition.
