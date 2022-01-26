@@ -1,0 +1,13 @@
+store number_of_motors 1
+store counts_per_rev 67
+store no_load_rpm 67
+store no_load_current 200
+store stall_current 5500
+store kp 50
+store ki 40
+store kd 20
+store imax 200
+store imin -200
+store rx_id 1
+store tx_id 2
+reset
