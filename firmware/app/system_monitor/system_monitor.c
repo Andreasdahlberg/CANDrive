@@ -28,6 +28,7 @@ along with CANDrive firmware.  If not, see <http://www.gnu.org/licenses/>.
 #include <assert.h>
 #include <stddef.h>
 #include <libopencm3/stm32/iwdg.h>
+#include <libopencm3/stm32/pwr.h>
 #include "utility.h"
 #include "logging.h"
 #include "board.h"
@@ -45,12 +46,20 @@ along with CANDrive firmware.  If not, see <http://www.gnu.org/licenses/>.
 
 #define WATCHDOG_PERIOD_MS 200
 #define MAX_NUMBER_OF_WATCHDOG_HANDLES 32
-#define MAGIC_NUMBER 0xAABCDEFA
+#define MAGIC_NUMBER 0xABCD
 #define CONTROL_INACTIVITY_PERIOD_MS 200
 
 //////////////////////////////////////////////////////////////////////////
 //TYPE DEFINITIONS
 //////////////////////////////////////////////////////////////////////////
+
+struct restart_information_t
+{
+    uint16_t cold_restart_magic_number;
+    uint16_t reserved_1;
+    uint16_t number_of_watchdog_restarts;
+    uint16_t reserved_2;
+};
 
 struct module_t
 {
@@ -59,6 +68,7 @@ struct module_t
     uint32_t flags;
     uint32_t control_activity_timer;
     enum system_monitor_state_t state;
+    volatile struct restart_information_t *restart_info_p;
 };
 
 //////////////////////////////////////////////////////////////////////////
@@ -66,17 +76,17 @@ struct module_t
 //////////////////////////////////////////////////////////////////////////
 
 static struct module_t module;
-static uint32_t cold_restart_magic_number __attribute__ ((section (".noinit")));
-static uint32_t number_of_watchdog_restarts __attribute__ ((section (".noinit")));
 
 //////////////////////////////////////////////////////////////////////////
 //LOCAL FUNCTION PROTOTYPES
 //////////////////////////////////////////////////////////////////////////
 
+static inline void ClockSetup(void);
 static inline bool IsColdRestart(void);
 static inline void SetMagicNumber(void);
 static inline uint32_t GetRequiredFlags(void);
 static inline bool IsWatchdogRestart(void);
+static void UpdateRestartInformation(void);
 
 //////////////////////////////////////////////////////////////////////////
 //FUNCTIONS
@@ -86,34 +96,23 @@ void SystemMonitor_Init(void)
 {
     module = (__typeof__(module)) {0};
     module.state = SYSTEM_MONITOR_INACTIVE;
+    module.restart_info_p = (volatile struct restart_information_t *)Board_GetBackupMemoryAddress();
+
+    ClockSetup();
 
     module.logger = Logging_GetLogger("SysMon");
     Logging_SetLevel(module.logger, SYSTEMMONITOR_LOGGER_DEBUG_LEVEL);
 
+    UpdateRestartInformation();
+
     Logging_Info(module.logger, "{restarts: %u, magic_number: %X, cold: %u, wdt: %u}",
-                 number_of_watchdog_restarts,
-                 cold_restart_magic_number,
+                 module.restart_info_p->number_of_watchdog_restarts,
+                 module.restart_info_p->cold_restart_magic_number,
                  (uint32_t)IsColdRestart(),
                  (uint32_t)IsWatchdogRestart()
                 );
 
-    if (IsColdRestart())
-    {
-        number_of_watchdog_restarts = 0;
-        SetMagicNumber();
-    }
-
-    if (IsWatchdogRestart())
-    {
-        ++number_of_watchdog_restarts;
-        Logging_Error(module.logger, "Restarted due to watchdog timeout!");
-    }
-    else
-    {
-        number_of_watchdog_restarts = 0;
-    }
-
-    assert(number_of_watchdog_restarts < 3 && "Stopped due to watchdog reset loop");
+    assert(module.restart_info_p->number_of_watchdog_restarts < 3 && "Stopped due to watchdog reset loop");
     iwdg_set_period_ms(WATCHDOG_PERIOD_MS);
     iwdg_start();
 
@@ -186,14 +185,20 @@ enum system_monitor_state_t SystemMonitor_GetState(void)
 //LOCAL FUNCTIONS
 //////////////////////////////////////////////////////////////////////////
 
+static inline void ClockSetup(void)
+{
+    rcc_periph_clock_enable(RCC_PWR);
+    rcc_periph_clock_enable(RCC_BKP);
+}
+
 static inline bool IsColdRestart(void)
 {
-    return cold_restart_magic_number != MAGIC_NUMBER;
+    return module.restart_info_p->cold_restart_magic_number != MAGIC_NUMBER;
 }
 
 static inline void SetMagicNumber(void)
 {
-    cold_restart_magic_number = MAGIC_NUMBER;
+    module.restart_info_p->cold_restart_magic_number = MAGIC_NUMBER;
 }
 
 static inline uint32_t GetRequiredFlags(void)
@@ -212,4 +217,25 @@ static inline bool IsWatchdogRestart(void)
     uint32_t reset_flags = Board_GetResetFlags();
 
     return (bool)(reset_flags & RCC_CSR_IWDGRSTF);
+}
+
+static void UpdateRestartInformation(void)
+{
+    pwr_disable_backup_domain_write_protect();
+    if (IsColdRestart())
+    {
+        module.restart_info_p->number_of_watchdog_restarts = 0;
+        SetMagicNumber();
+    }
+
+    if (IsWatchdogRestart())
+    {
+        ++module.restart_info_p->number_of_watchdog_restarts;
+        Logging_Error(module.logger, "Restarted due to watchdog timeout!");
+    }
+    else
+    {
+        module.restart_info_p->number_of_watchdog_restarts = 0;
+    }
+    pwr_enable_backup_domain_write_protect();
 }
