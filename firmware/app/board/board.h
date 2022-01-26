@@ -139,5 +139,11 @@ uint32_t Board_GetNumberOfPagesInNVS(void);
  */
 uint32_t Board_GetMaxCurrent(void);
 
+/**
+ * Get the backup memory address.
+ *
+ * @return Address.
+ */
+uintptr_t Board_GetBackupMemoryAddress(void);
 
 #endif

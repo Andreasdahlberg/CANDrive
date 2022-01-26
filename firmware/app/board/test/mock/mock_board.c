@@ -119,6 +119,11 @@ __attribute__((weak)) uint32_t Board_GetMaxCurrent(void)
     return mock_type(uint32_t);
 }
 
+__attribute__((weak)) uintptr_t Board_GetBackupMemoryAddress(void)
+{
+    return mock_type(uintptr_t);
+}
+
 //////////////////////////////////////////////////////////////////////////
 //LOCAL FUNCTIONS
 //////////////////////////////////////////////////////////////////////////
