@@ -54,6 +54,7 @@ along with CANDrive firmware.  If not, see <http://www.gnu.org/licenses/>.
 //////////////////////////////////////////////////////////////////////////
 
 static struct logging_logger_t *dummy_logger;
+static uint32_t backup_registers[42];
 
 //////////////////////////////////////////////////////////////////////////
 //FUNCTION PROTOTYPES
@@ -69,6 +70,7 @@ static struct logging_logger_t *dummy_logger;
 
 static void NormalReset(void)
 {
+    will_return(Board_GetBackupMemoryAddress, (uintptr_t)backup_registers);
     will_return(Logging_GetLogger, dummy_logger);
     will_return_count(Board_GetResetFlags, 0, 2);
     expect_any(iwdg_set_period_ms, period);
@@ -77,6 +79,7 @@ static void NormalReset(void)
 
 static void WatchdogReset(bool expect_assert_failure)
 {
+    will_return(Board_GetBackupMemoryAddress, (uintptr_t)backup_registers);
     will_return(Logging_GetLogger, dummy_logger);
     will_return_count(Board_GetResetFlags, RCC_CSR_IWDGRSTF, 2);
     if (!expect_assert_failure)
