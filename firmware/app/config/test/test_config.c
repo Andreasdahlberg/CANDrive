@@ -55,6 +55,8 @@ struct test_config_t
     uint32_t kd;
     uint32_t imax;
     uint32_t imin;
+    uint32_t rx_id;
+    uint32_t tx_id;
 };
 
 //////////////////////////////////////////////////////////////////////////
@@ -71,7 +73,7 @@ struct test_config_t
 
 static int Setup(void **state)
 {
-    size_t number_of_parameters = 10;
+    size_t number_of_parameters = 12;
     for (size_t i = 0; i < number_of_parameters; ++i)
     {
         will_return(NVS_Retrieve, 2);
@@ -100,6 +102,8 @@ static void test_Config_Valid(void **state)
         .kd = 10,
         .imax = 200,
         .imin = -150,
+        .rx_id = 0x001,
+        .tx_id = 0x002
     };
 
     will_return(NVS_Retrieve, config.number_of_motors);
@@ -122,6 +126,10 @@ static void test_Config_Valid(void **state)
     will_return(NVS_Retrieve, true);
     will_return(NVS_Retrieve, config.imin);
     will_return(NVS_Retrieve, true);
+    will_return(NVS_Retrieve, config.rx_id);
+    will_return(NVS_Retrieve, true);
+    will_return(NVS_Retrieve, config.tx_id);
+    will_return(NVS_Retrieve, true);
 
     Config_Init();
 
@@ -136,6 +144,8 @@ static void test_Config_Valid(void **state)
     assert_int_equal(Config_GetValue("kd"), config.kd);
     assert_int_equal(Config_GetValue("imax"), config.imax);
     assert_int_equal(Config_GetValue("imin"), config.imin);
+    assert_int_equal(Config_GetValue("rx_id"), config.rx_id);
+    assert_int_equal(Config_GetValue("tx_id"), config.tx_id);
 }
 
 static void test_Config_Invalid(void **state)
@@ -179,6 +189,8 @@ static void test_Config_Invalid_ParameterZeroCheck(void **state)
     assert_int_equal(Config_GetValue("kd"), 0);
     assert_int_equal(Config_GetValue("imax"), 0);
     assert_int_equal(Config_GetValue("imin"), 0);
+    assert_int_equal(Config_GetValue("rx_id"), 0);
+    assert_int_equal(Config_GetValue("tx_id"), 0);
 }
 
 static void test_Config_GetValue_NULL(void **state)
