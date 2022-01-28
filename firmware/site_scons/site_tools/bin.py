@@ -30,7 +30,7 @@ def generate(env):
     env['SHCCFLAGS'] = SCons.Util.CLVar('$CFLAGS')
 
     env.Append(BUILDERS={
-        'Hex': _get_hex_builder()
+        'Bin': _get_bin_builder()
     })
 
 
@@ -38,9 +38,9 @@ def exists(env):
     return True
 
 
-def _get_hex_builder():
+def _get_bin_builder():
     return SCons.Builder.Builder(
         action=SCons.Action.Action(
-            "${OBJCOPY} -O ihex ${SOURCES} ${TARGET}"
+            "${OBJCOPY} -O binary ${SOURCES} ${TARGET}"
         )
     )
