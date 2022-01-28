@@ -55,8 +55,6 @@ enum isotp_status_t
     ISOTP_STATUS_OVERFLOW_ABORT
 };
 
-typedef void (*isotp_status_callback_t)(enum isotp_status_t status);
-
 enum isotp_tx_state_t
 {
     ISOTP_TX_INACTIVE = 0,
@@ -77,6 +75,8 @@ enum isotp_link_type_t
     ISOTP_LINK_RX = 0,
     ISOTP_LINK_TX
 };
+
+typedef void (*isotp_status_callback_t)(enum isotp_status_t status);
 
 struct isotp_link_t
 {
@@ -122,11 +122,47 @@ struct isotp_ctx_t
 //////////////////////////////////////////////////////////////////////////
 //FUNCTION PROTOTYPES
 //////////////////////////////////////////////////////////////////////////
-
+/**
+ * Create a link between two endpoints.
+ *
+ * @param ctx_p Pointer to link context.
+ * @param rx_buffer_p Pointer to RX buffer.
+ * @param rx_buffer_size Size of RX buffer.
+ * @param rx_id ID of RX endpoint.
+ * @param tx_id ID of TX endpoint
+ * @param separation_time Separation time between frames.
+ * @param rx_callback_fp Callback for RX events.
+ * @param tx_callback_fp Callback for TX events.
+ */
 void ISOTP_Bind(struct isotp_ctx_t *ctx_p, void *rx_buffer_p, size_t rx_buffer_size, uint16_t rx_id, uint16_t tx_id, uint8_t separation_time, isotp_status_callback_t rx_callback_fp, isotp_status_callback_t tx_callback_fp);
+
+/**
+ * Process RX and TX data.
+ *
+ * @param ctx_p Pointer to link context.
+ */
 void ISOTP_Proccess(struct isotp_ctx_t *ctx_p);
-size_t ISOTP_Receive(struct isotp_ctx_t *ctx_p, void *destination_p, size_t length);
+
+/**
+ * Send data.
+ *
+ * @param ctx_p Pointer to link context.
+ * @param data_p Pointer to data. data_p must be valid until TX event ISOTP_STATUS_DONE is received.
+ * @param length Number of bytes to send.
+ *
+ * @return True if send was successful, otherwise false.
+ */
 bool ISOTP_Send(struct isotp_ctx_t *ctx_p, const void *data_p, size_t length);
-void ISOTP_ProccessTx(struct isotp_ctx_t *ctx_p);
+
+/**
+ * Receive any available data.
+ *
+ * @param ctx_p Pointer to link context.
+ * @param destination_p Pointer to destination buffer where data will be stored.
+ * @param length Max number of bytes to receive(size of destination buffer).
+ *
+ * @return Number of bytes received, zero if no data is available.
+ */
+size_t ISOTP_Receive(struct isotp_ctx_t *ctx_p, void *destination_p, size_t length);
 
 #endif
