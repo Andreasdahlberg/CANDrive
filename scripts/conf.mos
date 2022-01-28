@@ -1,5 +1,5 @@
 store number_of_motors 1
-store counts_per_rev 67
+store counts_per_rev 9600
 store no_load_rpm 67
 store no_load_current 200
 store stall_current 5500
