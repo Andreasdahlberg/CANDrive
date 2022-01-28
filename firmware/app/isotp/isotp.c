@@ -314,7 +314,7 @@ static void HandleSingleFrame(struct isotp_recv_link_t *link_p, const struct can
 
     if (isotp_frame.size <= Stream_GetAvailableSpace(&link_p->rx_stream))
     {
-        /* No need to check the result is it's already checked that the data fits. */
+        /* No need to check the result, it's already verified that the data fits. */
         Stream_Write(&link_p->rx_stream, isotp_frame.data, isotp_frame.size);
         link_p->base.callback_fp(ISOTP_STATUS_DONE);
     }
