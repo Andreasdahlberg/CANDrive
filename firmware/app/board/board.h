@@ -133,6 +133,13 @@ uintptr_t Board_GetNVSAddress(void);
 uint32_t Board_GetNumberOfPagesInNVS(void);
 
 /**
+ * Get the start address of the firmware upgrade partition.
+ *
+ * @return Address.
+ */
+uintptr_t Board_GetUpgradeMemoryAddress(void);
+
+/**
  * Get the max current that the board can deliver.
  *
  * @return Max current in mA.
