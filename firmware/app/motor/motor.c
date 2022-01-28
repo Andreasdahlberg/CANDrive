@@ -68,7 +68,7 @@ static inline uint32_t GetPosition(const struct motor_t *self_p);
 static inline void ResetPosition(const struct motor_t *self_p);
 static inline int16_t SenseVoltageToCurrent(const struct motor_t *self_p, uint32_t sense_voltage);
 static inline int32_t GetCountDifference(const struct motor_t *self_p, int32_t count);
-static inline int32_t CountToRPM(const struct motor_t *self_p, int32_t count);
+static inline int32_t CountToRPM(const struct motor_t *self_p, int32_t count, uint32_t frequency);
 
 //////////////////////////////////////////////////////////////////////////
 //FUNCTIONS
@@ -111,12 +111,14 @@ void Motor_Update(struct motor_t *self_p)
     assert(self_p != NULL);
     const uint32_t update_period_ms = 1000 / RPM_SAMPLE_FREQUENCY;
 
-    if (SysTime_GetDifference(self_p->timer) >= update_period_ms)
+    const uint32_t time_since_last_update = SysTime_GetDifference(self_p->timer);
+    if (time_since_last_update >= update_period_ms)
     {
         const int32_t count = (int32_t)GetPosition(self_p);
         const int32_t difference = GetCountDifference(self_p, count);
+        const uint32_t actual_sample_frequency = 1000 / time_since_last_update;
 
-        self_p->rpm = (int16_t)CountToRPM(self_p, difference);
+        self_p->rpm = (int16_t)CountToRPM(self_p, difference, actual_sample_frequency);
         self_p->count = count;
         self_p->timer = SysTime_GetSystemTime();
     }
@@ -341,7 +343,7 @@ static inline int32_t GetCountDifference(const struct motor_t *self_p, int32_t c
     return difference;
 }
 
-static inline int32_t CountToRPM(const struct motor_t *self_p, int32_t count)
+static inline int32_t CountToRPM(const struct motor_t *self_p, int32_t count, uint32_t frequency)
 {
-    return (count * (int32_t)RPM_SAMPLE_FREQUENCY * 60 + (self_p->counts_per_revolution / 2)) / self_p->counts_per_revolution;
+    return (count * (int32_t)frequency * 60 + (self_p->counts_per_revolution / 2)) / self_p->counts_per_revolution;
 }
