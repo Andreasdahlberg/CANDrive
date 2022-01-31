@@ -179,6 +179,12 @@ uintptr_t Board_GetNVSAddress(void)
     return (uintptr_t)nvs;
 }
 
+uintptr_t Board_GetApplicationAddress(void)
+{
+    const uintptr_t *app = &__approm_start__;
+    return (uintptr_t)app;
+}
+
 uintptr_t Board_GetUpgradeMemoryAddress(void)
 {
     const uintptr_t *up = &__uprom_start__;

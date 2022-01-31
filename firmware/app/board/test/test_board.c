@@ -47,6 +47,10 @@ along with CANDrive firmware.  If not, see <http://www.gnu.org/licenses/>.
 //VARIABLES
 //////////////////////////////////////////////////////////////////////////
 
+uintptr_t __approm_start__;
+uintptr_t __approm_size__;
+uintptr_t __uprom_start__;
+uintptr_t __uprom_size__;
 uintptr_t __nvsrom_start__;
 uintptr_t __nvsrom_size__;
 

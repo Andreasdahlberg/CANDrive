@@ -1,7 +1,7 @@
 /**
- * @file   mock_isotp.c
+ * @file   mock_update_manager.c
  * @Author Andreas Dahlberg
- * @brief  Mock functions for isotp.
+ * @brief  Mock functions for update_manager.
  */
 
 /*
@@ -31,8 +31,7 @@ along with CANDrive firmware.  If not, see <http://www.gnu.org/licenses/>.
 #include <setjmp.h>
 #include <cmocka.h>
 #include <stdio.h>
-#include <string.h>
-#include "isotp.h"
+#include "firmware_manager.h"
 
 //////////////////////////////////////////////////////////////////////////
 //DEFINES
@@ -54,35 +53,14 @@ along with CANDrive firmware.  If not, see <http://www.gnu.org/licenses/>.
 //FUNCTIONS
 //////////////////////////////////////////////////////////////////////////
 
-__attribute__((weak)) void ISOTP_Bind(struct isotp_ctx_t *ctx_p, void *rx_buffer_p, size_t rx_buffer_size, uint16_t rx_id, uint16_t tx_id, uint8_t separation_time, isotp_status_callback_t rx_callback_fp, isotp_status_callback_t tx_callback_fp)
+__attribute__((weak)) void FirmwareManager_Init(void)
 {
-    assert_non_null(ctx_p);
+
 }
 
-__attribute__((weak)) void ISOTP_Proccess(struct isotp_ctx_t *ctx_p)
+__attribute__((weak)) void FirmwareManager_Update(void)
 {
-    assert_non_null(ctx_p);
-    function_called();
-}
 
-__attribute__((weak)) size_t ISOTP_Receive(struct isotp_ctx_t *ctx_p, void *destination_p, size_t length)
-{
-    assert_non_null(ctx_p);
-    size_t number_of_bytes = mock_type(size_t);
-    memcpy(destination_p, mock_ptr_type(uint8_t *), number_of_bytes);
-    return number_of_bytes;
-}
-
-__attribute__((weak)) bool ISOTP_Send(struct isotp_ctx_t *ctx_p, const void *data_p, size_t length)
-{
-    assert_non_null(ctx_p);
-    check_expected(data_p);
-    return mock_type(bool);
-}
-
-__attribute__((weak)) void ISOTP_ProccessTx(struct isotp_ctx_t *ctx_p)
-{
-    assert_non_null(ctx_p);
 }
 
 //////////////////////////////////////////////////////////////////////////
