@@ -45,6 +45,7 @@ along with CANDrive firmware.  If not, see <http://www.gnu.org/licenses/>.
 #include "nvs.h"
 #include "nvs_cmd.h"
 #include "config.h"
+#include "firmware_manager.h"
 #include "application.h"
 
 //////////////////////////////////////////////////////////////////////////
@@ -118,6 +119,7 @@ void Application_Init(void)
     ADC_Init();
     MotorController_Init();
     SignalHandler_Init();
+    FirmwareManager_Init();
 
     module.logger = Logging_GetLogger(APPLICATION_LOGGER_NAME);
     Logging_SetLevel(module.logger, APPLICATION_LOGGER_DEBUG_LEVEL);
@@ -128,7 +130,7 @@ void Application_Init(void)
     PrintIdAndRevision();
     PrintConfig();
 
-    Logging_Info(module.logger, "Application ready");
+    Logging_Info(module.logger, "%s ready", NAME);
 
     Console_Init(ConsoleWrite, ConsoleRead);
     RegisterConsoleCommands();
@@ -138,6 +140,7 @@ void Application_Run(void)
 {
     SignalHandler_Process();
     MotorController_Update();
+    FirmwareManager_Update();
     Console_Process();
     SystemMonitor_Update();
     HandleStateChanges();

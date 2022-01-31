@@ -1,7 +1,7 @@
 /**
- * @file   memory_map.h
+ * @file   protocol.h
  * @Author Andreas Dahlberg (andreas.dahlberg90@gmail.com)
- * @brief  Memory map.
+ * @brief  Protocol definitions for the update manager.
  */
 
 /*
@@ -21,8 +21,12 @@ You should have received a copy of the GNU General Public License
 along with CANDrive firmware.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef MEMORY_MAP_H_
-#define MEMORY_MAP_H_
+//////////////////////////////////////////////////////////////////////////
+//INCLUDES
+//////////////////////////////////////////////////////////////////////////
+
+#ifndef UPDATE_MANAGER_PROTOCOL_H_
+#define UPDATE_MANAGER_PROTOCOL_H_
 
 //////////////////////////////////////////////////////////////////////////
 //INCLUDES
@@ -31,26 +35,54 @@ along with CANDrive firmware.  If not, see <http://www.gnu.org/licenses/>.
 #include <stdint.h>
 
 //////////////////////////////////////////////////////////////////////////
-//EXTERNAL VARIABLES
-//////////////////////////////////////////////////////////////////////////
-
-extern uintptr_t __bootrom_start__;
-extern uintptr_t __bootrom_size__;
-extern uintptr_t __approm_start__;
-extern uintptr_t __approm_size__;
-extern uintptr_t __uprom_start__;
-extern uintptr_t __uprom_size__;
-extern uintptr_t __nvsrom_start__;
-extern uintptr_t __nvsrom_size__;
-extern uintptr_t _fw_header_start;
-
-//////////////////////////////////////////////////////////////////////////
 //DEFINES
 //////////////////////////////////////////////////////////////////////////
+
+#define FW_CHUNK_SIZE 1024
 
 //////////////////////////////////////////////////////////////////////////
 //TYPE DEFINITIONS
 //////////////////////////////////////////////////////////////////////////
+
+struct firmware_image_t
+{
+    uint32_t version;
+    uint32_t size;
+    uint32_t crc;
+};
+
+enum msg_type_t
+{
+    REQ_FW_INFO = 0,
+    REQ_RESET,
+    REQ_FW_HEADER,
+    REQ_FW_DATA,
+    REQ_END,
+};
+
+struct message_header_t
+{
+    uint32_t type;
+    uint32_t size;
+    uint32_t payload_crc;
+    uint32_t header_crc;
+};
+
+struct request_firmware_info_msg_t
+{
+};
+
+struct firmware_info_msg_t
+{
+    uint32_t type;
+    uint32_t version;
+    uint32_t offset;
+    uint32_t hardware_revision;
+    char name[16];
+    uint32_t id[3];
+};
+
+
 
 //////////////////////////////////////////////////////////////////////////
 //FUNCTION PROTOTYPES

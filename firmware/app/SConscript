@@ -45,17 +45,14 @@ MODULES = [
     'crc',
     'config',
     'stream',
-    'isotp'
+    'isotp',
+    'firmware_manager'
 ]
 
 module_objects = []
 
 env.Append(CPPPATH=[
     '#libopencm3/include'
-])
-
-env.Append(LINKFLAGS=[
-    '-Tapp/app.ld'
 ])
 
 for module in MODULES:
@@ -73,15 +70,28 @@ env.Append(LIBS =[
     'libopencm3_stm32f1.a'
 ])
 
+
+env2 = env.Clone()
+env2.Append(LINKFLAGS=[
+    '-Tapp/app2.ld'
+])
+
+env.Append(LINKFLAGS=[
+    '-Tapp/app.ld'
+])
+
 app = env.Program('application.elf', module_objects)
 hex = env.Hex('application.hex', app)
+
+app2 = env2.Program('application2.elf', module_objects)
+hex2 = env2.Hex('application2.hex', app2)
 
 test_env = Environment(
     tools=['default', 'coverage', 'candb', 'compilation_db'],
     CC='gcc',
     CCFLAGS=['-g', '-O0', '-std=c17'],
     CPPPATH=['#libopencm3/include'],
-    CPPDEFINES=['STM32F1', 'UNIT_TEST', 'BAUD_RATE=921600'],
+    CPPDEFINES=['STM32F1', 'UNIT_TEST', 'BAUD_RATE=921600', 'NAME=\\"Test\\"'],
     LIBS=['cmocka', 'gcov']
 )
 
@@ -135,4 +145,4 @@ for module in MODULES:
 test_runner = test_env.Coverage(source=tests, target='test-runner')
 test_env.Alias('test', test_runner)
 
-Return(['app', 'hex'])
+Return(['app', 'hex', 'app2', 'hex2'])

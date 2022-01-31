@@ -54,6 +54,13 @@ struct board_id_t
     uint32_t offset_8;
 };
 
+struct firmware_information_t
+{
+    uint32_t version;
+    uint32_t length;
+    char name[12];
+};
+
 //////////////////////////////////////////////////////////////////////////
 //FUNCTION PROTOTYPES
 //////////////////////////////////////////////////////////////////////////
@@ -84,6 +91,12 @@ uint32_t Board_GetSoftwareRevision(void);
  */
 struct board_id_t Board_GetId(void);
 
+/**
+ * Get motor configuration.
+ *
+ * @param index Index of motor.
+ * @return Pointer to motor configuration.
+ */
 const struct motor_config_t *Board_GetMotorConfig(size_t index);
 
 /**
@@ -92,7 +105,6 @@ const struct motor_config_t *Board_GetMotorConfig(size_t index);
  * @return Max number of motors.
  */
 size_t Board_GetMaxNumberOfMotors(void);
-
 
 /**
  * Toggle the status LED.
@@ -131,6 +143,13 @@ uintptr_t Board_GetNVSAddress(void);
  * @return Number of pages.
  */
 uint32_t Board_GetNumberOfPagesInNVS(void);
+
+/**
+ * Get the start address of the application partition.
+ *
+ * @return Address.
+ */
+uintptr_t Board_GetApplicationAddress(void);
 
 /**
  * Get the start address of the firmware upgrade partition.

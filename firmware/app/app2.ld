@@ -2,8 +2,8 @@
 MEMORY
 {
     bootrom  (rx)  : ORIGIN = 0x08000000, LENGTH = 16K
-    rom (rx) : ORIGIN = 0x8004000, LENGTH = 55k
-    uprom (rx) : ORIGIN = 0x8011C00, LENGTH = 55K
+    uprom (rx) : ORIGIN = 0x8004000, LENGTH = 55k
+    rom (rx) : ORIGIN = 0x8011C00, LENGTH = 55K
     nvsrom (rx) : ORIGIN = 0x0801F800, LENGTH = 2K
     ram (rwx) : ORIGIN = 0x20000000, LENGTH = 20K
 }
