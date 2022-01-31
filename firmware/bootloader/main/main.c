@@ -47,6 +47,13 @@ along with CANDrive firmware.  If not, see <http://www.gnu.org/licenses/>.
 //TYPE DEFINITIONS
 //////////////////////////////////////////////////////////////////////////
 
+struct firmware_information_t
+{
+    uint32_t version;
+    uint32_t length;
+    char name[12];
+};
+
 //////////////////////////////////////////////////////////////////////////
 //VARIABLES
 //////////////////////////////////////////////////////////////////////////
@@ -59,9 +66,11 @@ static inline void ClockSetup(void);
 static inline void GPIOSetup(void);
 static inline void USARTSetup(uint32_t baud_rate);
 static void USARTSend(const char *text_p);
-static inline void StartApplication(void) __attribute__((noreturn));
-static inline void PrepareForApplication(void);
+static inline void StartApplication(const uintptr_t *start_p) __attribute__((noreturn));
+static inline void PrepareForApplication(const uintptr_t *start_p);
 static void JumpToApplication(__attribute__((unused)) uintptr_t pc, __attribute__((unused)) uintptr_t sp) __attribute__((naked, noreturn));
+static struct firmware_information_t *GetFirmwareInformation(const uintptr_t *start_p);
+static uintptr_t *SelectApplication(void);
 
 //////////////////////////////////////////////////////////////////////////
 //FUNCTIONS
@@ -75,7 +84,8 @@ int main(void)
 
     LOG_MESSAGE("boot_info: {sw: "GIT_DESC"}");
 
-    StartApplication();
+    const uintptr_t *application_start_p = SelectApplication();
+    StartApplication(application_start_p);
     while (1)
     {
         /* Should never reach this. */
@@ -122,27 +132,24 @@ static void USARTSend(const char *text_p)
     }
 }
 
-static inline void StartApplication(void)
+static inline void StartApplication(const uintptr_t *start_p)
 {
-    const uintptr_t *app_code = &__approm_start__;
-    const uintptr_t app_sp = *app_code;
-    const uintptr_t app_start = *(app_code + 1);
+    const uintptr_t app_sp = *start_p;
+    const uintptr_t app_start = *(start_p + 1);
 
-    LOG_MESSAGE("Start application");
-    PrepareForApplication();
+    PrepareForApplication(start_p);
     JumpToApplication(app_start, app_sp);
 }
 
-static inline void PrepareForApplication(void)
+static inline void PrepareForApplication(const uintptr_t *start_p)
 {
+    USARTSend("\r\n");
     usart_disable(USART2);
     rcc_periph_clock_disable(RCC_GPIOA);
     rcc_periph_clock_disable(RCC_AFIO);
     rcc_periph_clock_disable(RCC_USART2);
 
-    /* Switch to application vector table. */
-    const uintptr_t *app_code = &__approm_start__;
-    const uintptr_t app_vector_table = (uintptr_t)app_code;
+    const uintptr_t app_vector_table = (uintptr_t)start_p;
     SCB_VTOR = app_vector_table;
 }
 
@@ -150,4 +157,28 @@ static void JumpToApplication(__attribute__((unused)) uintptr_t pc, __attribute_
 {
     __asm("MSR MSP,r1");
     __asm("BX r0");
+}
+
+static uintptr_t *SelectApplication(void)
+{
+    struct firmware_information_t *app1_info_p = GetFirmwareInformation(&__app1rom_start__);
+    struct firmware_information_t *app2_info_p = GetFirmwareInformation(&__app2rom_start__);
+
+    uintptr_t *selected_application_p;
+    if (app1_info_p->version >= app2_info_p->version)
+    {
+        selected_application_p = &__app1rom_start__;
+    }
+    else
+    {
+        selected_application_p = &__app2rom_start__;
+    }
+    return  selected_application_p;
+}
+
+static struct firmware_information_t *GetFirmwareInformation(const uintptr_t *start)
+{
+    const uintptr_t offset  = &_fw_header_start - &__bootrom_start__;
+
+    return (struct firmware_information_t *)(start + offset);
 }

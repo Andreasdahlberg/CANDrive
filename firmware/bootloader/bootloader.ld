@@ -1,93 +1,21 @@
 
-INCLUDE memory_map.ld
-
-/* Enforce emmition of the vector table. */
-EXTERN (vector_table)
-
-/* Define the entry point of the output file. */
-ENTRY(reset_handler)
-
-/* Define sections. */
-SECTIONS
+MEMORY
 {
-    .text : {
-        _stext = .;
-        *(.vectors) /* Vector table */
-        *(.text*)   /* Program code */
-        . = ALIGN(4);
-        *(.rodata*) /* Read-only data */
-        . = ALIGN(4);
-    } >bootrom
-
-    /* C++ Static constructors/destructors, also used for __attribute__
-     * ((constructor)) and the likes */
-    .preinit_array : {
-        . = ALIGN(4);
-        __preinit_array_start = .;
-        KEEP (*(.preinit_array))
-        __preinit_array_end = .;
-    } >bootrom
-    .init_array : {
-        . = ALIGN(4);
-        __init_array_start = .;
-        KEEP (*(SORT(.init_array.*)))
-        KEEP (*(.init_array))
-        __init_array_end = .;
-    } >bootrom
-    .fini_array : {
-        . = ALIGN(4);
-        __fini_array_start = .;
-        KEEP (*(.fini_array))
-        KEEP (*(SORT(.fini_array.*)))
-        __fini_array_end = .;
-    } >bootrom
-
-    /*
-     * Another section used by C++ stuff, appears when using newlib with
-     * 64bit (long long) printf support
-     */
-    .ARM.extab : {
-        *(.ARM.extab*)
-    } >bootrom
-    .ARM.exidx : {
-        __exidx_start = .;
-        *(.ARM.exidx*)
-        __exidx_end = .;
-    } >bootrom
-
-    . = ALIGN(4);
-    _etext = .;
-
-    /* ram, but not cleared on reset, eg boot/app comms */
-    .noinit (NOLOAD) : {
-        *(.noinit*)
-    } >ram
-    . = ALIGN(4);
-
-    .data : {
-        _data = .;
-        *(.data*)   /* Read-write initialized data */
-        *(.ramtext*)    /* "text" functions to run in ram */
-        . = ALIGN(4);
-        _edata = .;
-    } >ram AT >bootrom
-    _data_loadaddr = LOADADDR(.data);
-
-    .bss : {
-        *(.bss*)    /* Read-write zero initialized data */
-        *(COMMON)
-        . = ALIGN(4);
-        _ebss = .;
-    } >ram
-
-    /*
-     * The .eh_frame section appears to be used for C++ exception handling.
-     * You may need to fix this if you're using C++.
-     */
-    /DISCARD/ : { *(.eh_frame) }
-
-    . = ALIGN(4);
-    end = .;
+    rom  (rx)  : ORIGIN = 0x08000000, LENGTH = 16K
+    app1rom (rx) : ORIGIN = 0x8004000, LENGTH = 55k
+    app2rom (rx) : ORIGIN = 0x8011C00, LENGTH = 55K
+    nvsrom (rx) : ORIGIN = 0x0801F800, LENGTH = 2K
+    ram (rwx) : ORIGIN = 0x20000000, LENGTH = 20K
 }
 
-PROVIDE(_stack = ORIGIN(ram) + LENGTH(ram));
+__bootrom_start__ = ORIGIN(rom);
+__bootrom_size__ = LENGTH(rom);
+__app1rom_start__ = ORIGIN(app1rom);
+__app1rom_size__ = LENGTH(app1rom);
+__app2rom_start__ = ORIGIN(app2rom);
+__app2rom_size__ = LENGTH(app2rom);
+__nvsrom_start__ = ORIGIN(nvsrom);
+__nvsrom_size__ = LENGTH(nvsrom);
+
+/* Include the common ld script. */
+INCLUDE cortex-m-generic.ld
