@@ -202,9 +202,11 @@ static void test_FirmwareManager_HeaderUnknownType(void **state)
 
 static void test_FirmwareManager_DownloadFirmware(void **state)
 {
+    const uint32_t page_size = 1024;
+    const uint32_t image_size = page_size * 2;
     const uint32_t fake_crc = 0xAABBCCDD;
 
-    will_return_always(Flash_ErasePage, true);
+    will_return_count(Flash_ErasePage, true, image_size / page_size);
     will_return_always(Flash_Write, true);
 
     /* Firmware header part */
@@ -214,7 +216,7 @@ static void test_FirmwareManager_DownloadFirmware(void **state)
     will_return(CRC_Calculate, fake_crc);
     will_return_maybe(Board_GetUpgradeMemoryAddress, 0x2000);
 
-    struct firmware_image_t image = {1, 2048, fake_crc};
+    struct firmware_image_t image = {1, image_size, fake_crc};
     will_return(ISOTP_Receive, sizeof(image));
     will_return(ISOTP_Receive, &image);
     will_return(CRC_Calculate, fake_crc);
@@ -228,7 +230,7 @@ static void test_FirmwareManager_DownloadFirmware(void **state)
     will_return(CRC_Calculate, fake_crc);
 
     const uint8_t data[128] = {0};
-    for (size_t i = 0; i < 2048 / sizeof(data); ++i)
+    for (size_t i = 0; i < image_size / sizeof(data); ++i)
     {
         will_return(ISOTP_Receive, sizeof(data));
         will_return(ISOTP_Receive, data);
@@ -245,6 +247,114 @@ static void test_FirmwareManager_DownloadFirmware_NoFirmwareHeader(void **state)
     will_return(CRC_Calculate, fake_crc);
 
     /* Discard firmware data message if no header has been received. */
+    rx_cb_fp(ISOTP_STATUS_DONE);
+}
+
+static void test_FirmwareManager_DownloadFirmware_FailedHeaderErasePage(void **state)
+{
+    const uint32_t page_size = 1024;
+    const uint32_t image_size = page_size * 2;
+    const uint32_t fake_crc = 0xAABBCCDD;
+
+    will_return(Flash_ErasePage, false);
+
+    /* Firmware header part */
+    struct message_header_t message_header = {REQ_FW_HEADER, 0, fake_crc, fake_crc};
+    will_return(ISOTP_Receive, sizeof(message_header));
+    will_return(ISOTP_Receive, &message_header);
+    will_return(CRC_Calculate, fake_crc);
+    will_return_maybe(Board_GetUpgradeMemoryAddress, 0x2000);
+
+    struct firmware_image_t image = {1, image_size, fake_crc};
+    will_return(ISOTP_Receive, sizeof(image));
+    will_return(ISOTP_Receive, &image);
+    will_return(CRC_Calculate, fake_crc);
+
+    rx_cb_fp(ISOTP_STATUS_DONE);
+
+    /* Firmware data part */
+    message_header = (struct message_header_t) {REQ_FW_DATA, 0, 0, fake_crc};
+    will_return(ISOTP_Receive, sizeof(message_header));
+    will_return(ISOTP_Receive, &message_header);
+    will_return(CRC_Calculate, fake_crc);
+
+    /* Discard firmware data message if erase page failed. */
+    rx_cb_fp(ISOTP_STATUS_DONE);
+}
+
+static void test_FirmwareManager_DownloadFirmware_FailedWrite(void **state)
+{
+    const uint32_t page_size = 1024;
+    const uint32_t image_size = page_size * 2;
+    const uint32_t fake_crc = 0xAABBCCDD;
+
+    will_return(Flash_ErasePage, true);
+    will_return(Flash_Write, false);
+
+    /* Firmware header part */
+    struct message_header_t message_header = {REQ_FW_HEADER, 0, fake_crc, fake_crc};
+    will_return(ISOTP_Receive, sizeof(message_header));
+    will_return(ISOTP_Receive, &message_header);
+    will_return(CRC_Calculate, fake_crc);
+    will_return_maybe(Board_GetUpgradeMemoryAddress, 0x2000);
+
+    struct firmware_image_t image = {1, image_size, fake_crc};
+    will_return(ISOTP_Receive, sizeof(image));
+    will_return(ISOTP_Receive, &image);
+    will_return(CRC_Calculate, fake_crc);
+
+    rx_cb_fp(ISOTP_STATUS_DONE);
+
+    /* Firmware data part */
+    message_header = (struct message_header_t) {REQ_FW_DATA, 0, 0, fake_crc};
+    will_return(ISOTP_Receive, sizeof(message_header));
+    will_return(ISOTP_Receive, &message_header);
+    will_return(CRC_Calculate, fake_crc);
+
+    /* Only expect one data chunk since the download is aborted on flash write failure */
+    const uint8_t data[128] = {0};
+    will_return(ISOTP_Receive, sizeof(data));
+    will_return(ISOTP_Receive, data);
+    rx_cb_fp(ISOTP_STATUS_DONE);
+}
+
+static void test_FirmwareManager_DownloadFirmware_FailedDataErasePage(void **state)
+{
+    const uint32_t page_size = 1024;
+    const uint32_t image_size = page_size * 2;
+    const uint32_t fake_crc = 0xAABBCCDD;
+
+    will_return_always(Flash_Write, true);
+
+    /* Firmware header part */
+    struct message_header_t message_header = {REQ_FW_HEADER, 0, fake_crc, fake_crc};
+    will_return(ISOTP_Receive, sizeof(message_header));
+    will_return(ISOTP_Receive, &message_header);
+    will_return(CRC_Calculate, fake_crc);
+    will_return_maybe(Board_GetUpgradeMemoryAddress, 0x2000);
+
+    struct firmware_image_t image = {1, image_size, fake_crc};
+    will_return(ISOTP_Receive, sizeof(image));
+    will_return(ISOTP_Receive, &image);
+    will_return(CRC_Calculate, fake_crc);
+
+    will_return(Flash_ErasePage, true);
+    rx_cb_fp(ISOTP_STATUS_DONE);
+
+    /* Firmware data part */
+    message_header = (struct message_header_t) {REQ_FW_DATA, 0, 0, fake_crc};
+    will_return(ISOTP_Receive, sizeof(message_header));
+    will_return(ISOTP_Receive, &message_header);
+    will_return(CRC_Calculate, fake_crc);
+
+    /* Only expect one data chunk since the download is aborted on flash erase page failure */
+    const uint8_t data[128] = {0};
+    for (size_t i = 0; i < page_size / sizeof(data); ++i)
+    {
+        will_return(ISOTP_Receive, sizeof(data));
+        will_return(ISOTP_Receive, data);
+    }
+    will_return(Flash_ErasePage, false);
     rx_cb_fp(ISOTP_STATUS_DONE);
 }
 
@@ -266,6 +376,9 @@ int main(int argc, char *argv[])
         cmocka_unit_test_setup(test_FirmwareManager_HeaderUnknownType, Setup),
         cmocka_unit_test_setup(test_FirmwareManager_DownloadFirmware, Setup),
         cmocka_unit_test_setup(test_FirmwareManager_DownloadFirmware_NoFirmwareHeader, Setup),
+        cmocka_unit_test_setup(test_FirmwareManager_DownloadFirmware_FailedHeaderErasePage, Setup),
+        cmocka_unit_test_setup(test_FirmwareManager_DownloadFirmware_FailedWrite, Setup),
+        cmocka_unit_test_setup(test_FirmwareManager_DownloadFirmware_FailedDataErasePage, Setup),
     };
 
     if (argc >= 2)
