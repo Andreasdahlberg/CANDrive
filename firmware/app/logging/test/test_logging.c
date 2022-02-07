@@ -103,7 +103,8 @@ static void test_Logging_GetLogger_NoAvailableLoggers(void **state)
     assert_non_null(Logging_GetLogger("TestLoggerH"));
     assert_non_null(Logging_GetLogger("TestLoggerI"));
     assert_non_null(Logging_GetLogger("TestLoggerJ"));
-    assert_null(Logging_GetLogger("TestLoggerK"));
+    assert_non_null(Logging_GetLogger("TestLoggerK"));
+    assert_null(Logging_GetLogger("TestLoggerL"));
     assert_non_null(Logging_GetLogger("TestLoggerA"));
 }
 
@@ -161,7 +162,8 @@ static void test_LoggingCmd_SetLevel_InvalidName(void **state)
     assert_non_null(Logging_GetLogger("h"));
     assert_non_null(Logging_GetLogger("i"));
     assert_non_null(Logging_GetLogger("j"));
-    assert_null(Logging_GetLogger("k"));
+    assert_non_null(Logging_GetLogger("k"));
+    assert_null(Logging_GetLogger("l"));
 
     const char name[] = "InvalidName";
     will_return(Console_GetStringArgument, true);
