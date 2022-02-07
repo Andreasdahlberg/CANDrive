@@ -26,7 +26,6 @@ along with CANDrive firmware.  If not, see <http://www.gnu.org/licenses/>.
 //INCLUDES
 //////////////////////////////////////////////////////////////////////////
 
-#include <libopencm3/stm32/flash.h>
 #include <assert.h>
 #include <stddef.h>
 #include <string.h>
@@ -38,6 +37,7 @@ along with CANDrive firmware.  If not, see <http://www.gnu.org/licenses/>.
 #include "isotp.h"
 #include "protocol.h"
 #include "board.h"
+#include "flash.h"
 #include "firmware_manager.h"
 
 //////////////////////////////////////////////////////////////////////////
@@ -102,8 +102,6 @@ static void OnReqReset(void);
 static void OnFirmwareHeader(const struct message_header_t *message_header_p);
 static void OnFirmwareData(const struct message_header_t *message_header_p);
 static uint32_t GetPageAddress(uint32_t page_index);
-static bool WriteToFlash(uint32_t address, const void *data_p, size_t length);
-static bool ErasePage(uint32_t page_address);
 
 //////////////////////////////////////////////////////////////////////////
 //FUNCTIONS
@@ -279,7 +277,7 @@ static void OnFirmwareHeader(const struct message_header_t *message_header_p)
         if (message_header_p->payload_crc == crc)
         {
             const uint32_t page_address = GetPageAddress(0);
-            if (ErasePage(page_address))
+            if (Flash_ErasePage(page_address))
             {
                 module.payload.size = image.size;
                 module.payload.crc = image.crc;
@@ -321,7 +319,7 @@ static void OnFirmwareData(const struct message_header_t *message_header_p __att
         module.payload.received_bytes += number_of_bytes;
 
         Logging_Debug(module.logger_p, "data: {received_bytes: %u, pages: %u, page_index: %u, address: %x}", module.payload.received_bytes, number_of_pages, page_index, address);
-        WriteToFlash(address, data, number_of_bytes);
+        Flash_Write(address, data, number_of_bytes);
 
         if (module.payload.received_bytes >= module.payload.size)
         {
@@ -334,62 +332,9 @@ static void OnFirmwareData(const struct message_header_t *message_header_p __att
             if (module.page_index != next_page_index)
             {
                 const uint32_t page_address = GetPageAddress(next_page_index);
-                ErasePage(page_address);
+                Flash_ErasePage(page_address);
                 module.page_index = next_page_index;
             }
         }
     }
-}
-
-static bool WriteToFlash(uint32_t address, const void *data_p, size_t length)
-{
-    bool status = true;
-
-    assert(length % sizeof(uint32_t) == 0);
-
-    flash_unlock();
-
-    for (size_t i = 0; i < length / sizeof(uint32_t); ++i)
-    {
-        const uint32_t destination = address + (i * sizeof(uint32_t));
-        const uint32_t data = *((const uint32_t *)data_p + i);
-
-        flash_program_word(destination, data);
-        if(flash_get_status_flags() != FLASH_SR_EOP)
-        {
-            status = false;
-            Logging_Error(module.logger_p,
-                          "Failed to write {address: 0x%x, status_flags: 0x%x}",
-                          destination,
-                          flash_get_status_flags());
-            break;
-        }
-    }
-
-    flash_lock();
-    flash_clear_status_flags();
-
-    return status;
-}
-
-static bool ErasePage(uint32_t page_address)
-{
-    Logging_Debug(module.logger_p, "Erase page 0x%x", page_address);
-
-    flash_unlock();
-    flash_erase_page(page_address);
-
-    bool status = true;
-    if(flash_get_status_flags() != FLASH_SR_EOP)
-    {
-        status = false;
-        Logging_Error(module.logger_p,
-                      "Failed erase page: {page_address: 0x%x, status_flags: 0x%x}",
-                      page_address,
-                      flash_get_status_flags());
-    }
-
-    flash_lock();
-    flash_clear_status_flags();
-    return status;
 }

@@ -202,8 +202,10 @@ static void test_FirmwareManager_HeaderUnknownType(void **state)
 
 static void test_FirmwareManager_DownloadFirmware(void **state)
 {
-    will_return_maybe(flash_get_status_flags, FLASH_SR_EOP);
     const uint32_t fake_crc = 0xAABBCCDD;
+
+    will_return_always(Flash_ErasePage, true);
+    will_return_always(Flash_Write, true);
 
     /* Firmware header part */
     struct message_header_t message_header = {REQ_FW_HEADER, 0, fake_crc, fake_crc};

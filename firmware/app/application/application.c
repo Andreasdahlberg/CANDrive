@@ -46,6 +46,7 @@ along with CANDrive firmware.  If not, see <http://www.gnu.org/licenses/>.
 #include "nvs_cmd.h"
 #include "config.h"
 #include "firmware_manager.h"
+#include "flash.h"
 #include "application.h"
 
 //////////////////////////////////////////////////////////////////////////
@@ -113,6 +114,7 @@ void Application_Init(void)
     Logging_Init(SysTime_GetSystemTime);
 
     SystemMonitor_Init();
+    Flash_Init();
     NVS_Init(Board_GetNVSAddress(), Board_GetNumberOfPagesInNVS());
     Config_Init();
     CANInterface_Init();
