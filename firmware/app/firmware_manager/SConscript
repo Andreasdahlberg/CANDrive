@@ -35,6 +35,7 @@ env.Append(CPPPATH=[
     '#app/crc',
     '#app/config',
     '#app/isotp',
+    '#app/flash',
     '#app/firmware_manager'
 ])
 
