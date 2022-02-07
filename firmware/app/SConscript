@@ -46,7 +46,8 @@ MODULES = [
     'config',
     'stream',
     'isotp',
-    'firmware_manager'
+    'firmware_manager',
+    'flash'
 ]
 
 module_objects = []
