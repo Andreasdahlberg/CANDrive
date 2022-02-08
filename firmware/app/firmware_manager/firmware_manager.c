@@ -102,7 +102,7 @@ static void OnReqReset(void);
 static void OnFirmwareHeader(const struct message_header_t *message_header_p);
 static void OnFirmwareData(const struct message_header_t *message_header_p);
 static uint32_t GetPageAddress(uint32_t page_index);
-static void StoreData(uint32_t address, uint8_t *data_p, size_t length);
+static void StoreData(uint32_t address, const uint8_t *data_p, size_t length);
 static void UpdatePageIndex(void);
 
 //////////////////////////////////////////////////////////////////////////
@@ -324,7 +324,7 @@ static void OnFirmwareData(const struct message_header_t *message_header_p __att
     }
 }
 
-static void StoreData(uint32_t address, uint8_t *data_p, size_t length)
+static void StoreData(uint32_t address, const uint8_t *data_p, size_t length)
 {
     if (Flash_Write(address, data_p, length))
     {
