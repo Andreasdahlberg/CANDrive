@@ -40,7 +40,7 @@ along with CANDrive firmware.  If not, see <http://www.gnu.org/licenses/>.
 
 #define FLASH_LOGGER_NAME "Flash"
 #ifndef FLASH_LOGGER_DEBUG_LEVEL
-#define FLASH_LOGGER_DEBUG_LEVEL LOGGING_DEBUG
+#define FLASH_LOGGER_DEBUG_LEVEL LOGGING_INFO
 #endif
 
 //////////////////////////////////////////////////////////////////////////
