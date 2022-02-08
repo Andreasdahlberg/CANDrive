@@ -102,6 +102,8 @@ static void OnReqReset(void);
 static void OnFirmwareHeader(const struct message_header_t *message_header_p);
 static void OnFirmwareData(const struct message_header_t *message_header_p);
 static uint32_t GetPageAddress(uint32_t page_index);
+static void StoreData(uint32_t address, uint8_t *data_p, size_t length);
+static void UpdatePageIndex(void);
 
 //////////////////////////////////////////////////////////////////////////
 //FUNCTIONS
@@ -315,12 +317,17 @@ static void OnFirmwareData(const struct message_header_t *message_header_p __att
         const uint32_t address = Board_GetUpgradeMemoryAddress() + module.payload.received_bytes;
         const uint32_t number_of_pages = (module.payload.size + PAGE_SIZE - 1) / PAGE_SIZE;
         const uint32_t page_index = (module.payload.received_bytes) / PAGE_SIZE;
+        Logging_Debug(module.logger_p, "data: {received_bytes: %u, pages: %u, page_index: %u, address: %x}", module.payload.received_bytes, number_of_pages, page_index, address);
 
         module.payload.received_bytes += number_of_bytes;
+        StoreData(address, data, number_of_bytes);
+    }
+}
 
-        Logging_Debug(module.logger_p, "data: {received_bytes: %u, pages: %u, page_index: %u, address: %x}", module.payload.received_bytes, number_of_pages, page_index, address);
-        Flash_Write(address, data, number_of_bytes);
-
+static void StoreData(uint32_t address, uint8_t *data_p, size_t length)
+{
+    if (Flash_Write(address, data_p, length))
+    {
         if (module.payload.received_bytes >= module.payload.size)
         {
             Logging_Info(module.logger_p, "Download complete");
@@ -328,13 +335,30 @@ static void OnFirmwareData(const struct message_header_t *message_header_p __att
         }
         else
         {
-            const uint32_t next_page_index = (module.payload.received_bytes) / PAGE_SIZE;
-            if (module.page_index != next_page_index)
-            {
-                const uint32_t page_address = GetPageAddress(next_page_index);
-                Flash_ErasePage(page_address);
-                module.page_index = next_page_index;
-            }
+            UpdatePageIndex();
+        }
+    }
+    else
+    {
+        Logging_Error(module.logger_p, "Abort download");
+        module.payload.state = IDLE;
+    }
+}
+
+static void UpdatePageIndex(void)
+{
+    const uint32_t next_page_index = (module.payload.received_bytes) / PAGE_SIZE;
+    if (module.page_index != next_page_index)
+    {
+        const uint32_t page_address = GetPageAddress(next_page_index);
+        if (Flash_ErasePage(page_address))
+        {
+            module.page_index = next_page_index;
+        }
+        else
+        {
+            Logging_Error(module.logger_p, "Abort download");
+            module.payload.state = IDLE;
         }
     }
 }
