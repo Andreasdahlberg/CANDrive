@@ -250,6 +250,39 @@ static void test_FirmwareManager_DownloadFirmware_NoFirmwareHeader(void **state)
     rx_cb_fp(ISOTP_STATUS_DONE);
 }
 
+static void test_FirmwareManager_DownloadFirmware_Timeout(void **state)
+{
+    const uint32_t page_size = 1024;
+    const uint32_t image_size = page_size * 2;
+    const uint32_t fake_crc = 0xAABBCCDD;
+
+    will_return(Flash_ErasePage, true);
+
+    /* Firmware header part */
+    struct message_header_t message_header = {REQ_FW_HEADER, 0, fake_crc, fake_crc};
+    will_return(ISOTP_Receive, sizeof(message_header));
+    will_return(ISOTP_Receive, &message_header);
+    will_return(CRC_Calculate, fake_crc);
+    will_return_maybe(Board_GetUpgradeMemoryAddress, 0x2000);
+
+    struct firmware_image_t image = {1, image_size, fake_crc};
+    will_return(ISOTP_Receive, sizeof(image));
+    will_return(ISOTP_Receive, &image);
+    will_return(CRC_Calculate, fake_crc);
+
+    rx_cb_fp(ISOTP_STATUS_DONE);
+    rx_cb_fp(ISOTP_STATUS_TIMEOUT);
+
+    /* Firmware data part */
+    message_header = (struct message_header_t) {REQ_FW_DATA, 0, 0, fake_crc};
+    will_return(ISOTP_Receive, sizeof(message_header));
+    will_return(ISOTP_Receive, &message_header);
+    will_return(CRC_Calculate, fake_crc);
+
+    /* Discard firmware data message if erase page failed. */
+    rx_cb_fp(ISOTP_STATUS_DONE);
+}
+
 static void test_FirmwareManager_DownloadFirmware_FailedHeaderErasePage(void **state)
 {
     const uint32_t page_size = 1024;
@@ -376,6 +409,7 @@ int main(int argc, char *argv[])
         cmocka_unit_test_setup(test_FirmwareManager_HeaderUnknownType, Setup),
         cmocka_unit_test_setup(test_FirmwareManager_DownloadFirmware, Setup),
         cmocka_unit_test_setup(test_FirmwareManager_DownloadFirmware_NoFirmwareHeader, Setup),
+        cmocka_unit_test_setup(test_FirmwareManager_DownloadFirmware_Timeout, Setup),
         cmocka_unit_test_setup(test_FirmwareManager_DownloadFirmware_FailedHeaderErasePage, Setup),
         cmocka_unit_test_setup(test_FirmwareManager_DownloadFirmware_FailedWrite, Setup),
         cmocka_unit_test_setup(test_FirmwareManager_DownloadFirmware_FailedDataErasePage, Setup),
