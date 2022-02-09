@@ -135,6 +135,116 @@ static void test_FirmwareManager_GetFirmwareInformation(void **state)
     expect_memory(ISOTP_Send, data_p, &info, sizeof(info));
 
     rx_cb_fp(ISOTP_STATUS_DONE);
+    tx_cb_fp(ISOTP_STATUS_WAITING);
+    tx_cb_fp(ISOTP_STATUS_DONE);
+}
+
+static void test_FirmwareManager_GetFirmwareInformation_PreviousRequestNotDone(void **state)
+{
+    will_return_maybe(Board_GetUpgradeMemoryAddress, 0x2000);
+    will_return_maybe(Board_GetHardwareRevision, 1);
+
+    const uint32_t fake_crc = 0xAABBCCDD;
+    struct message_header_t message_header = {REQ_FW_INFO, 0, 0, fake_crc};
+    will_return(ISOTP_Receive, sizeof(message_header));
+    will_return(ISOTP_Receive, &message_header);
+    will_return(CRC_Calculate, fake_crc);
+
+    const struct firmware_info_msg_t info =
+    {
+        .type = REQ_FW_INFO,
+        .version = firmware_information.version,
+        .hardware_revision = 1,
+        .name = "Test",
+        .offset = 0x2000,
+        .id = {1, 2, 3}
+    };
+
+    will_return(ISOTP_Send, true);
+    expect_memory(ISOTP_Send, data_p, &info, sizeof(info));
+    rx_cb_fp(ISOTP_STATUS_DONE);
+
+    /* Expect second request to be rejected. */
+    will_return(ISOTP_Receive, sizeof(message_header));
+    will_return(ISOTP_Receive, &message_header);
+    will_return(CRC_Calculate, fake_crc);
+    rx_cb_fp(ISOTP_STATUS_DONE);
+
+    /* Done with first request. */
+    tx_cb_fp(ISOTP_STATUS_DONE);
+}
+
+static void test_FirmwareManager_GetFirmwareInformation_Timeout(void **state)
+{
+    will_return_maybe(Board_GetUpgradeMemoryAddress, 0x2000);
+    will_return_maybe(Board_GetHardwareRevision, 1);
+
+    const uint32_t fake_crc = 0xAABBCCDD;
+    struct message_header_t message_header = {REQ_FW_INFO, 0, 0, fake_crc};
+    will_return(ISOTP_Receive, sizeof(message_header));
+    will_return(ISOTP_Receive, &message_header);
+    will_return(CRC_Calculate, fake_crc);
+
+    const struct firmware_info_msg_t info =
+    {
+        .type = REQ_FW_INFO,
+        .version = firmware_information.version,
+        .hardware_revision = 1,
+        .name = "Test",
+        .offset = 0x2000,
+        .id = {1, 2, 3}
+    };
+
+    /* Timeout on first request.*/
+    will_return(ISOTP_Send, true);
+    expect_memory(ISOTP_Send, data_p, &info, sizeof(info));
+    rx_cb_fp(ISOTP_STATUS_DONE);
+    tx_cb_fp(ISOTP_STATUS_TIMEOUT);
+
+    /* Expect second request to succeed since the first request was aborted due to timeout. */
+    will_return(ISOTP_Receive, sizeof(message_header));
+    will_return(ISOTP_Receive, &message_header);
+    will_return(CRC_Calculate, fake_crc);
+    will_return(ISOTP_Send, true);
+    expect_memory(ISOTP_Send, data_p, &info, sizeof(info));
+    rx_cb_fp(ISOTP_STATUS_DONE);
+    tx_cb_fp(ISOTP_STATUS_DONE);
+}
+
+static void test_FirmwareManager_GetFirmwareInformation_UnknownStatus(void **state)
+{
+    will_return_maybe(Board_GetUpgradeMemoryAddress, 0x2000);
+    will_return_maybe(Board_GetHardwareRevision, 1);
+
+    const uint32_t fake_crc = 0xAABBCCDD;
+    struct message_header_t message_header = {REQ_FW_INFO, 0, 0, fake_crc};
+    will_return(ISOTP_Receive, sizeof(message_header));
+    will_return(ISOTP_Receive, &message_header);
+    will_return(CRC_Calculate, fake_crc);
+
+    const struct firmware_info_msg_t info =
+    {
+        .type = REQ_FW_INFO,
+        .version = firmware_information.version,
+        .hardware_revision = 1,
+        .name = "Test",
+        .offset = 0x2000,
+        .id = {1, 2, 3}
+    };
+
+    /* Unknown status on first request.*/
+    will_return(ISOTP_Send, true);
+    expect_memory(ISOTP_Send, data_p, &info, sizeof(info));
+    rx_cb_fp(ISOTP_STATUS_DONE);
+    tx_cb_fp(0xFF);
+
+    /* Expect second request to succeed since the first request was aborted due to unknown status. */
+    will_return(ISOTP_Receive, sizeof(message_header));
+    will_return(ISOTP_Receive, &message_header);
+    will_return(CRC_Calculate, fake_crc);
+    will_return(ISOTP_Send, true);
+    expect_memory(ISOTP_Send, data_p, &info, sizeof(info));
+    rx_cb_fp(ISOTP_STATUS_DONE);
     tx_cb_fp(ISOTP_STATUS_DONE);
 }
 
@@ -250,6 +360,44 @@ static void test_FirmwareManager_DownloadFirmware_NoFirmwareHeader(void **state)
     rx_cb_fp(ISOTP_STATUS_DONE);
 }
 
+static void test_FirmwareManager_DownloadFirmware_FirmwareHeaderSizeMismatch(void **state)
+{
+    const uint32_t page_size = 1024;
+    const uint32_t image_size = page_size * 2;
+    const uint32_t fake_crc = 0xAABBCCDD;
+
+    struct message_header_t message_header = {REQ_FW_HEADER, 0, fake_crc, fake_crc};
+    will_return(ISOTP_Receive, sizeof(message_header));
+    will_return(ISOTP_Receive, &message_header);
+    will_return(CRC_Calculate, fake_crc);
+
+    struct firmware_image_t image = {1, image_size, fake_crc};
+    will_return(ISOTP_Receive, sizeof(image) - 1);
+    will_return(ISOTP_Receive, &image);
+
+    rx_cb_fp(ISOTP_STATUS_DONE);
+}
+
+static void test_FirmwareManager_DownloadFirmware_FirmwareHeaderCRCMismatch(void **state)
+{
+    const uint32_t page_size = 1024;
+    const uint32_t image_size = page_size * 2;
+    const uint32_t fake_crc = 0xAABBCCDD;
+
+    struct message_header_t message_header = {REQ_FW_HEADER, 0, fake_crc, fake_crc};
+    will_return(ISOTP_Receive, sizeof(message_header));
+    will_return(ISOTP_Receive, &message_header);
+    will_return(CRC_Calculate, fake_crc);
+    will_return_maybe(Board_GetUpgradeMemoryAddress, 0x2000);
+
+    struct firmware_image_t image = {1, image_size, fake_crc};
+    will_return(ISOTP_Receive, sizeof(image));
+    will_return(ISOTP_Receive, &image);
+    will_return(CRC_Calculate, fake_crc + 1);
+
+    rx_cb_fp(ISOTP_STATUS_DONE);
+}
+
 static void test_FirmwareManager_DownloadFirmware_Timeout(void **state)
 {
     const uint32_t page_size = 1024;
@@ -279,7 +427,40 @@ static void test_FirmwareManager_DownloadFirmware_Timeout(void **state)
     will_return(ISOTP_Receive, &message_header);
     will_return(CRC_Calculate, fake_crc);
 
-    /* Discard firmware data message if erase page failed. */
+    /* Discard firmware data message. */
+    rx_cb_fp(ISOTP_STATUS_DONE);
+}
+
+static void test_FirmwareManager_DownloadFirmware_UnknownStatus(void **state)
+{
+    const uint32_t page_size = 1024;
+    const uint32_t image_size = page_size * 2;
+    const uint32_t fake_crc = 0xAABBCCDD;
+
+    will_return(Flash_ErasePage, true);
+
+    /* Firmware header part */
+    struct message_header_t message_header = {REQ_FW_HEADER, 0, fake_crc, fake_crc};
+    will_return(ISOTP_Receive, sizeof(message_header));
+    will_return(ISOTP_Receive, &message_header);
+    will_return(CRC_Calculate, fake_crc);
+    will_return_maybe(Board_GetUpgradeMemoryAddress, 0x2000);
+
+    struct firmware_image_t image = {1, image_size, fake_crc};
+    will_return(ISOTP_Receive, sizeof(image));
+    will_return(ISOTP_Receive, &image);
+    will_return(CRC_Calculate, fake_crc);
+
+    rx_cb_fp(ISOTP_STATUS_DONE);
+    rx_cb_fp(0xFF);
+
+    /* Firmware data part */
+    message_header = (struct message_header_t) {REQ_FW_DATA, 0, 0, fake_crc};
+    will_return(ISOTP_Receive, sizeof(message_header));
+    will_return(ISOTP_Receive, &message_header);
+    will_return(CRC_Calculate, fake_crc);
+
+    /* Discard firmware data message. */
     rx_cb_fp(ISOTP_STATUS_DONE);
 }
 
@@ -402,6 +583,9 @@ int main(int argc, char *argv[])
         cmocka_unit_test(test_FirmwareManager_Init),
         cmocka_unit_test_setup(test_FirmwareManager_Update, Setup),
         cmocka_unit_test_setup(test_FirmwareManager_GetFirmwareInformation, Setup),
+        cmocka_unit_test_setup(test_FirmwareManager_GetFirmwareInformation_PreviousRequestNotDone, Setup),
+        cmocka_unit_test_setup(test_FirmwareManager_GetFirmwareInformation_Timeout, Setup),
+        cmocka_unit_test_setup(test_FirmwareManager_GetFirmwareInformation_UnknownStatus, Setup),
         cmocka_unit_test_setup(test_FirmwareManager_Reset, Setup),
         cmocka_unit_test_setup(test_FirmwareManager_WaitForRxSpace, Setup),
         cmocka_unit_test_setup(test_FirmwareManager_HeaderSizeMismatch, Setup),
@@ -409,7 +593,10 @@ int main(int argc, char *argv[])
         cmocka_unit_test_setup(test_FirmwareManager_HeaderUnknownType, Setup),
         cmocka_unit_test_setup(test_FirmwareManager_DownloadFirmware, Setup),
         cmocka_unit_test_setup(test_FirmwareManager_DownloadFirmware_NoFirmwareHeader, Setup),
+        cmocka_unit_test_setup(test_FirmwareManager_DownloadFirmware_FirmwareHeaderSizeMismatch, Setup),
+        cmocka_unit_test_setup(test_FirmwareManager_DownloadFirmware_FirmwareHeaderCRCMismatch, Setup),
         cmocka_unit_test_setup(test_FirmwareManager_DownloadFirmware_Timeout, Setup),
+        cmocka_unit_test_setup(test_FirmwareManager_DownloadFirmware_UnknownStatus, Setup),
         cmocka_unit_test_setup(test_FirmwareManager_DownloadFirmware_FailedHeaderErasePage, Setup),
         cmocka_unit_test_setup(test_FirmwareManager_DownloadFirmware_FailedWrite, Setup),
         cmocka_unit_test_setup(test_FirmwareManager_DownloadFirmware_FailedDataErasePage, Setup),
