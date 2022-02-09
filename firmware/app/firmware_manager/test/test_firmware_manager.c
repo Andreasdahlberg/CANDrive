@@ -90,6 +90,19 @@ static int Setup(void **state)
     return 0;
 }
 
+static void ExpectMessageHeader(struct message_header_t *header_p, uint32_t crc)
+{
+    will_return(ISOTP_Receive, sizeof(*header_p));
+    will_return(ISOTP_Receive, header_p);
+    will_return(CRC_Calculate, crc);
+}
+
+static void ExpectFirmwareImage(struct firmware_image_t *image_p, uint32_t crc)
+{
+    will_return(ISOTP_Receive, sizeof(*image_p));
+    will_return(ISOTP_Receive, image_p);
+    will_return(CRC_Calculate, crc);
+}
 //////////////////////////////////////////////////////////////////////////
 //TESTS
 //////////////////////////////////////////////////////////////////////////
@@ -114,9 +127,7 @@ static void test_FirmwareManager_GetFirmwareInformation(void **state)
 {
     const uint32_t fake_crc = 0xAABBCCDD;
     struct message_header_t message_header = {REQ_FW_INFO, 0, 0, fake_crc};
-    will_return(ISOTP_Receive, sizeof(message_header));
-    will_return(ISOTP_Receive, &message_header);
-    will_return(CRC_Calculate, fake_crc);
+    ExpectMessageHeader(&message_header, fake_crc);
 
     will_return_maybe(Board_GetUpgradeMemoryAddress, 0x2000);
     will_return_maybe(Board_GetHardwareRevision, 1);
@@ -146,9 +157,7 @@ static void test_FirmwareManager_GetFirmwareInformation_PreviousRequestNotDone(v
 
     const uint32_t fake_crc = 0xAABBCCDD;
     struct message_header_t message_header = {REQ_FW_INFO, 0, 0, fake_crc};
-    will_return(ISOTP_Receive, sizeof(message_header));
-    will_return(ISOTP_Receive, &message_header);
-    will_return(CRC_Calculate, fake_crc);
+    ExpectMessageHeader(&message_header, fake_crc);
 
     const struct firmware_info_msg_t info =
     {
@@ -165,9 +174,7 @@ static void test_FirmwareManager_GetFirmwareInformation_PreviousRequestNotDone(v
     rx_cb_fp(ISOTP_STATUS_DONE);
 
     /* Expect second request to be rejected. */
-    will_return(ISOTP_Receive, sizeof(message_header));
-    will_return(ISOTP_Receive, &message_header);
-    will_return(CRC_Calculate, fake_crc);
+    ExpectMessageHeader(&message_header, fake_crc);
     rx_cb_fp(ISOTP_STATUS_DONE);
 
     /* Done with first request. */
@@ -181,9 +188,7 @@ static void test_FirmwareManager_GetFirmwareInformation_Timeout(void **state)
 
     const uint32_t fake_crc = 0xAABBCCDD;
     struct message_header_t message_header = {REQ_FW_INFO, 0, 0, fake_crc};
-    will_return(ISOTP_Receive, sizeof(message_header));
-    will_return(ISOTP_Receive, &message_header);
-    will_return(CRC_Calculate, fake_crc);
+    ExpectMessageHeader(&message_header, fake_crc);
 
     const struct firmware_info_msg_t info =
     {
@@ -202,9 +207,7 @@ static void test_FirmwareManager_GetFirmwareInformation_Timeout(void **state)
     tx_cb_fp(ISOTP_STATUS_TIMEOUT);
 
     /* Expect second request to succeed since the first request was aborted due to timeout. */
-    will_return(ISOTP_Receive, sizeof(message_header));
-    will_return(ISOTP_Receive, &message_header);
-    will_return(CRC_Calculate, fake_crc);
+    ExpectMessageHeader(&message_header, fake_crc);
     will_return(ISOTP_Send, true);
     expect_memory(ISOTP_Send, data_p, &info, sizeof(info));
     rx_cb_fp(ISOTP_STATUS_DONE);
@@ -218,9 +221,7 @@ static void test_FirmwareManager_GetFirmwareInformation_UnknownStatus(void **sta
 
     const uint32_t fake_crc = 0xAABBCCDD;
     struct message_header_t message_header = {REQ_FW_INFO, 0, 0, fake_crc};
-    will_return(ISOTP_Receive, sizeof(message_header));
-    will_return(ISOTP_Receive, &message_header);
-    will_return(CRC_Calculate, fake_crc);
+    ExpectMessageHeader(&message_header, fake_crc);
 
     const struct firmware_info_msg_t info =
     {
@@ -239,9 +240,7 @@ static void test_FirmwareManager_GetFirmwareInformation_UnknownStatus(void **sta
     tx_cb_fp(0xFF);
 
     /* Expect second request to succeed since the first request was aborted due to unknown status. */
-    will_return(ISOTP_Receive, sizeof(message_header));
-    will_return(ISOTP_Receive, &message_header);
-    will_return(CRC_Calculate, fake_crc);
+    ExpectMessageHeader(&message_header, fake_crc);
     will_return(ISOTP_Send, true);
     expect_memory(ISOTP_Send, data_p, &info, sizeof(info));
     rx_cb_fp(ISOTP_STATUS_DONE);
@@ -252,9 +251,7 @@ static void test_FirmwareManager_Reset(void **state)
 {
     const uint32_t fake_crc = 0xAABBCCDD;
     struct message_header_t message_header = {REQ_RESET, 0, 0, fake_crc};
-    will_return(ISOTP_Receive, sizeof(message_header));
-    will_return(ISOTP_Receive, &message_header);
-    will_return(CRC_Calculate, fake_crc);
+    ExpectMessageHeader(&message_header, fake_crc);
 
     expect_function_call(Board_Reset);
     rx_cb_fp(ISOTP_STATUS_DONE);
@@ -267,9 +264,7 @@ static void test_FirmwareManager_WaitForRxSpace(void **state)
 
     const uint32_t fake_crc = 0xAABCDEFF;
     struct message_header_t message_header = {REQ_RESET, 0, 0, fake_crc};
-    will_return(ISOTP_Receive, sizeof(message_header));
-    will_return(ISOTP_Receive, &message_header);
-    will_return(CRC_Calculate, fake_crc);
+    ExpectMessageHeader(&message_header, fake_crc);
 
     expect_function_call(Board_Reset);
     rx_cb_fp(ISOTP_STATUS_DONE);
@@ -290,9 +285,7 @@ static void test_FirmwareManager_HeaderCRCMismatch(void **state)
 {
     const uint32_t fake_crc = 0xAABBCCDD;
     struct message_header_t message_header = {REQ_FW_INFO, 0, 0, fake_crc};
-    will_return(ISOTP_Receive, sizeof(message_header));
-    will_return(ISOTP_Receive, &message_header);
-    will_return(CRC_Calculate, 0);
+    ExpectMessageHeader(&message_header, 0);
 
     /* Discard the message if the CRC is incorrect. */
     rx_cb_fp(ISOTP_STATUS_DONE);
@@ -302,9 +295,7 @@ static void test_FirmwareManager_HeaderUnknownType(void **state)
 {
     const uint32_t fake_crc = 0xAABBCCDD;
     struct message_header_t message_header = {REQ_END, 0, 0, fake_crc};
-    will_return(ISOTP_Receive, sizeof(message_header));
-    will_return(ISOTP_Receive, &message_header);
-    will_return(CRC_Calculate, fake_crc);
+    ExpectMessageHeader(&message_header, fake_crc);
 
     /* Discard the message if the type is unknown. */
     rx_cb_fp(ISOTP_STATUS_DONE);
@@ -321,23 +312,17 @@ static void test_FirmwareManager_DownloadFirmware(void **state)
 
     /* Firmware header part */
     struct message_header_t message_header = {REQ_FW_HEADER, 0, fake_crc, fake_crc};
-    will_return(ISOTP_Receive, sizeof(message_header));
-    will_return(ISOTP_Receive, &message_header);
-    will_return(CRC_Calculate, fake_crc);
+    ExpectMessageHeader(&message_header, fake_crc);
     will_return_maybe(Board_GetUpgradeMemoryAddress, 0x2000);
 
     struct firmware_image_t image = {1, image_size, fake_crc};
-    will_return(ISOTP_Receive, sizeof(image));
-    will_return(ISOTP_Receive, &image);
-    will_return(CRC_Calculate, fake_crc);
+    ExpectFirmwareImage(&image, fake_crc);
 
     rx_cb_fp(ISOTP_STATUS_DONE);
 
     /* Firmware data part */
     message_header = (struct message_header_t) {REQ_FW_DATA, 0, 0, fake_crc};
-    will_return(ISOTP_Receive, sizeof(message_header));
-    will_return(ISOTP_Receive, &message_header);
-    will_return(CRC_Calculate, fake_crc);
+    ExpectMessageHeader(&message_header, fake_crc);
 
     const uint8_t data[128] = {0};
     for (size_t i = 0; i < image_size / sizeof(data); ++i)
@@ -352,9 +337,7 @@ static void test_FirmwareManager_DownloadFirmware_NoFirmwareHeader(void **state)
 {
     const uint32_t fake_crc = 0xAABBCCDD;
     struct message_header_t message_header = {REQ_FW_DATA, 0, 0, fake_crc};
-    will_return(ISOTP_Receive, sizeof(message_header));
-    will_return(ISOTP_Receive, &message_header);
-    will_return(CRC_Calculate, fake_crc);
+    ExpectMessageHeader(&message_header, fake_crc);
 
     /* Discard firmware data message if no header has been received. */
     rx_cb_fp(ISOTP_STATUS_DONE);
@@ -367,9 +350,7 @@ static void test_FirmwareManager_DownloadFirmware_FirmwareHeaderSizeMismatch(voi
     const uint32_t fake_crc = 0xAABBCCDD;
 
     struct message_header_t message_header = {REQ_FW_HEADER, 0, fake_crc, fake_crc};
-    will_return(ISOTP_Receive, sizeof(message_header));
-    will_return(ISOTP_Receive, &message_header);
-    will_return(CRC_Calculate, fake_crc);
+    ExpectMessageHeader(&message_header, fake_crc);
 
     struct firmware_image_t image = {1, image_size, fake_crc};
     will_return(ISOTP_Receive, sizeof(image) - 1);
@@ -385,15 +366,11 @@ static void test_FirmwareManager_DownloadFirmware_FirmwareHeaderCRCMismatch(void
     const uint32_t fake_crc = 0xAABBCCDD;
 
     struct message_header_t message_header = {REQ_FW_HEADER, 0, fake_crc, fake_crc};
-    will_return(ISOTP_Receive, sizeof(message_header));
-    will_return(ISOTP_Receive, &message_header);
-    will_return(CRC_Calculate, fake_crc);
+    ExpectMessageHeader(&message_header, fake_crc);
     will_return_maybe(Board_GetUpgradeMemoryAddress, 0x2000);
 
     struct firmware_image_t image = {1, image_size, fake_crc};
-    will_return(ISOTP_Receive, sizeof(image));
-    will_return(ISOTP_Receive, &image);
-    will_return(CRC_Calculate, fake_crc + 1);
+    ExpectFirmwareImage(&image, fake_crc + 1);
 
     rx_cb_fp(ISOTP_STATUS_DONE);
 }
@@ -408,24 +385,18 @@ static void test_FirmwareManager_DownloadFirmware_Timeout(void **state)
 
     /* Firmware header part */
     struct message_header_t message_header = {REQ_FW_HEADER, 0, fake_crc, fake_crc};
-    will_return(ISOTP_Receive, sizeof(message_header));
-    will_return(ISOTP_Receive, &message_header);
-    will_return(CRC_Calculate, fake_crc);
+    ExpectMessageHeader(&message_header, fake_crc);
     will_return_maybe(Board_GetUpgradeMemoryAddress, 0x2000);
 
     struct firmware_image_t image = {1, image_size, fake_crc};
-    will_return(ISOTP_Receive, sizeof(image));
-    will_return(ISOTP_Receive, &image);
-    will_return(CRC_Calculate, fake_crc);
+    ExpectFirmwareImage(&image, fake_crc);
 
     rx_cb_fp(ISOTP_STATUS_DONE);
     rx_cb_fp(ISOTP_STATUS_TIMEOUT);
 
     /* Firmware data part */
     message_header = (struct message_header_t) {REQ_FW_DATA, 0, 0, fake_crc};
-    will_return(ISOTP_Receive, sizeof(message_header));
-    will_return(ISOTP_Receive, &message_header);
-    will_return(CRC_Calculate, fake_crc);
+    ExpectMessageHeader(&message_header, fake_crc);
 
     /* Discard firmware data message. */
     rx_cb_fp(ISOTP_STATUS_DONE);
@@ -441,24 +412,18 @@ static void test_FirmwareManager_DownloadFirmware_UnknownStatus(void **state)
 
     /* Firmware header part */
     struct message_header_t message_header = {REQ_FW_HEADER, 0, fake_crc, fake_crc};
-    will_return(ISOTP_Receive, sizeof(message_header));
-    will_return(ISOTP_Receive, &message_header);
-    will_return(CRC_Calculate, fake_crc);
+    ExpectMessageHeader(&message_header, fake_crc);
     will_return_maybe(Board_GetUpgradeMemoryAddress, 0x2000);
 
     struct firmware_image_t image = {1, image_size, fake_crc};
-    will_return(ISOTP_Receive, sizeof(image));
-    will_return(ISOTP_Receive, &image);
-    will_return(CRC_Calculate, fake_crc);
+    ExpectFirmwareImage(&image, fake_crc);
 
     rx_cb_fp(ISOTP_STATUS_DONE);
     rx_cb_fp(0xFF);
 
     /* Firmware data part */
     message_header = (struct message_header_t) {REQ_FW_DATA, 0, 0, fake_crc};
-    will_return(ISOTP_Receive, sizeof(message_header));
-    will_return(ISOTP_Receive, &message_header);
-    will_return(CRC_Calculate, fake_crc);
+    ExpectMessageHeader(&message_header, fake_crc);
 
     /* Discard firmware data message. */
     rx_cb_fp(ISOTP_STATUS_DONE);
@@ -474,23 +439,17 @@ static void test_FirmwareManager_DownloadFirmware_FailedHeaderErasePage(void **s
 
     /* Firmware header part */
     struct message_header_t message_header = {REQ_FW_HEADER, 0, fake_crc, fake_crc};
-    will_return(ISOTP_Receive, sizeof(message_header));
-    will_return(ISOTP_Receive, &message_header);
-    will_return(CRC_Calculate, fake_crc);
+    ExpectMessageHeader(&message_header, fake_crc);
     will_return_maybe(Board_GetUpgradeMemoryAddress, 0x2000);
 
     struct firmware_image_t image = {1, image_size, fake_crc};
-    will_return(ISOTP_Receive, sizeof(image));
-    will_return(ISOTP_Receive, &image);
-    will_return(CRC_Calculate, fake_crc);
+    ExpectFirmwareImage(&image, fake_crc);
 
     rx_cb_fp(ISOTP_STATUS_DONE);
 
     /* Firmware data part */
     message_header = (struct message_header_t) {REQ_FW_DATA, 0, 0, fake_crc};
-    will_return(ISOTP_Receive, sizeof(message_header));
-    will_return(ISOTP_Receive, &message_header);
-    will_return(CRC_Calculate, fake_crc);
+    ExpectMessageHeader(&message_header, fake_crc);
 
     /* Discard firmware data message if erase page failed. */
     rx_cb_fp(ISOTP_STATUS_DONE);
@@ -507,23 +466,17 @@ static void test_FirmwareManager_DownloadFirmware_FailedWrite(void **state)
 
     /* Firmware header part */
     struct message_header_t message_header = {REQ_FW_HEADER, 0, fake_crc, fake_crc};
-    will_return(ISOTP_Receive, sizeof(message_header));
-    will_return(ISOTP_Receive, &message_header);
-    will_return(CRC_Calculate, fake_crc);
+    ExpectMessageHeader(&message_header, fake_crc);
     will_return_maybe(Board_GetUpgradeMemoryAddress, 0x2000);
 
     struct firmware_image_t image = {1, image_size, fake_crc};
-    will_return(ISOTP_Receive, sizeof(image));
-    will_return(ISOTP_Receive, &image);
-    will_return(CRC_Calculate, fake_crc);
+    ExpectFirmwareImage(&image, fake_crc);
 
     rx_cb_fp(ISOTP_STATUS_DONE);
 
     /* Firmware data part */
     message_header = (struct message_header_t) {REQ_FW_DATA, 0, 0, fake_crc};
-    will_return(ISOTP_Receive, sizeof(message_header));
-    will_return(ISOTP_Receive, &message_header);
-    will_return(CRC_Calculate, fake_crc);
+    ExpectMessageHeader(&message_header, fake_crc);
 
     /* Only expect one data chunk since the download is aborted on flash write failure */
     const uint8_t data[128] = {0};
@@ -542,24 +495,18 @@ static void test_FirmwareManager_DownloadFirmware_FailedDataErasePage(void **sta
 
     /* Firmware header part */
     struct message_header_t message_header = {REQ_FW_HEADER, 0, fake_crc, fake_crc};
-    will_return(ISOTP_Receive, sizeof(message_header));
-    will_return(ISOTP_Receive, &message_header);
-    will_return(CRC_Calculate, fake_crc);
+    ExpectMessageHeader(&message_header, fake_crc);
     will_return_maybe(Board_GetUpgradeMemoryAddress, 0x2000);
 
     struct firmware_image_t image = {1, image_size, fake_crc};
-    will_return(ISOTP_Receive, sizeof(image));
-    will_return(ISOTP_Receive, &image);
-    will_return(CRC_Calculate, fake_crc);
+    ExpectFirmwareImage(&image, fake_crc);
 
     will_return(Flash_ErasePage, true);
     rx_cb_fp(ISOTP_STATUS_DONE);
 
     /* Firmware data part */
     message_header = (struct message_header_t) {REQ_FW_DATA, 0, 0, fake_crc};
-    will_return(ISOTP_Receive, sizeof(message_header));
-    will_return(ISOTP_Receive, &message_header);
-    will_return(CRC_Calculate, fake_crc);
+    ExpectMessageHeader(&message_header, fake_crc);
 
     /* Only expect one data chunk since the download is aborted on flash erase page failure */
     const uint8_t data[128] = {0};
