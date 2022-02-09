@@ -148,14 +148,12 @@ static void RxStatusCallback(enum isotp_status_t status)
         case ISOTP_STATUS_DONE:
             HandleMessage();
             break;
-
         case ISOTP_STATUS_WAITING:
             /**
              * Do nothing here, waiting for space in RX-buffer. No need to check for
              * timeout since it's handled by the ISO-TP layer.
              */
             break;
-
         case ISOTP_STATUS_TIMEOUT:
         case ISOTP_STATUS_LOST_FRAME:
         case ISOTP_STATUS_OVERFLOW_ABORT:
@@ -176,6 +174,12 @@ static void TxStatusCallback(enum isotp_status_t status)
         case ISOTP_STATUS_DONE:
             Logging_Debug(module.logger_p, "Send done!");
             module.tx_active = false;
+            break;
+        case ISOTP_STATUS_WAITING:
+            /**
+             * Do nothing here, wait for receiver. No need to check for timeout
+             * since it's handled by the ISO-TP layer.
+             */
             break;
         case ISOTP_STATUS_TIMEOUT:
         case ISOTP_STATUS_LOST_FRAME:
@@ -238,22 +242,25 @@ static void HandleMessage(void)
 
 static void OnReqFirmwareInformation(void)
 {
-    struct firmware_info_msg_t info =
+    if (!module.tx_active)
     {
-        .type = REQ_FW_INFO,
-        .version = firmware_information.version,
-        .hardware_revision = Board_GetHardwareRevision(),
-        .name = NAME,
-        .offset = Board_GetUpgradeMemoryAddress(),
-        .id = {0, 0, 0}
-    };
+        struct firmware_info_msg_t info =
+        {
+            .type = REQ_FW_INFO,
+            .version = firmware_information.version,
+            .hardware_revision = Board_GetHardwareRevision(),
+            .name = NAME,
+            .offset = Board_GetUpgradeMemoryAddress(),
+            .id = {0, 0, 0}
+        };
 
-    struct board_id_t id = Board_GetId();
-    memcpy(info.id, &id, sizeof(info.id));
+        struct board_id_t id = Board_GetId();
+        memcpy(info.id, &id, sizeof(info.id));
 
-    memcpy(module.tx_buffer, &info, sizeof(info));
-    ISOTP_Send(&module.ctx, module.tx_buffer, sizeof(info));
-    module.tx_active = true;
+        memcpy(module.tx_buffer, &info, sizeof(info));
+        ISOTP_Send(&module.ctx, module.tx_buffer, sizeof(info));
+        module.tx_active = true;
+    }
 }
 
 static void OnReqReset(void)
