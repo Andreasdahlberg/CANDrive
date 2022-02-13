@@ -33,6 +33,7 @@ along with CANDrive firmware.  If not, see <http://www.gnu.org/licenses/>.
 #include <libopencm3/stm32/rcc.h>
 #include "utility.h"
 #include "logging.h"
+#include "systime.h"
 #include "can_interface.h"
 
 //////////////////////////////////////////////////////////////////////////
@@ -114,6 +115,17 @@ bool CANInterface_Transmit(uint32_t id, void *data_p, size_t size)
     assert(size <= 8);
 
     Logging_Debug(module.logger, "CANTX{id=0x%x}", id);
+
+    const uint32_t start_time_ms = SysTime_GetSystemTime();
+    const uint32_t timeout_ms = 2;
+    while(!can_available_mailbox(CAN1))
+    {
+        if (SysTime_GetDifference(start_time_ms) >= timeout_ms)
+        {
+            Logging_Debug(module.logger, "Timeout while waiting for mailbox");
+            break;
+        }
+    }
 
     bool extended_id = false;
     bool request_transmit = false;

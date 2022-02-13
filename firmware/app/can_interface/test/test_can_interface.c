@@ -182,6 +182,29 @@ static void test_CANInterface_Transmit_Error(void **state)
     const uint32_t id = 0x2;
     uint8_t data = 1;
 
+    will_return_maybe(SysTime_GetSystemTime, 0);
+    will_return_maybe(can_available_mailbox, true);
+    expect_value(can_transmit, canport, CAN1);
+    expect_value(can_transmit, id, id);
+    expect_value(can_transmit, length, sizeof(data));
+    expect_memory(can_transmit, data, &data, sizeof(data));
+    will_return(can_transmit, -1);
+
+    assert_false(CANInterface_Transmit(id, &data, sizeof(data)));
+}
+
+static void test_CANInterface_Transmit_Timeout(void **state)
+{
+    const uint32_t id = 0x2;
+    uint8_t data = 1;
+    const uint32_t timeout_ms = 2;
+
+    will_return_maybe(SysTime_GetSystemTime, 0);
+    will_return_maybe(can_available_mailbox, false);
+    for (uint32_t i = 0; i <= timeout_ms; ++i)
+    {
+        will_return(SysTime_GetDifference, i);
+    }
     expect_value(can_transmit, canport, CAN1);
     expect_value(can_transmit, id, id);
     expect_value(can_transmit, length, sizeof(data));
@@ -197,6 +220,8 @@ static void test_CANInterface_Transmit(void **state)
     uint8_t data[] = {0, 1, 2, 3, 4, 5, 6, 7};
     int mailbox_number = 0;
 
+    will_return_maybe(SysTime_GetSystemTime, 0);
+    will_return_maybe(can_available_mailbox, true);
     expect_value(can_transmit, canport, CAN1);
     expect_value(can_transmit, id, id);
     expect_value(can_transmit, length, sizeof(data));
@@ -264,6 +289,7 @@ int main(int argc, char *argv[])
         cmocka_unit_test_setup(test_CANInterface_ReceiveWithListener, Setup),
         cmocka_unit_test_setup(test_CANInterface_Transmit_Invalid, Setup),
         cmocka_unit_test_setup(test_CANInterface_Transmit_Error, Setup),
+        cmocka_unit_test_setup(test_CANInterface_Transmit_Timeout, Setup),
         cmocka_unit_test_setup(test_CANInterface_Transmit, Setup),
         cmocka_unit_test_setup(test_CANInterface_AddFilter, Setup),
     };
