@@ -66,10 +66,11 @@ static isotp_status_callback_t tx_cb_fp;
 //MOCKS
 //////////////////////////////////////////////////////////////////////////
 
-void ISOTP_Bind(struct isotp_ctx_t *ctx_p, void *rx_buffer_p, size_t rx_buffer_size, uint16_t rx_id, uint16_t tx_id, uint8_t separation_time, isotp_status_callback_t rx_callback_fp, isotp_status_callback_t tx_callback_fp)
+void ISOTP_Bind(struct isotp_ctx_t *ctx_p, void *rx_buffer_p, size_t rx_buffer_size, void *tx_buffer_p, size_t tx_buffer_size, uint16_t rx_id, uint16_t tx_id, isotp_status_callback_t rx_callback_fp, isotp_status_callback_t tx_callback_fp)
 {
     assert_non_null(ctx_p);
-    assert_non_null(rx_buffer_size);
+    assert_non_null(rx_buffer_p);
+    assert_non_null(tx_buffer_p);
 
     rx_cb_fp = rx_callback_fp;
     tx_cb_fp = tx_callback_fp;
@@ -150,7 +151,7 @@ static void test_FirmwareManager_GetFirmwareInformation(void **state)
     tx_cb_fp(ISOTP_STATUS_DONE);
 }
 
-static void test_FirmwareManager_GetFirmwareInformation_PreviousRequestNotDone(void **state)
+static void test_FirmwareManager_GetFirmwareInformation_SendFailed(void **state)
 {
     will_return_maybe(Board_GetUpgradeMemoryAddress, 0x2000);
     will_return_maybe(Board_GetHardwareRevision, 1);
@@ -169,15 +170,14 @@ static void test_FirmwareManager_GetFirmwareInformation_PreviousRequestNotDone(v
         .id = {1, 2, 3}
     };
 
-    will_return(ISOTP_Send, true);
+    will_return(ISOTP_Send, false);
     expect_memory(ISOTP_Send, data_p, &info, sizeof(info));
     rx_cb_fp(ISOTP_STATUS_DONE);
 
-    /* Expect second request to be rejected. */
     ExpectMessageHeader(&message_header, fake_crc);
+    will_return(ISOTP_Send, false);
+    expect_memory(ISOTP_Send, data_p, &info, sizeof(info));
     rx_cb_fp(ISOTP_STATUS_DONE);
-
-    /* Done with first request. */
     tx_cb_fp(ISOTP_STATUS_DONE);
 }
 
@@ -530,7 +530,7 @@ int main(int argc, char *argv[])
         cmocka_unit_test(test_FirmwareManager_Init),
         cmocka_unit_test_setup(test_FirmwareManager_Update, Setup),
         cmocka_unit_test_setup(test_FirmwareManager_GetFirmwareInformation, Setup),
-        cmocka_unit_test_setup(test_FirmwareManager_GetFirmwareInformation_PreviousRequestNotDone, Setup),
+        cmocka_unit_test_setup(test_FirmwareManager_GetFirmwareInformation_SendFailed, Setup),
         cmocka_unit_test_setup(test_FirmwareManager_GetFirmwareInformation_Timeout, Setup),
         cmocka_unit_test_setup(test_FirmwareManager_GetFirmwareInformation_UnknownStatus, Setup),
         cmocka_unit_test_setup(test_FirmwareManager_Reset, Setup),

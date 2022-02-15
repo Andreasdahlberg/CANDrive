@@ -54,9 +54,15 @@ along with CANDrive firmware.  If not, see <http://www.gnu.org/licenses/>.
 //FUNCTIONS
 //////////////////////////////////////////////////////////////////////////
 
-__attribute__((weak)) void ISOTP_Bind(struct isotp_ctx_t *ctx_p, void *rx_buffer_p, size_t rx_buffer_size, uint16_t rx_id, uint16_t tx_id, uint8_t separation_time, isotp_status_callback_t rx_callback_fp, isotp_status_callback_t tx_callback_fp)
+__attribute__((weak)) void ISOTP_Bind(struct isotp_ctx_t *ctx_p, void *rx_buffer_p, size_t rx_buffer_size, void *tx_buffer_p, size_t tx_buffer_size, uint16_t rx_id, uint16_t tx_id, isotp_status_callback_t rx_callback_fp, isotp_status_callback_t tx_callback_fp)
 {
     assert_non_null(ctx_p);
+}
+
+__attribute__((weak)) void ISOTP_SetSeparationTime(struct isotp_ctx_t *ctx_p, uint8_t separation_time)
+{
+    assert_non_null(ctx_p);
+    check_expected(separation_time);
 }
 
 __attribute__((weak)) void ISOTP_Proccess(struct isotp_ctx_t *ctx_p)
