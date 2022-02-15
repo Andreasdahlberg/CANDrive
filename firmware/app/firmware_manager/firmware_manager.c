@@ -80,7 +80,6 @@ struct module_t
     uint8_t rx_buffer[RX_BUFFER_SIZE];
     uint8_t tx_buffer[TX_BUFFER_SIZE];
     uint32_t page_index;
-    bool tx_active;
 };
 
 //////////////////////////////////////////////////////////////////////////
@@ -119,9 +118,10 @@ void FirmwareManager_Init(void)
     ISOTP_Bind(&module.ctx,
                module.rx_buffer,
                sizeof(module.rx_buffer),
+               module.tx_buffer,
+               sizeof(module.tx_buffer),
                (uint16_t)Config_GetValue("rx_id"),
                (uint16_t)Config_GetValue("tx_id"),
-               0,
                RxStatusCallback,
                TxStatusCallback
               );
@@ -173,7 +173,6 @@ static void TxStatusCallback(enum isotp_status_t status)
     {
         case ISOTP_STATUS_DONE:
             Logging_Debug(module.logger_p, "Send done!");
-            module.tx_active = false;
             break;
         case ISOTP_STATUS_WAITING:
             /**
@@ -185,11 +184,9 @@ static void TxStatusCallback(enum isotp_status_t status)
         case ISOTP_STATUS_LOST_FRAME:
         case ISOTP_STATUS_OVERFLOW_ABORT:
             Logging_Warning(module.logger_p, "Failed to send: {status: %u}", (uint32_t)status);
-            module.tx_active = false;
             break;
         default:
             Logging_Warning(module.logger_p, "Unknown status: {status: %u}", (uint32_t)status);
-            module.tx_active = false;
             break;
     }
 }
@@ -242,24 +239,24 @@ static void HandleMessage(void)
 
 static void OnReqFirmwareInformation(void)
 {
-    if (!module.tx_active)
+    Logging_Debug(module.logger_p, "ReqFirmwareInformation");
+
+    struct firmware_info_msg_t info =
     {
-        struct firmware_info_msg_t info =
-        {
-            .type = REQ_FW_INFO,
-            .version = firmware_information.version,
-            .hardware_revision = Board_GetHardwareRevision(),
-            .name = NAME,
-            .offset = Board_GetUpgradeMemoryAddress(),
-            .id = {0, 0, 0}
-        };
+        .type = REQ_FW_INFO,
+        .version = firmware_information.version,
+        .hardware_revision = Board_GetHardwareRevision(),
+        .name = NAME,
+        .offset = Board_GetUpgradeMemoryAddress(),
+        .id = {0, 0, 0}
+    };
 
-        struct board_id_t id = Board_GetId();
-        memcpy(info.id, &id, sizeof(info.id));
+    struct board_id_t id = Board_GetId();
+    memcpy(info.id, &id, sizeof(info.id));
 
-        memcpy(module.tx_buffer, &info, sizeof(info));
-        ISOTP_Send(&module.ctx, module.tx_buffer, sizeof(info));
-        module.tx_active = true;
+    if (!ISOTP_Send(&module.ctx, &info, sizeof(info)))
+    {
+        Logging_Error(module.logger_p, "Failed to send: {type: %u}", info.type);
     }
 }
 

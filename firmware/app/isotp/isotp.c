@@ -105,7 +105,7 @@ struct isotp_fc_t
 //////////////////////////////////////////////////////////////////////////
 
 static inline void ConfigureRxLink(struct isotp_recv_link_t *link_p, void *rx_buffer_p, size_t rx_buffer_size, uint16_t rx_id, uint16_t tx_id, uint8_t separation_time, isotp_status_callback_t callback_fp);
-static inline void ConfigureTxLink(struct isotp_send_link_t *link_p, uint16_t rx_id, uint16_t tx_id, isotp_status_callback_t callback_fp);
+static inline void ConfigureTxLink(struct isotp_send_link_t *link_p, void *tx_buffer_p, size_t tx_buffer_size, uint16_t rx_id, uint16_t tx_id, isotp_status_callback_t callback_fp);
 static void ProccessRxLink(struct isotp_recv_link_t *link_p);
 static void ProccessTxLink(struct isotp_send_link_t *link_p);
 static void CanListener(const struct can_frame_t *frame_p, void *arg_p);
@@ -119,7 +119,7 @@ static void HandleConsecutiveFrame(struct isotp_recv_link_t *link_p, const struc
 static void CheckIfReadyForData(struct isotp_recv_link_t *link_p);
 static uint8_t GetBlockSize(const struct isotp_recv_link_t *link_p);
 static bool SendSingleFrame(const struct isotp_send_link_t *link_p, const void *data_p, size_t length);
-static bool SendFirstFrame(struct isotp_send_link_t *link_p, const void *data_p, size_t length);
+static bool SendFirstFrame(struct isotp_send_link_t *link_p, size_t length);
 static void CheckIfSeparationTimeHasElapsed(struct isotp_send_link_t *link_p);
 static void CheckForFlowControlFrame(struct isotp_send_link_t *link_p);
 static void HandleFlowControlFrame(struct isotp_send_link_t *link_p, const struct can_frame_t *frame_p);
@@ -130,7 +130,7 @@ static bool SendConsecutiveFrame(struct isotp_send_link_t *link_p);
 //FUNCTIONS
 //////////////////////////////////////////////////////////////////////////
 
-void ISOTP_Bind(struct isotp_ctx_t *ctx_p, void *rx_buffer_p, size_t rx_buffer_size, uint16_t rx_id, uint16_t tx_id, uint8_t separation_time, isotp_status_callback_t rx_callback_fp, isotp_status_callback_t tx_callback_fp)
+void ISOTP_Bind(struct isotp_ctx_t *ctx_p, void *rx_buffer_p, size_t rx_buffer_size, void *tx_buffer_p, size_t tx_buffer_size, uint16_t rx_id, uint16_t tx_id, isotp_status_callback_t rx_callback_fp, isotp_status_callback_t tx_callback_fp)
 {
     assert(ctx_p != NULL);
 
@@ -138,8 +138,9 @@ void ISOTP_Bind(struct isotp_ctx_t *ctx_p, void *rx_buffer_p, size_t rx_buffer_s
     ctx_p->logger_p = Logging_GetLogger(ISOTP_LOGGER_NAME);
     Logging_SetLevel(ctx_p->logger_p, ISOTP_LOGGER_DEBUG_LEVEL);
 
-    ConfigureRxLink(&ctx_p->rx_link, rx_buffer_p, rx_buffer_size, rx_id, tx_id, separation_time, rx_callback_fp);
-    ConfigureTxLink(&ctx_p->tx_link, rx_id, tx_id, tx_callback_fp);
+    const uint8_t default_separation_time = 0;
+    ConfigureRxLink(&ctx_p->rx_link, rx_buffer_p, rx_buffer_size, rx_id, tx_id, default_separation_time, rx_callback_fp);
+    ConfigureTxLink(&ctx_p->tx_link, tx_buffer_p, tx_buffer_size, rx_id, tx_id, tx_callback_fp);
 
     const uint32_t id_mask = 0xffff;
     CANInterface_AddFilter(rx_id, id_mask);
@@ -147,6 +148,12 @@ void ISOTP_Bind(struct isotp_ctx_t *ctx_p, void *rx_buffer_p, size_t rx_buffer_s
     CANInterface_RegisterListener(CanListener, &ctx_p->tx_link);
 
     Logging_Info(ctx_p->logger_p, "ISO-TP connection initialized: {rx_id: 0x%x, tx_id: 0x%x}", rx_id, tx_id);
+}
+
+void ISOTP_SetSeparationTime(struct isotp_ctx_t *ctx_p, uint8_t separation_time)
+{
+    assert(ctx_p != NULL);
+    ctx_p->rx_link.base.separation_time = separation_time;
 }
 
 void ISOTP_Proccess(struct isotp_ctx_t *ctx_p)
@@ -167,11 +174,13 @@ bool ISOTP_Send(struct isotp_ctx_t *ctx_p, const void *data_p, size_t length)
     {
         if (length <= SF_DATA_LENGTH)
         {
+            /* No need to write data to the TX stream since all data fits in this frame. */
             status = SendSingleFrame(&ctx_p->tx_link, data_p, length);
         }
         else
         {
-            status = SendFirstFrame(&ctx_p->tx_link, data_p, length);
+            status = Stream_Write(&ctx_p->tx_link.tx_stream, data_p, length) == length;
+            status = status && SendFirstFrame(&ctx_p->tx_link, length);
             if (status)
             {
                 ctx_p->tx_link.state = ISOTP_TX_WAIT_FOR_FC;
@@ -209,13 +218,15 @@ static inline void ConfigureRxLink(struct isotp_recv_link_t *link_p, void *rx_bu
     Logging_Info(logger_p, "RX-link: {id: 0x%x, separation_time: %u, cb: 0x%x}", link_p->base.rx_id, link_p->base.separation_time, (uintptr_t)link_p->base.callback_fp);
 }
 
-static inline void ConfigureTxLink(struct isotp_send_link_t *link_p,  uint16_t rx_id, uint16_t tx_id, isotp_status_callback_t callback_fp)
+static inline void ConfigureTxLink(struct isotp_send_link_t *link_p, void *tx_buffer_p, size_t tx_buffer_size, uint16_t rx_id, uint16_t tx_id, isotp_status_callback_t callback_fp)
 {
+    Stream_Init(&link_p->tx_stream, tx_buffer_p, tx_buffer_size);
     link_p->base.rx_id = rx_id;
     link_p->base.tx_id = tx_id;
     link_p->base.frame_fifo = FIFO_New(link_p->base.frame_buffer);
     link_p->base.callback_fp = callback_fp;
     link_p->base.active = false;
+    link_p->state = ISOTP_TX_INACTIVE;
 
     const logging_logger_t *logger_p = Logging_GetLogger(ISOTP_LOGGER_NAME);
     Logging_Info(logger_p, "TX-link: {id: 0x%x, cb: 0x%x}", link_p->base.tx_id, (uintptr_t)link_p->base.callback_fp);
@@ -546,13 +557,13 @@ static bool SendSingleFrame(const struct isotp_send_link_t *link_p, const void *
     return CANInterface_Transmit(link_p->base.tx_id, &isotp_frame, frame_size);
 }
 
-static bool SendFirstFrame(struct isotp_send_link_t *link_p, const void *data_p, size_t length)
+static bool SendFirstFrame(struct isotp_send_link_t *link_p, size_t length)
 {
     struct isotp_ff_t isotp_frame;
     isotp_frame.type = ISOTP_FIRST_FRAME;
     isotp_frame.size_low = (uint8_t)(length & 0xFF);
     isotp_frame.size_high = (uint8_t)((length >> 8) & 0x0F);
-    memcpy(isotp_frame.data, data_p, sizeof(isotp_frame.data));
+    Stream_Read(&link_p->tx_stream, isotp_frame.data, sizeof(isotp_frame.data));
 
     const logging_logger_t *logger_p = Logging_GetLogger(ISOTP_LOGGER_NAME);
     Logging_Debug(logger_p, "Send FF: {total_size: %u}", length);
@@ -561,7 +572,6 @@ static bool SendFirstFrame(struct isotp_send_link_t *link_p, const void *data_p,
     if (CANInterface_Transmit(link_p->base.tx_id, &isotp_frame, sizeof(isotp_frame.data) + 2))
     {
         link_p->sent_bytes = sizeof(isotp_frame.data);
-        link_p->data_p = data_p;
         link_p->base.payload_size = length;
         link_p->base.sequence_number = 1;
         link_p->wait_timer = SysTime_GetSystemTime();
@@ -673,13 +683,10 @@ static bool SendConsecutiveFrame(struct isotp_send_link_t *link_p)
     struct isotp_cf_t frame;
     frame.type = ISOTP_CONSECUTIVE_FRAME;
     frame.index = link_p->base.sequence_number;
-
-    const size_t remaining_bytes = link_p->base.payload_size - link_p->sent_bytes;
-    const size_t number_of_bytes = remaining_bytes <= sizeof(frame.data) ? remaining_bytes : sizeof(frame.data);
-    memcpy(frame.data, link_p->data_p + link_p->sent_bytes, number_of_bytes);
+    const size_t number_of_bytes = Stream_Read(&link_p->tx_stream, frame.data, sizeof(frame.data));
 
     const logging_logger_t *logger_p = Logging_GetLogger(ISOTP_LOGGER_NAME);
-    Logging_Debug(logger_p, "Send CF: {index: %u}", frame.index);
+    Logging_Debug(logger_p, "Send CF: {index: %u, number_of_bytes: %u}", frame.index, number_of_bytes);
 
     bool status = false;
     if (CANInterface_Transmit(link_p->base.tx_id, &frame, number_of_bytes + 1))
@@ -716,6 +723,12 @@ static bool SendConsecutiveFrame(struct isotp_send_link_t *link_p)
             link_p->base.active = false;
         }
         status = true;
+    }
+    else
+    {
+        link_p->base.callback_fp(ISOTP_STATUS_OVERFLOW_ABORT);
+        link_p->state = ISOTP_TX_INACTIVE;
+        link_p->base.active = false;
     }
 
     return status;

@@ -108,7 +108,7 @@ struct isotp_send_link_t
     struct isotp_link_t base;
     size_t sent_bytes;
     uint32_t wait_timer;
-    const uint8_t *data_p;
+    struct stream_t tx_stream;
     enum isotp_tx_state_t state;
 };
 
@@ -128,13 +128,22 @@ struct isotp_ctx_t
  * @param ctx_p Pointer to link context.
  * @param rx_buffer_p Pointer to RX buffer.
  * @param rx_buffer_size Size of RX buffer.
+ * @param tx_buffer_p Pointer to TX buffer.
+ * @param tx_buffer_size Size of TX buffer.
  * @param rx_id ID of RX endpoint.
  * @param tx_id ID of TX endpoint
- * @param separation_time Separation time between frames.
  * @param rx_callback_fp Callback for RX events.
  * @param tx_callback_fp Callback for TX events.
  */
-void ISOTP_Bind(struct isotp_ctx_t *ctx_p, void *rx_buffer_p, size_t rx_buffer_size, uint16_t rx_id, uint16_t tx_id, uint8_t separation_time, isotp_status_callback_t rx_callback_fp, isotp_status_callback_t tx_callback_fp);
+void ISOTP_Bind(struct isotp_ctx_t *ctx_p, void *rx_buffer_p, size_t rx_buffer_size, void *tx_buffer_p, size_t tx_buffer_size, uint16_t rx_id, uint16_t tx_id, isotp_status_callback_t rx_callback_fp, isotp_status_callback_t tx_callback_fp);
+
+/**
+ * Set separation time parameter.
+ *
+ * @param ctx_p Pointer to link context.
+ * @param separation_time Separation time between frames.
+ */
+void ISOTP_SetSeparationTime(struct isotp_ctx_t *ctx_p, uint8_t separation_time);
 
 /**
  * Process RX and TX data.
