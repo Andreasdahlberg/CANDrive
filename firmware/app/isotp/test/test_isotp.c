@@ -86,29 +86,33 @@ void CANInterface_RegisterListener(caninterface_listener_cb_t listener_cb, void 
 
 bool CANInterface_Transmit(uint32_t id, void *data_p, size_t size)
 {
-    struct can_frame_t frame;
-    frame.id = id;
-    frame.size = size;
-    memcpy(frame.data, data_p, size);
-
-    if (!drop_frame)
+    bool status = mock_type(bool);
+    if (status)
     {
-        /**
-         * Create a loop back by changing the TX ID and directing frames by
-         * ISOTP frame type to the correct listener.
-         */
-        frame.id = 0x01;
-        if ((frame.data[0] & 0xf0) < 0x30)
+        struct can_frame_t frame;
+        frame.id = id;
+        frame.size = size;
+        memcpy(frame.data, data_p, size);
+
+        if (!drop_frame)
         {
-            rx_listener.listener_cb(&frame, rx_listener.arg_p);
+            /**
+             * Create a loop back by changing the TX ID and directing frames by
+             * ISOTP frame type to the correct listener.
+             */
+            frame.id = 0x01;
+            if ((frame.data[0] & 0xf0) < 0x30)
+            {
+                rx_listener.listener_cb(&frame, rx_listener.arg_p);
+            }
+            else
+            {
+                tx_listener.listener_cb(&frame, tx_listener.arg_p);
+            }
         }
-        else
-        {
-            tx_listener.listener_cb(&frame, tx_listener.arg_p);
-        }
+        drop_frame = false;
     }
-    drop_frame = false;
-    return mock_type(bool);
+    return status;
 }
 
 uint32_t SysTime_GetSystemTimeUs(void)
@@ -494,6 +498,27 @@ static void test_ISOTP_SendWithCanTransmitError(void **state)
     assert_false(ISOTP_Send(&ctx, tx_data, sizeof(tx_data)));
 }
 
+static void test_ISOTP_TxCanTransmitError(void **state)
+{
+    will_return_maybe(Logging_GetLogger, dummy_logger);
+    expect_any_always(CANInterface_AddFilter, id);
+    expect_any_always(CANInterface_AddFilter, mask);
+    will_return(CANInterface_Transmit, true);
+    will_return_maybe(SysTime_GetSystemTime, 0);
+    will_return_maybe(SysTime_GetDifference, 1);
+
+    uint8_t rx_buffer[32];
+    ISOTP_Bind(&ctx, rx_buffer, sizeof(rx_buffer), tx_buffer, sizeof(tx_buffer), 0x1, 0x2, MockRxStatusHandler, MockTxStatusHandler);
+
+    uint8_t tx_data[] = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9};
+    assert_true(ISOTP_Send(&ctx, tx_data, sizeof(tx_data)));
+
+    will_return(CANInterface_Transmit, true);
+    will_return(CANInterface_Transmit, false);
+    expect_value(MockTxStatusHandler, status, ISOTP_STATUS_OVERFLOW_ABORT);
+    Proccess(&ctx, 2);
+}
+
 static void test_ISOTP_WaitingForRxSpace(void **state)
 {
     will_return_maybe(Logging_GetLogger, dummy_logger);
@@ -527,6 +552,7 @@ static void test_ISOTP_RxWaitingTimeout(void **state)
     expect_any_always(CANInterface_AddFilter, mask);
     will_return_maybe(CANInterface_Transmit, true);
     will_return_maybe(SysTime_GetSystemTime, 0);
+    will_return_count(SysTime_GetDifference, 100, 2);
     will_return_maybe(SysTime_GetDifference, 101);
 
     uint8_t rx_buffer[15];
@@ -665,6 +691,7 @@ int main(int argc, char *argv[])
         cmocka_unit_test_setup(test_ISOTP_TxBufferFull, Setup),
         cmocka_unit_test_setup(test_ISOTP_SendWithActiveTransfer, Setup),
         cmocka_unit_test_setup(test_ISOTP_SendWithCanTransmitError, Setup),
+        cmocka_unit_test_setup(test_ISOTP_TxCanTransmitError, Setup),
         cmocka_unit_test_setup(test_ISOTP_WaitingForRxSpace, Setup),
         cmocka_unit_test_setup(test_ISOTP_RxWaitingTimeout, Setup),
         cmocka_unit_test_setup(test_ISOTP_TxWaitingTimeout, Setup),
