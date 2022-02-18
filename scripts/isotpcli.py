@@ -53,7 +53,7 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('interface', type=str, help='Set CAN interface, eg. VCAN0')
     parser.add_argument('src_id', type=lambda id: int(id, 0), help='Source CAN Id')
-    parser.add_argument('dest_id', type=lambda id: int(id, 0), help='DEstination CAN Id')
+    parser.add_argument('dest_id', type=lambda id: int(id, 0), help='Destination CAN Id')
     subparsers = parser.add_subparsers()
 
     parser_send = subparsers.add_parser('send', help='Send payload')
