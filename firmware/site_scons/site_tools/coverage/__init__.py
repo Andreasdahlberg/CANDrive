@@ -16,9 +16,11 @@
 
 import os
 import subprocess
+from pathlib import Path
 
 import SCons.Builder
 import SCons.Action
+from SCons.Script import Dir
 
 __author__ = 'andreas.dahlberg90@gmail.com (Andreas Dahlberg)'
 __version__ = '0.1.0'
@@ -43,11 +45,16 @@ def get_status_message(code):
 def build_function(target, source, env):
     """Executes the supplied tests in 'source' to generate coverage information."""
     for test_runner in source:
+
+        test_env = os.environ.copy()
+        test_env['CMOCKA_MESSAGE_OUTPUT'] = 'XML'
+        test_env['CMOCKA_XML_FILE'] = os.path.join(test_runner.get_dir().abspath, 'test_result.xml')
         proc = subprocess.Popen(['valgrind', '--error-exitcode=1', '--track-origins=yes', test_runner.abspath],
-                        stdout=subprocess.PIPE,
-                        stderr=subprocess.STDOUT
-                        )
-        out, err = proc.communicate()
+                                env=test_env,
+                                stdout=subprocess.PIPE,
+                                stderr=subprocess.STDOUT
+                               )
+        out, _ = proc.communicate()
         code = proc.returncode
 
         test_message = '{}{}{} ==> {}'.format(
@@ -68,9 +75,18 @@ def build_function(target, source, env):
     return None
 
 
+def coverage_emitter(target, source, env):
+    for test_runner in source:
+        test_result = os.path.join(test_runner.get_dir().abspath, 'test_result.xml')
+        target.extend([test_result])
+
+    return target, source
+
+
 def _get_coverage_builder():
     return SCons.Builder.Builder(
-        action=SCons.Action.Action(build_function, '${COVERAGE_COMSTR}')
+        action=SCons.Action.Action(build_function, '${COVERAGE_COMSTR}'),
+        emitter=coverage_emitter,
     )
 
 
