@@ -42,7 +42,6 @@ env.Append(CPPPATH=[
     '#app/system_monitor',
     '#app/nvs',
     '#app/config',
-    '#app/firmware_manager',
     '#app/flash'
 ])
 

@@ -60,10 +60,10 @@ if TERM:
     env['ENV']['TERM'] = TERM
 
 app_env = env.Clone()
-app, hex, app2, hex2 = env.SConscript('app/SConscript',
-                      duplicate=0,
-                      variant_dir='build/app/',
-                      exports={'env': app_env, 'project_name': PROJECT_NAME})
+app, hex = env.SConscript('app/SConscript',
+                          duplicate=0,
+                          variant_dir='build/app/',
+                          exports={'env': app_env, 'project_name': PROJECT_NAME})
 
 bootloader_env = env.Clone()
 bootloader, hex_bootloader = env.SConscript('bootloader/SConscript',
@@ -92,7 +92,7 @@ env.Command('libopencm3_stm32f1.a', '', 'cd libopencm3 && make TARGETS=stm32/f1 
 Alias('build-opencm3', 'libopencm3_stm32f1.a')
 Help('build-opencm3: Build the opencm3 library.\n')
 
-env.Alias('release', [app, hex, app2, hex2, bootloader, hex_bootloader])
+env.Alias('release', [app, hex, bootloader, hex_bootloader])
 Help('release: Create a firmware release.\n')
 
 Help('\nApplication\n')

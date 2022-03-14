@@ -185,11 +185,6 @@ uintptr_t Board_GetApplicationAddress(void)
     return (uintptr_t)app;
 }
 
-uintptr_t Board_GetUpgradeMemoryAddress(void)
-{
-    const uintptr_t *up = &__uprom_start__;
-    return (uintptr_t)up;
-}
 
 uint32_t Board_GetNumberOfPagesInNVS(void)
 {

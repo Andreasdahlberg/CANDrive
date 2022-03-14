@@ -38,8 +38,6 @@ extern uintptr_t __bootrom_start__;
 extern uintptr_t __bootrom_size__;
 extern uintptr_t __approm_start__;
 extern uintptr_t __approm_size__;
-extern uintptr_t __uprom_start__;
-extern uintptr_t __uprom_size__;
 extern uintptr_t __nvsrom_start__;
 extern uintptr_t __nvsrom_size__;
 extern uintptr_t _fw_header_start;

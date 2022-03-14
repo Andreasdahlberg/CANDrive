@@ -69,8 +69,7 @@ static void USARTSend(const char *text_p);
 static inline void StartApplication(const uintptr_t *start_p) __attribute__((noreturn));
 static inline void PrepareForApplication(const uintptr_t *start_p);
 static void JumpToApplication(__attribute__((unused)) uintptr_t pc, __attribute__((unused)) uintptr_t sp) __attribute__((naked, noreturn));
-static struct firmware_information_t *GetFirmwareInformation(const uintptr_t *start_p);
-static uintptr_t *SelectApplication(void);
+//static struct firmware_information_t *GetFirmwareInformation(const uintptr_t *start_p);
 
 //////////////////////////////////////////////////////////////////////////
 //FUNCTIONS
@@ -84,8 +83,7 @@ int main(void)
 
     LOG_MESSAGE("boot_info: {sw: "GIT_DESC"}");
 
-    const uintptr_t *application_start_p = SelectApplication();
-    StartApplication(application_start_p);
+    StartApplication(&__approm_start__);
     while (1)
     {
         /* Should never reach this. */
@@ -159,26 +157,11 @@ static void JumpToApplication(__attribute__((unused)) uintptr_t pc, __attribute_
     __asm("BX r0");
 }
 
-static uintptr_t *SelectApplication(void)
-{
-    struct firmware_information_t *app1_info_p = GetFirmwareInformation(&__app1rom_start__);
-    struct firmware_information_t *app2_info_p = GetFirmwareInformation(&__app2rom_start__);
-
-    uintptr_t *selected_application_p;
-    if (app1_info_p->version >= app2_info_p->version)
-    {
-        selected_application_p = &__app1rom_start__;
-    }
-    else
-    {
-        selected_application_p = &__app2rom_start__;
-    }
-    return  selected_application_p;
-}
-
+#if 0
 static struct firmware_information_t *GetFirmwareInformation(const uintptr_t *start)
 {
     const uintptr_t offset  = &_fw_header_start - &__bootrom_start__;
 
     return (struct firmware_information_t *)(start + offset);
 }
+#endif
