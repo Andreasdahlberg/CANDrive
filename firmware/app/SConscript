@@ -46,7 +46,6 @@ MODULES = [
     'config',
     'stream',
     'isotp',
-    'firmware_manager',
     'flash'
 ]
 
@@ -71,21 +70,12 @@ env.Append(LIBS =[
     'libopencm3_stm32f1.a'
 ])
 
-
-env2 = env.Clone()
-env2.Append(LINKFLAGS=[
-    '-Tapp/app2.ld'
-])
-
 env.Append(LINKFLAGS=[
     '-Tapp/app.ld'
 ])
 
 app = env.Program('application.elf', module_objects)
 hex = env.Hex('application.hex', app)
-
-app2 = env2.Program('application2.elf', module_objects)
-hex2 = env2.Hex('application2.hex', app2)
 
 test_env = Environment(
     tools=['default', 'coverage', 'candb', 'compilation_db', 'converter'],
@@ -147,4 +137,4 @@ test_runner = test_env.Coverage(source=tests, target='test-runner')
 converter = test_env.Converter(source=test_runner, target='report.xml')
 test_env.Alias('test', converter)
 
-Return(['app', 'hex', 'app2', 'hex2'])
+Return(['app', 'hex'])
