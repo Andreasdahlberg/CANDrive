@@ -1,0 +1,52 @@
+# -*- coding: utf-8 -*
+#
+# This file is part of CANDrive.
+#
+# CANDrive is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+
+# CANDrive is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+
+# You should have received a copy of the GNU General Public License
+# along with CANDrive.  If not, see <http://www.gnu.org/licenses/>.
+
+import os
+
+Import(['*'])
+
+MODULES = [
+    'main'
+]
+
+module_objects = []
+
+env.Append(CPPPATH=[
+    '#src/libopencm3/include'
+])
+
+env.Append(LINKFLAGS=[
+    '-Tsrc/bootloader/bootloader.ld'
+])
+
+for module in MODULES:
+    sconscript_file = os.path.join(module, 'SConscript')
+    module_object = SConscript(sconscript_file, exports='env')
+    module_objects.append(module_object)
+
+env.Append(LIBPATH = '#src/libopencm3/lib/')
+env.Append(LIBS =[
+    '-lc',
+    '-lgcc',
+    '-lnosys',
+    'libopencm3_stm32f1.a'
+])
+
+bootloader = env.Program('bootloader.elf', module_objects)
+hex = env.Hex('bootloader.hex', bootloader)
+
+Return(['bootloader', 'hex'])
