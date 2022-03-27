@@ -1,7 +1,7 @@
 name: CANDrive CI
 on: [push, pull_request]
 jobs:
-  build-and-test-app:
+  test-and-build-app:
     runs-on: ubuntu-latest
     env:
       SONAR_RUNNER_HOME: /usr/lib/sonar-scanner
@@ -9,8 +9,10 @@ jobs:
     steps:
       - name: Install cantools
         run: sudo python3 -m pip install cantools
+
       - name: Install build tools
         run: sudo apt-get update -y && sudo apt-get install -y gcc-arm-none-eabi libnewlib-arm-none-eabi libnewlib-nano-arm-none-eabi valgrind gcovr
+
       - name: Install SCons
         run: sudo python3 -m pip install scons
 
@@ -42,7 +44,7 @@ jobs:
           pwd
           ls
 
-      - name: Build CANDrive application
+      - name: Build with buildwrapper
         run: |
           build-wrapper-linux-x86-64 --out-dir bw-output scons -C ${{ github.workspace }}/firmware build -j2
 
@@ -51,6 +53,18 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         run: sonar-scanner
+
+      - name: Build application
+        run: |
+          scons -C ${{ github.workspace }}/firmware release -j2
+
+      - name: Archive application
+        uses: actions/upload-artifact@v3
+        with:
+          name: candrive-fw-app
+          path: firmware/build/app/app/application.*
+
+
   build-boot:
     runs-on: ubuntu-latest
 
@@ -69,6 +83,77 @@ jobs:
         run: |
           scons -C ${{ github.workspace }}/firmware build-opencm3 -j2
 
-      - name: Build CANDrive bootloader
+      - name: Build bootloader
         run: |
-          scons -C ${{ github.workspace }}/firmware build-boot -j2
+          scons -C ${{ github.workspace }}/firmware release-boot -j2
+
+      - name: Archive bootloader
+        uses: actions/upload-artifact@v3
+        with:
+          name: candrive-fw-boot
+          path: firmware/build/bootloader/bootloader/bootloader.*
+
+
+  deploy:
+    needs: [test-and-build-app, build-boot]
+    name: Deploy
+    runs-on: ubuntu-latest
+    if: github.ref_type == 'tag'
+
+    steps:
+    - uses: actions/download-artifact@v3
+      with:
+        name: candrive-fw-app
+        path: artifacts
+
+    - uses: actions/download-artifact@v3
+      with:
+        name: candrive-fw-boot
+        path: artifacts
+
+    - name: Install Memfault CLI
+      run: |
+        sudo apt-get install -y virtualenv
+        python3 -m virtualenv memfault_env
+        source memfault_env/bin/activate
+        sudo pip3 install memfault-cli
+
+    - name: Upload application symbols
+      env:
+        MEMFAULT_AUTH_TOKEN: ${{ secrets.MEMFAULT_AUTH_TOKEN }}
+      run: |
+        memfault --org-token $MEMFAULT_AUTH_TOKEN \
+        --org dahlberg-technologies \
+        --project candrive \
+        upload-mcu-symbols \
+        --software-type appfw \
+        --software-version $GITHUB_REF_NAME \
+        --revision $GITHUB_SHA \
+        artifacts/application.elf
+
+    - name: Upload application
+      env:
+        MEMFAULT_AUTH_TOKEN: ${{ secrets.MEMFAULT_AUTH_TOKEN }}
+      run: |
+        memfault --org-token $MEMFAULT_AUTH_TOKEN \
+        --org dahlberg-technologies \
+        --project candrive \
+        upload-ota-payload \
+        --hardware-version rev1 \
+        --software-type appfw \
+        --software-version $GITHUB_REF_NAME \
+        --revision $GITHUB_SHA \
+        artifacts/application.hex
+
+    - name: Upload Bootloader symbols
+      env:
+        MEMFAULT_AUTH_TOKEN: ${{ secrets.MEMFAULT_AUTH_TOKEN }}
+      run: |
+        memfault --org-token $MEMFAULT_AUTH_TOKEN \
+        --org dahlberg-technologies \
+        --project candrive \
+        upload-mcu-symbols \
+        --software-type bootfw \
+        --software-version $GITHUB_REF_NAME \
+        --revision $GITHUB_SHA \
+        artifacts/bootloader.elf
