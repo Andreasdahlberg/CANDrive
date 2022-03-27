@@ -100,8 +100,8 @@ env.Command('libopencm3_stm32f1.a', '', 'cd src/libopencm3 && make TARGETS=stm32
 Alias('build-opencm3', 'libopencm3_stm32f1.a')
 Help('build-opencm3: Build the opencm3 library.\n')
 
-env.Alias('release', [app, hex, bootloader, hex_bootloader])
-Help('release: Create a firmware release.\n')
+env.Alias('release', [app, hex])
+Help('release: Create an application release.\n')
 
 Help('\nApplication\n')
 env.Alias('build', app)
@@ -115,6 +115,9 @@ Help('size: Display the application size.\n')
 
 env.Command("gdb", app, 'gdb-multiarch ${SOURCE} --eval-command="target remote localhost:4242"')
 Help('gdb: Start GDB and attach to target.\n')
+
+env.Alias('release-boot', [bootloader, hex_bootloader])
+Help('release-boot: Create a bootloader release.\n')
 
 Help('\nBootloader\n')
 env.Alias('build-boot', bootloader)
