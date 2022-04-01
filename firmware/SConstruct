@@ -26,6 +26,7 @@ config_variables.Add('OPTIMIZATION', 'The optimization level to use for compilat
 config_variables.Add('STD', 'The C Dialect to use', 'c17')
 config_variables.Add('SERIAL_PORT', 'Serial port')
 config_variables.Add('BAUD_RATE', 'Baud rate for the serial port')
+config_variables.Add('SOFTWARE_VERSION', 'Semantic software version', '0.0.0')
 
 cflags = [
     '-mcpu=cortex-m3',
@@ -59,7 +60,7 @@ env = Environment(
     AR='arm-none-eabi-ar',
     STRIP='arm-none-eabi-strip',
     CFLAGS=cflags,
-    CPPDEFINES=['STM32F1', 'BAUD_RATE=${BAUD_RATE}'],
+    CPPDEFINES=['STM32F1', 'BAUD_RATE=${BAUD_RATE}', 'SOFTWARE_VERSION=\\"${SOFTWARE_VERSION}\\"'],
     LINKFLAGS=ldflags
 )
 
