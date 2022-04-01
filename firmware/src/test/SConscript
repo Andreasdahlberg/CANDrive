@@ -40,6 +40,7 @@ mocks.append(mock_objects)
 
 
 modules_sc =  Glob('../modules/*/SConscript')
+modules_sc.extend(Glob('../app/*/SConscript'))
 modules_mock_sc = Glob('../modules/*/test/mock/SConscript')
 
 
