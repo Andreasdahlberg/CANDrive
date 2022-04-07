@@ -1,32 +1,32 @@
-
 /**
- * @file   main.c
+ * @file   image.c
  * @Author Andreas Dahlberg (andreas.dahlberg90@gmail.com)
- * @brief  Main
+ * @brief Helper functions to get image information.
  */
 
 /*
-This file is part of CANDrive firmware.
+This file is part of SillyCat firmware.
 
-CANDrive firmware is free software: you can redistribute it and/or modify
+SillyCat firmware is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
 the Free Software Foundation, either version 3 of the License, or
 (at your option) any later version.
 
-CANDrive firmware is distributed in the hope that it will be useful,
+SillyCat firmware is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with CANDrive firmware.  If not, see <http://www.gnu.org/licenses/>.
+along with SillyCat firmware.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 //////////////////////////////////////////////////////////////////////////
 //INCLUDES
 //////////////////////////////////////////////////////////////////////////
 
-#include "bootloader.h"
+#include <stddef.h>
+#include "image.h"
 
 //////////////////////////////////////////////////////////////////////////
 //DEFINES
@@ -41,10 +41,6 @@ along with CANDrive firmware.  If not, see <http://www.gnu.org/licenses/>.
 //////////////////////////////////////////////////////////////////////////
 
 //////////////////////////////////////////////////////////////////////////
-//VARIABLES
-//////////////////////////////////////////////////////////////////////////
-
-//////////////////////////////////////////////////////////////////////////
 //LOCAL FUNCTION PROTOTYPES
 //////////////////////////////////////////////////////////////////////////
 
@@ -52,12 +48,25 @@ along with CANDrive firmware.  If not, see <http://www.gnu.org/licenses/>.
 //FUNCTIONS
 //////////////////////////////////////////////////////////////////////////
 
-int main(void)
+const struct image_header_t *Image_GetHeader(const uintptr_t *image_p)
 {
-    Bootloader_Init();
-    Bootloader_Start();
+    const struct image_header_t *header_p = NULL;
+    header_p = (const struct image_header_t *)image_p;
 
-    return 0;
+    if (header_p->header_magic == IMAGE_HEADER_MAGIC)
+    {
+        return header_p;
+    }
+    else
+    {
+        return NULL;
+    }
+}
+
+bool Image_IsValid(const uintptr_t *image_p)
+{
+    const struct image_header_t *header_p = Image_GetHeader(image_p);
+    return (header_p != NULL) && (header_p->size > 0);
 }
 
 //////////////////////////////////////////////////////////////////////////

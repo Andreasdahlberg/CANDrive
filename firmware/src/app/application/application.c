@@ -46,6 +46,7 @@ along with CANDrive firmware.  If not, see <http://www.gnu.org/licenses/>.
 #include "nvs_cmd.h"
 #include "config.h"
 #include "flash.h"
+#include "image.h"
 #include "application.h"
 
 //////////////////////////////////////////////////////////////////////////
@@ -79,6 +80,19 @@ struct module_t
 //////////////////////////////////////////////////////////////////////////
 //VARIABLES
 //////////////////////////////////////////////////////////////////////////
+
+struct image_header_t header __attribute__((section(".image_header"))) =
+{
+    .header_magic = IMAGE_HEADER_MAGIC,
+    .header_version = 0,
+    .image_type = IMAGE_TYPE_CANDRIVE_APP,
+    .version = SOFTWARE_VERSION,
+    .vector_address = (uintptr_t) &vector_table,
+    .git_sha = GIT_DESC,
+    /* Populated after compilation */
+    .crc = 0,
+    .size = 0,
+};
 
 static struct module_t module;
 

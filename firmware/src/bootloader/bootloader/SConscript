@@ -27,31 +27,14 @@ SOURCE = Glob('*.c')
 GIT_DESC = get_git_desc()
 
 env.Append(CPPPATH=[
-    '#src/modules/board',
-    '#src/modules/utility',
     '#src/modules/logging',
-    '#src/modules/can_interface',
     '#src/modules/serial',
-    '#src/modules/motor',
-    '#src/modules/pwm',
-    '#src/modules/adc',
     '#src/modules/systime',
-    '#src/modules/motor_controller',
-    '#src/modules/console',
-    '#src/modules/signal_handler',
-    '#src/modules/system_monitor',
-    '#src/modules/nvs',
-    '#src/modules/config',
-    '#src/modules/flash',
     '#src/modules/image'
 ])
 
-env.Append(CPPDEFINES=['NAME=\\"CANDriveFw\\"'])
+env.Append(CPPDEFINES=['GIT_DESC=\\"{}\\"'.format(GIT_DESC)])
 
-# Clone env to keep the GIT_DESC define in application only.
-application_env = env.Clone()
-application_env.Append(CPPDEFINES=['GIT_DESC=\\"{}\\"'.format(GIT_DESC)])
-
-OBJECTS = application_env.Object(SOURCE)
+OBJECTS = env.Object(SOURCE)
 
 Return('OBJECTS')

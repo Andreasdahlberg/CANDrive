@@ -22,9 +22,9 @@ Import(['*'])
 SOURCE = Glob('*.c')
 
 env.Append(CPPPATH=[
-    '#src/bootloader/bootloader'
 ])
 
 OBJECTS = env.Object(SOURCE)
 
 Return('OBJECTS')
+
