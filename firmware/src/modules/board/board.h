@@ -35,6 +35,7 @@ along with CANDrive firmware.  If not, see <http://www.gnu.org/licenses/>.
 #include "motor.h"
 #include <stdint.h>
 #include <stddef.h>
+#include <stdbool.h>
 
 //////////////////////////////////////////////////////////////////////////
 //DEFINES
