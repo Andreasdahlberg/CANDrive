@@ -44,8 +44,6 @@ SECTIONS
 {
 	.text : {
 		*(.vectors)	/* Vector table */
-		_fw_header_start = .;
-		KEEP (*(.fw_header))
 		*(.text*)	/* Program code */
 		. = ALIGN(4);
 		*(.rodata*)	/* Read-only data */
