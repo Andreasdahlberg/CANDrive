@@ -20,7 +20,14 @@ import os
 Import(['*'])
 
 MODULES = [
-    'main'
+    'bootloader',
+    'main',
+    '../modules/syscalls',
+    '../modules/serial',
+    '../modules/logging',
+    '../modules/systime',
+    '../modules/utility',
+    '../modules/image'
 ]
 
 module_objects = []

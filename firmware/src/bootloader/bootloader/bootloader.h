@@ -1,7 +1,7 @@
 /**
- * @file   memory_map.h
+ * @file   bootloader.h
  * @Author Andreas Dahlberg (andreas.dahlberg90@gmail.com)
- * @brief  Memory map.
+ * @brief  CANDrive bootloader.
  */
 
 /*
@@ -21,26 +21,16 @@ You should have received a copy of the GNU General Public License
 along with CANDrive firmware.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef MEMORY_MAP_H_
-#define MEMORY_MAP_H_
+#ifndef BOOTLOADER_H_
+#define BOOTLOADER_H_
 
 //////////////////////////////////////////////////////////////////////////
 //INCLUDES
 //////////////////////////////////////////////////////////////////////////
 
-#include <stdint.h>
-
 //////////////////////////////////////////////////////////////////////////
-//EXTERNAL VARIABLES
+//INCLUDES
 //////////////////////////////////////////////////////////////////////////
-
-extern uintptr_t __bootrom_start__;
-extern uintptr_t __bootrom_size__;
-extern uintptr_t __approm_start__;
-extern uintptr_t __approm_size__;
-extern uintptr_t __nvsrom_start__;
-extern uintptr_t __nvsrom_size__;
-extern uintptr_t _fw_header_start;
 
 //////////////////////////////////////////////////////////////////////////
 //DEFINES
@@ -53,5 +43,15 @@ extern uintptr_t _fw_header_start;
 //////////////////////////////////////////////////////////////////////////
 //FUNCTION PROTOTYPES
 //////////////////////////////////////////////////////////////////////////
+
+/**
+ * Initialize the bootloader.
+ */
+void Bootloader_Init(void);
+
+/**
+ * Start the bootloader.
+ */
+void Bootloader_Start(void);
 
 #endif
