@@ -33,6 +33,7 @@ along with CANDrive firmware.  If not, see <http://www.gnu.org/licenses/>.
 #include <stdio.h>
 #include <stdbool.h>
 #include <string.h>
+#include <libopencm3/cm3/vector.h>
 #include "utility.h"
 #include "board.h"
 #include "signal_handler.h"
@@ -63,6 +64,7 @@ struct signal_handler_t
 static struct logging_logger_t *dummy_logger;
 static struct signal_handler_t signal_handlers[MAX_NUMBER_OF_HANDLERS];
 static size_t number_of_handlers;
+vector_table_t vector_table;
 
 //////////////////////////////////////////////////////////////////////////
 //FUNCTION PROTOTYPES
