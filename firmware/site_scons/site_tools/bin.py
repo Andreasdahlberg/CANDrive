@@ -17,10 +17,41 @@
 
 import SCons.Util
 import SCons.Tool.cc as cc
+import struct
+import subprocess
+from crc import crc32_stm
 
 __author__ = 'andreas.dahlberg90@gmail.com (Andreas Dahlberg)'
 
 OBJCOPY = 'arm-none-eabi-objcopy'
+
+
+def add_crc_and_size(target):
+    """Add CRC and size to target."""
+    with open(target, 'r+b') as f:
+        data = f.read()
+
+    image_size = len(data)
+    image_crc = crc32_stm(data[12:])
+
+    crc_size = struct.pack('II', image_crc, image_size)
+    with open(target, 'r+b') as f:
+        f.seek(4)
+        f.write(crc_size)
+
+
+def build_function(target, source, env):
+    """Create a bin file with embedded CRC and size."""
+    cmd = [
+        OBJCOPY,
+        '-O',
+        'binary',
+        source[0].path,
+        target[0].path
+    ]
+    subprocess.check_call(cmd)
+    add_crc_and_size(target[0].path)
+
 
 def generate(env):
     """Add Builders and construction variables for the compiler to an Environment."""
@@ -40,7 +71,5 @@ def exists(env):
 
 def _get_bin_builder():
     return SCons.Builder.Builder(
-        action=SCons.Action.Action(
-            "${OBJCOPY} -O binary ${SOURCES} ${TARGET}"
-        )
+        action=SCons.Action.Action(build_function)
     )
