@@ -54,7 +54,7 @@ ldflags = [
 ]
 
 env = Environment(
-    tools=['default', 'hex', 'candb', 'compilation_db'],
+    tools=['default', 'hex', 'bin', 'candb', 'compilation_db'],
     variables = config_variables,
     CC='arm-none-eabi-gcc',
     AR='arm-none-eabi-ar',
@@ -69,7 +69,7 @@ if TERM:
     env['ENV']['TERM'] = TERM
 
 app_env = env.Clone()
-app, hex = env.SConscript('src/SConscript',
+app, hex, bin = env.SConscript('src/SConscript',
                           duplicate=0,
                           variant_dir='build/app/',
                           exports={'env': app_env, 'project_name': PROJECT_NAME, 'target': 'app'})
@@ -101,14 +101,14 @@ env.Command('libopencm3_stm32f1.a', '', 'cd src/libopencm3 && make TARGETS=stm32
 Alias('build-opencm3', 'libopencm3_stm32f1.a')
 Help('build-opencm3: Build the opencm3 library.\n')
 
-env.Alias('release', [app, hex])
+env.Alias('release', [app, hex, bin])
 Help('release: Create an application release.\n')
 
 Help('\nApplication\n')
 env.Alias('build', app)
 Help('build: Build application.\n')
 
-flash = Command('flash', hex, 'st-flash --reset --format ihex write {}'.format('${SOURCE}'))
+flash = Command('flash', bin, 'st-flash --reset write {} 0x8004000'.format('${SOURCE}'))
 Help('flash: Flash application to target.\n')
 
 env.Command('size', app, 'arm-none-eabi-size {}'.format('${SOURCE}'))

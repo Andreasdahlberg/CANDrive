@@ -73,5 +73,6 @@ env.Append(LINKFLAGS=[
 
 app = env.Program('application.elf', module_objects)
 hex = env.Hex('application.hex', app)
+bin = env.Bin('application.bin', app)
 
-Return(['app', 'hex'])
+Return(['app', 'hex', 'bin'])
