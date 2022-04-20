@@ -28,6 +28,7 @@ along with CANDrive firmware.  If not, see <http://www.gnu.org/licenses/>.
 
 #include <assert.h>
 #include <string.h>
+#include <stdio.h>
 #include "board.h"
 #include "board_cmd.h"
 #include "serial.h"
@@ -77,6 +78,14 @@ struct module_t
     enum system_monitor_state_t last_state;
 };
 
+struct note_section_t
+{
+    uint32_t namesz;
+    uint32_t descsz;
+    uint32_t type;
+    uint8_t data[];
+};
+
 //////////////////////////////////////////////////////////////////////////
 //VARIABLES
 //////////////////////////////////////////////////////////////////////////
@@ -93,7 +102,7 @@ struct image_header_t header __attribute__((section(".image_header"))) =
     .crc = 0,
     .size = 0,
 };
-
+extern const struct note_section_t note_build_id;
 static struct module_t module;
 
 //////////////////////////////////////////////////////////////////////////
@@ -114,9 +123,11 @@ static void HandleModeSignal(struct signal_t *signal_p, uint8_t index);
 static void HandleStateChanges(void);
 static void BrakeAllMotors(void);
 static inline void PrintResetFlags(void);
-static inline void PrintIdAndRevision(void);
+static inline void PrintHardwareInformation(void);
+static inline void PrintSoftwareInformation(void);
 static inline void PrintConfig(void);
 static void SendMotorStatus(void);
+static size_t GetBuildID(char *build_id, size_t length);
 
 //////////////////////////////////////////////////////////////////////////
 //FUNCTIONS
@@ -145,7 +156,8 @@ void Application_Init(void)
     ConfigureSignalHandler();
 
     PrintResetFlags();
-    PrintIdAndRevision();
+    PrintHardwareInformation();
+    PrintSoftwareInformation();
     PrintConfig();
 
     Logging_Info(module.logger, "%s ready", NAME);
@@ -325,16 +337,25 @@ static inline void PrintResetFlags(void)
                 );
 }
 
-static inline void PrintIdAndRevision(void)
+static inline void PrintHardwareInformation(void)
 {
     struct board_id_t device_id = Board_GetId();
-    Logging_Info(module.logger, "board_info: {id: %x%x%x, hw: %u, sw: %s, sha: %s}",
+    Logging_Info(module.logger, "hw_info: {id: %x%x%x, rev: %u}",
                  device_id.offset_0,
                  device_id.offset_4,
                  device_id.offset_8,
-                 Board_GetHardwareRevision(),
+                 Board_GetHardwareRevision()
+                );
+}
+
+static inline void PrintSoftwareInformation(void)
+{
+    char build_id[41];
+    GetBuildID(build_id, sizeof(build_id));
+    Logging_Info(module.logger, "sw_info: {sw: %s, sha: %s, build_id: %s}",
                  SOFTWARE_VERSION,
-                 GIT_DESC
+                 GIT_DESC,
+                 build_id
                 );
 }
 
@@ -372,4 +393,25 @@ static void SendMotorStatus(void)
                                   motors[1].rpm.actual,
                                   motors[1].current.actual,
                                   (uint8_t)motors[1].status);
+}
+
+static size_t GetBuildID(char *build_id, size_t length)
+{
+    size_t number_of_bytes = note_build_id.descsz > length / 2 ? length / 2 : note_build_id.descsz;
+    const uint8_t *build_id_data = &note_build_id.data[note_build_id.namesz];
+
+    size_t number_of_chars = 0;
+    for (size_t i = 0; i < number_of_bytes; ++i)
+    {
+        number_of_chars += sprintf(&build_id[number_of_chars], "%02x", build_id_data[i]);
+    }
+
+    /* Make sure that the build ID is NULL terminated. */
+    if (number_of_chars == length)
+    {
+        number_of_chars -= 1;
+    }
+    build_id[number_of_chars] = '\0';
+
+    return number_of_chars;
 }
