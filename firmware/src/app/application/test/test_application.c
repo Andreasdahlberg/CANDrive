@@ -57,6 +57,14 @@ struct signal_handler_t
     signalhandler_handler_cb_t callback;
 };
 
+struct note_section_t
+{
+    uint32_t namesz;
+    uint32_t descsz;
+    uint32_t type;
+    uint8_t data[];
+};
+
 //////////////////////////////////////////////////////////////////////////
 //VARIABLES
 //////////////////////////////////////////////////////////////////////////
@@ -65,6 +73,7 @@ static struct logging_logger_t *dummy_logger;
 static struct signal_handler_t signal_handlers[MAX_NUMBER_OF_HANDLERS];
 static size_t number_of_handlers;
 vector_table_t vector_table;
+const struct note_section_t note_build_id;
 
 //////////////////////////////////////////////////////////////////////////
 //FUNCTION PROTOTYPES
