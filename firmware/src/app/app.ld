@@ -34,6 +34,11 @@ SECTIONS
 		. = ALIGN(4);
 	} >rom
 
+	.gnu_build_id : {
+		PROVIDE(note_build_id = .);
+		*(.note.gnu.build-id)
+	} >rom
+
 	/* C++ Static constructors/destructors, also used for __attribute__
 	 * ((constructor)) and the likes */
 	.preinit_array : {

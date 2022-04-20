@@ -68,7 +68,8 @@ env.Append(LIBS =[
 ])
 
 env.Append(LINKFLAGS=[
-    '-Tsrc/app/app.ld'
+    '-Tsrc/app/app.ld',
+    '-Wl,--build-id'
 ])
 
 app = env.Program('application.elf', module_objects)
