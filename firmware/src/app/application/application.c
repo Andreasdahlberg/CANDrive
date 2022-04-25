@@ -397,21 +397,16 @@ static void SendMotorStatus(void)
 
 static size_t GetBuildID(char *build_id, size_t length)
 {
+    assert(length > 0);
+
     size_t number_of_bytes = note_build_id.descsz > length / 2 ? length / 2 : note_build_id.descsz;
     const uint8_t *build_id_data = &note_build_id.data[note_build_id.namesz];
 
     size_t number_of_chars = 0;
     for (size_t i = 0; i < number_of_bytes; ++i)
     {
-        number_of_chars += sprintf(&build_id[number_of_chars], "%02x", build_id_data[i]);
+        number_of_chars += snprintf(&build_id[number_of_chars], length, "%02x", build_id_data[i]);
     }
-
-    /* Make sure that the build ID is NULL terminated. */
-    if (number_of_chars == length)
-    {
-        number_of_chars -= 1;
-    }
-    build_id[number_of_chars] = '\0';
 
     return number_of_chars;
 }
