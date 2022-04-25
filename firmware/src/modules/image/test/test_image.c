@@ -46,7 +46,7 @@ along with CANDrive firmware.  If not, see <http://www.gnu.org/licenses/>.
 struct dummy_image_t
 {
     struct image_header_t header;
-    uint8_t data[128];
+    uint32_t data[32];
 };
 
 //////////////////////////////////////////////////////////////////////////
@@ -86,7 +86,19 @@ void test_Image_IsValid_Invalid(void **state)
     assert_false(Image_IsValid((uintptr_t *)&image));
 
     image.header.header_magic = IMAGE_HEADER_MAGIC;
+    image.header.size = 32;
+    image.header.crc = 99;
+    will_return(CRC_Calculate, 0);
     assert_false(Image_IsValid((uintptr_t *)&image));
+}
+
+void test_Image_IsValid(void **state)
+{
+    image.header.header_magic = IMAGE_HEADER_MAGIC;
+    image.header.size = 48;
+    image.header.crc = 12;
+    will_return(CRC_Calculate, 12);
+    assert_true(Image_IsValid((uintptr_t *)&image));
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -99,7 +111,8 @@ int main(int argc, char *argv[])
     {
         cmocka_unit_test_setup(test_Image_GetHeader_InvalidHeader, Setup),
         cmocka_unit_test_setup(test_Image_GetHeader, Setup),
-        cmocka_unit_test_setup(test_Image_IsValid_Invalid, Setup)
+        cmocka_unit_test_setup(test_Image_IsValid_Invalid, Setup),
+        cmocka_unit_test_setup(test_Image_IsValid, Setup)
     };
 
     if (argc >= 2)

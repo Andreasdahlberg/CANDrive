@@ -73,6 +73,11 @@ struct image_header_t
 //////////////////////////////////////////////////////////////////////////
 
 /**
+ * Initialize the image module.
+ */
+void Image_Init(void);
+
+/**
  * Get image header.
  *
  * @param image_p Pointer to firmware image.
