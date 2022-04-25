@@ -31,8 +31,9 @@ def add_crc_and_size(target):
     with open(target, 'r+b') as f:
         data = f.read()
 
-    image_size = len(data)
-    image_crc = crc32_stm(data[12:])
+    offset = 12
+    image_size = len(data) - offset
+    image_crc = crc32_stm(data[offset:])
 
     crc_size = struct.pack('II', image_crc, image_size)
     with open(target, 'r+b') as f:

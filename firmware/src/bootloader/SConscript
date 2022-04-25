@@ -27,7 +27,8 @@ MODULES = [
     '../modules/logging',
     '../modules/systime',
     '../modules/utility',
-    '../modules/image'
+    '../modules/image',
+    '../modules/crc'
 ]
 
 module_objects = []

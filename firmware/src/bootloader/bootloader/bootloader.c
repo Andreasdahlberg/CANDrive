@@ -85,6 +85,7 @@ void Bootloader_Init(void)
     SysTime_Init();
     Serial_Init(BAUD_RATE);
     Logging_Init(SysTime_GetSystemTime);
+    Image_Init();
 
     module.logger = Logging_GetLogger(BOOTLOADER_LOGGER_NAME);
     Logging_SetLevel(module.logger, BOOTLOADER_LOGGER_DEBUG_LEVEL);
@@ -113,7 +114,7 @@ static inline void ClockSetup(void)
 static inline void StartApplication(const uintptr_t *start_p)
 {
     const struct image_header_t *header_p = Image_GetHeader(start_p);
-    if (header_p != NULL)
+    if (header_p != NULL && Image_IsValid(start_p))
     {
         PrepareForApplication(header_p);
 
