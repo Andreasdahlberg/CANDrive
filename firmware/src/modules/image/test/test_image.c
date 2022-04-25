@@ -33,6 +33,7 @@ along with CANDrive firmware.  If not, see <http://www.gnu.org/licenses/>.
 #include <stdio.h>
 #include <stdbool.h>
 #include <string.h>
+#include "logging.h"
 #include "image.h"
 
 //////////////////////////////////////////////////////////////////////////
@@ -53,6 +54,7 @@ struct dummy_image_t
 //VARIABLES
 //////////////////////////////////////////////////////////////////////////
 
+static struct logging_logger_t *dummy_logger;
 static struct dummy_image_t image;
 
 //////////////////////////////////////////////////////////////////////////
@@ -62,6 +64,8 @@ static struct dummy_image_t image;
 static int Setup(void **state)
 {
     image = (__typeof__(image)) {0};
+    will_return_always(Logging_GetLogger, dummy_logger);
+    Image_Init();
 
     return 0;
 }
