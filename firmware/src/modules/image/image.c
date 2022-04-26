@@ -113,6 +113,20 @@ bool Image_IsValid(const uintptr_t *image_p)
     return status;
 }
 
+const char *Image_TypeToString(enum image_type_t image_type)
+{
+    switch(image_type)
+    {
+        case IMAGE_TYPE_CANDRIVE_APP:
+            return "CANDRIVE_APP";
+        case IMAGE_TYPE_CANDRIVE_BOOT:
+            return "CANDRIVE_BOOT";
+        default:
+            Logging_Warning(module.logger_p, "Unknown image type: {image_type: %u}", (uint32_t)image_type);
+            return "UNKNOWN";
+    }
+}
+
 //////////////////////////////////////////////////////////////////////////
 //LOCAL FUNCTIONS
 //////////////////////////////////////////////////////////////////////////

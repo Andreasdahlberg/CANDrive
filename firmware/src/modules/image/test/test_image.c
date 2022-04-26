@@ -105,6 +105,13 @@ void test_Image_IsValid(void **state)
     assert_true(Image_IsValid((uintptr_t *)&image));
 }
 
+void test_Image_TypeToString(void **state)
+{
+    assert_string_equal(Image_TypeToString(IMAGE_TYPE_CANDRIVE_APP), "CANDRIVE_APP");
+    assert_string_equal(Image_TypeToString(IMAGE_TYPE_CANDRIVE_BOOT), "CANDRIVE_BOOT");
+    assert_string_equal(Image_TypeToString(UINT32_MAX), "UNKNOWN");
+}
+
 //////////////////////////////////////////////////////////////////////////
 //FUNCTIONS
 //////////////////////////////////////////////////////////////////////////
@@ -116,7 +123,8 @@ int main(int argc, char *argv[])
         cmocka_unit_test_setup(test_Image_GetHeader_InvalidHeader, Setup),
         cmocka_unit_test_setup(test_Image_GetHeader, Setup),
         cmocka_unit_test_setup(test_Image_IsValid_Invalid, Setup),
-        cmocka_unit_test_setup(test_Image_IsValid, Setup)
+        cmocka_unit_test_setup(test_Image_IsValid, Setup),
+        cmocka_unit_test_setup(test_Image_TypeToString, Setup)
     };
 
     if (argc >= 2)

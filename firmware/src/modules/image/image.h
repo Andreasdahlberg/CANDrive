@@ -97,6 +97,15 @@ const struct image_header_t *Image_GetHeader(const uintptr_t *image_p);
  */
 bool Image_IsValid(const uintptr_t *image_p);
 
+/**
+ * Get string representation for an image type.
+ *
+ * @param  image_type Image type.
+ *
+ * @return String representation.
+ */
+const char *Image_TypeToString(enum image_type_t image_type);
+
 //////////////////////////////////////////////////////////////////////////
 //LOCAL FUNCTIONS
 //////////////////////////////////////////////////////////////////////////
