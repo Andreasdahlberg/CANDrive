@@ -114,11 +114,6 @@ __attribute__((weak)) uintptr_t Board_GetApplicationAddress(void)
     return mock_type(uintptr_t);
 }
 
-__attribute__((weak)) uintptr_t Board_GetUpgradeMemoryAddress(void)
-{
-    return mock_type(uintptr_t);
-}
-
 __attribute__((weak)) uint32_t Board_GetNumberOfPagesInNVS(void)
 {
     return mock_type(uint32_t);
