@@ -2,7 +2,7 @@
 MEMORY
 {
     rom  (rx)  : ORIGIN = 0x08000000, LENGTH = 32K
-    approm (rx) : ORIGIN = 0x8004000, LENGTH = 94k
+    approm (rx) : ORIGIN = 0x8008000, LENGTH = 94k
     nvsrom (rx) : ORIGIN = 0x0801F800, LENGTH = 2K
     ram (rwx) : ORIGIN = 0x20000000, LENGTH = 20K
 }
