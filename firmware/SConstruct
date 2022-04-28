@@ -108,7 +108,7 @@ Help('\nApplication\n')
 env.Alias('build', app)
 Help('build: Build application.\n')
 
-flash = Command('flash', bin, 'st-flash --reset write {} 0x8004000'.format('${SOURCE}'))
+flash = Command('flash', bin, 'st-flash --reset write {} 0x8008000'.format('${SOURCE}'))
 Help('flash: Flash application to target.\n')
 
 env.Command('size', app, 'arm-none-eabi-size {}'.format('${SOURCE}'))
