@@ -118,7 +118,8 @@ static inline void StartApplication(const uintptr_t *start_p)
     {
         PrepareForApplication(header_p);
 
-        Logging_Info(module.logger, "image: {version: %s, sha: %s, crc: %u, size: %u}",
+        Logging_Info(module.logger, "image: {type: %s, version: %s, sha: %s, crc: %u, size: %u}",
+                     Image_TypeToString(header_p->image_type),
                      header_p->version,
                      header_p->git_sha,
                      header_p->crc,
