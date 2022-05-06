@@ -26,7 +26,7 @@ SECTIONS
 {
 	.text : {
 		KEEP (*(.image_header))
-		. = ALIGN(128);
+		. = ALIGN(512);
 		*(.vectors)	/* Vector table */
 		*(.text*)	/* Program code */
 		. = ALIGN(4);
