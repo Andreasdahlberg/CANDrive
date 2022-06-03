@@ -28,6 +28,7 @@ env.Append(CPPPATH=[
     '#src/modules/adc',
     '#src/modules/config',
     '#src/modules/systime',
+    '#src/modules/board'
 ])
 
 OBJECTS = env.Object(SOURCE)

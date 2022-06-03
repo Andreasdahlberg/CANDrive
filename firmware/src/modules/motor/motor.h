@@ -34,6 +34,7 @@ along with CANDrive firmware.  If not, see <http://www.gnu.org/licenses/>.
 #include "logging.h"
 #include "pwm.h"
 #include "adc.h"
+#include "board.h"
 
 //////////////////////////////////////////////////////////////////////////
 //DEFINES
@@ -61,45 +62,11 @@ enum motor_status_t
     MOTOR_THERMAL_SHUTDOWN
 };
 
-struct motor_driver_config_t
-{
-    uint32_t port;
-    uint16_t sel;
-    uint16_t cs;
-    uint16_t ina;
-    uint16_t inb;
-    enum rcc_periph_clken gpio_clock;
-};
-
-struct motor_encoder_config_t
-{
-    uint32_t port;
-    uint16_t a;
-    uint16_t b;
-    enum rcc_periph_clken gpio_clock;
-    uint32_t timer;
-    enum rcc_periph_clken timer_clock;
-    enum rcc_periph_rst timer_rst;
-};
-
-struct motor_adc_config_t
-{
-    uint8_t channel;
-};
-
-struct motor_config_t
-{
-    struct pwm_config_t pwm;
-    struct motor_driver_config_t driver;
-    struct motor_encoder_config_t encoder;
-    struct motor_adc_config_t adc;
-};
-
 struct motor_t
 {
     pwm_output_t pwm_output;
     adc_input_t adc_input;
-    const struct motor_config_t *config_p;
+    const struct board_motor_config_t *config_p;
     logging_logger_t *logger_p;
     int16_t speed;
     enum motor_status_t status;
@@ -122,7 +89,7 @@ struct motor_t
  */
 void Motor_Init(struct motor_t *self_p,
                 const char *name,
-                const struct motor_config_t *config_p);
+                const struct board_motor_config_t *config_p);
 
 /**
  * Update the internal state of the motor instance.

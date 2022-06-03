@@ -74,9 +74,9 @@ __attribute__((weak)) struct board_id_t Board_GetId(void)
     return id;
 }
 
-__attribute__((weak)) const struct motor_config_t *Board_GetMotorConfig(size_t index)
+__attribute__((weak)) const struct board_motor_config_t *Board_GetMotorConfig(size_t index)
 {
-    return mock_type(struct motor_config_t *);
+    return mock_type(struct board_motor_config_t *);
 }
 
 __attribute__((weak)) size_t Board_GetMaxNumberOfMotors(void)

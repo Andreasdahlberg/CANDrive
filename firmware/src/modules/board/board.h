@@ -32,10 +32,11 @@ along with CANDrive firmware.  If not, see <http://www.gnu.org/licenses/>.
 //INCLUDES
 //////////////////////////////////////////////////////////////////////////
 
-#include "motor.h"
+#include <libopencm3/stm32/rcc.h>
 #include <stdint.h>
 #include <stddef.h>
 #include <stdbool.h>
+#include "pwm.h"
 
 //////////////////////////////////////////////////////////////////////////
 //DEFINES
@@ -60,6 +61,40 @@ struct firmware_information_t
     uint32_t version;
     uint32_t length;
     char name[12];
+};
+
+struct board_driver_config_t
+{
+    uint32_t port;
+    uint16_t sel;
+    uint16_t cs;
+    uint16_t ina;
+    uint16_t inb;
+    enum rcc_periph_clken gpio_clock;
+};
+
+struct board_encoder_config_t
+{
+    uint32_t port;
+    uint16_t a;
+    uint16_t b;
+    enum rcc_periph_clken gpio_clock;
+    uint32_t timer;
+    enum rcc_periph_clken timer_clock;
+    enum rcc_periph_rst timer_rst;
+};
+
+struct board_adc_config_t
+{
+    uint8_t channel;
+};
+
+struct board_motor_config_t
+{
+    struct pwm_config_t pwm;
+    struct board_driver_config_t driver;
+    struct board_encoder_config_t encoder;
+    struct board_adc_config_t adc;
 };
 
 //////////////////////////////////////////////////////////////////////////
@@ -98,7 +133,7 @@ struct board_id_t Board_GetId(void);
  * @param index Index of motor.
  * @return Pointer to motor configuration.
  */
-const struct motor_config_t *Board_GetMotorConfig(size_t index);
+const struct board_motor_config_t *Board_GetMotorConfig(size_t index);
 
 /**
  * Get the max number of motors that can be connected.

@@ -76,7 +76,7 @@ static inline int32_t CountToRPM(const struct motor_t *self_p, int32_t count, ui
 
 void Motor_Init(struct motor_t *self_p,
                 const char *name,
-                const struct motor_config_t *config_p)
+                const struct board_motor_config_t *config_p)
 {
     assert(self_p != NULL);
     assert(name != NULL);
