@@ -39,6 +39,7 @@ along with CANDrive firmware.  If not, see <http://www.gnu.org/licenses/>.
 #include "motor.h"
 #include "pwm.h"
 #include "adc.h"
+#include "board.h"
 
 //////////////////////////////////////////////////////////////////////////
 //DEFINES
@@ -53,7 +54,7 @@ along with CANDrive firmware.  If not, see <http://www.gnu.org/licenses/>.
 //VARIABLES
 //////////////////////////////////////////////////////////////////////////
 
-const static struct motor_config_t motor_config =
+const static struct board_motor_config_t motor_config =
 {
     .pwm = {
         .timer_peripheral = TIM3,

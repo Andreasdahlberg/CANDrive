@@ -53,7 +53,7 @@ along with CANDrive firmware.  If not, see <http://www.gnu.org/licenses/>.
 
 struct module_t
 {
-    const struct motor_config_t motor_configs[NUMBER_OF_MOTORS];
+    const struct board_motor_config_t motor_configs[NUMBER_OF_MOTORS];
     uint32_t reset_flags;
 };
 
@@ -141,7 +141,7 @@ struct board_id_t Board_GetId(void)
     return id;
 }
 
-const struct motor_config_t *Board_GetMotorConfig(size_t index)
+const struct board_motor_config_t *Board_GetMotorConfig(size_t index)
 {
     assert(index < ElementsIn(module.motor_configs));
 
@@ -184,7 +184,6 @@ uintptr_t Board_GetApplicationAddress(void)
     const uintptr_t *app = &__approm_start__;
     return (uintptr_t)app;
 }
-
 
 uint32_t Board_GetNumberOfPagesInNVS(void)
 {

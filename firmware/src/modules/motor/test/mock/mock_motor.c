@@ -53,7 +53,7 @@ along with CANDrive firmware.  If not, see <http://www.gnu.org/licenses/>.
 //FUNCTIONS
 //////////////////////////////////////////////////////////////////////////
 
-__attribute__((weak)) void Motor_Init(struct motor_t *self_p, const char *name, const struct motor_config_t *config_p)
+__attribute__((weak)) void Motor_Init(struct motor_t *self_p, const char *name, const struct board_motor_config_t *config_p)
 {
     assert_non_null(self_p);
     check_expected_ptr(config_p);
