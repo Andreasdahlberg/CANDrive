@@ -75,14 +75,12 @@ struct request_firmware_info_msg_t
 struct firmware_info_msg_t
 {
     uint32_t type;
-    uint32_t version;
-    uint32_t offset;
+    char version[32];
     uint32_t hardware_revision;
     char name[16];
     uint32_t id[3];
-};
-
-
+    char git_sha[14];
+} __attribute__((packed));
 
 //////////////////////////////////////////////////////////////////////////
 //FUNCTION PROTOTYPES

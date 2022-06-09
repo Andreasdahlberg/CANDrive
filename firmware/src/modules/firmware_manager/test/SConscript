@@ -25,7 +25,13 @@ test_env.Append(CPPPATH=[
     '#src/modules/firmware_manager',
     ])
 
+utility_object = SConscript('#src/modules/utility/SConscript',
+    variant_dir='utility',
+    duplicate=0,
+    exports={'env': test_env})
+
 source = Glob('*.c')
 objects = test_env.Object(source=source)
+objects.append(utility_object)
 
 Return('objects')
