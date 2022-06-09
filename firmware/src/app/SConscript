@@ -44,7 +44,8 @@ MODULES = [
     '../modules/nvs',
     '../modules/crc',
     '../modules/config',
-    '../modules/flash'
+    '../modules/flash',
+    '../modules/nvcom'
 ]
 
 module_objects = []

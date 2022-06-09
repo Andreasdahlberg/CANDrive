@@ -43,7 +43,8 @@ env.Append(CPPPATH=[
     '#src/modules/nvs',
     '#src/modules/config',
     '#src/modules/flash',
-    '#src/modules/image'
+    '#src/modules/image',
+    '#src/modules/nvcom'
 ])
 
 env.Append(CPPDEFINES=['NAME=\\"CANDriveFw\\"'])
