@@ -64,6 +64,11 @@ __attribute__((weak)) bool Image_IsValid(const uintptr_t *image_p)
     return mock_type(bool);
 }
 
+__attribute__((weak)) const char *Image_TypeToString(enum image_type_t image_type)
+{
+    return mock_ptr_type(char*);
+}
+
 //////////////////////////////////////////////////////////////////////////
 //LOCAL FUNCTIONS
 //////////////////////////////////////////////////////////////////////////
