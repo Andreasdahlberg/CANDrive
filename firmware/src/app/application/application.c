@@ -48,6 +48,7 @@ along with CANDrive firmware.  If not, see <http://www.gnu.org/licenses/>.
 #include "config.h"
 #include "flash.h"
 #include "image.h"
+#include "nvcom.h"
 #include "application.h"
 
 //////////////////////////////////////////////////////////////////////////
@@ -128,6 +129,8 @@ static inline void PrintSoftwareInformation(void);
 static inline void PrintConfig(void);
 static void SendMotorStatus(void);
 static size_t GetBuildID(char *build_id, size_t length);
+static uint32_t GetResetFlags(void);
+static bool EnterUpdateMode(void);
 
 //////////////////////////////////////////////////////////////////////////
 //FUNCTIONS
@@ -141,6 +144,7 @@ void Application_Init(void)
     Serial_Init(BAUD_RATE);
     Logging_Init(SysTime_GetSystemTime);
 
+    NVCom_Init();
     SystemMonitor_Init();
     Flash_Init();
     NVS_Init(Board_GetNVSAddress(), Board_GetNumberOfPagesInNVS());
@@ -208,6 +212,7 @@ static void RegisterConsoleCommands(void)
     Console_RegisterCommand("level", LoggingCmd_SetLevel);
     Console_RegisterCommand("store", NVSCmd_Store);
     Console_RegisterCommand("remove", NVSCmd_Remove);
+    Console_RegisterCommand("update", EnterUpdateMode);
 }
 
 static void ConfigureSignalHandler(void)
@@ -328,7 +333,7 @@ static void BrakeAllMotors(void)
 
 static inline void PrintResetFlags(void)
 {
-    const uint32_t reset_flags = Board_GetResetFlags();
+    const uint32_t reset_flags = GetResetFlags();
     Logging_Info(module.logger, "reset_flags: {LPWRR: %u, IWDGRSTF: %u, PINRSTF: %u, SFTRSTF: %u}",
                  !!(reset_flags & RCC_CSR_LPWRRSTF),
                  !!(reset_flags & RCC_CSR_IWDGRSTF),
@@ -409,4 +414,20 @@ static size_t GetBuildID(char *build_id, size_t length)
     }
 
     return number_of_chars;
+}
+
+static uint32_t GetResetFlags(void)
+{
+    struct nvcom_data_t *data_p = NVCom_GetData();
+    return data_p->reset_flags;
+}
+
+static bool EnterUpdateMode(void)
+{
+    struct nvcom_data_t *data_p = NVCom_GetData();
+    data_p->request_firmware_update = true;
+    NVCom_SetData(data_p);
+    Board_Reset();
+
+    return true;
 }
