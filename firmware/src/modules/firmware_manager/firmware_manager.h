@@ -32,6 +32,8 @@ along with CANDrive firmware.  If not, see <http://www.gnu.org/licenses/>.
 //INCLUDES
 //////////////////////////////////////////////////////////////////////////
 
+#include <stdbool.h>
+
 //////////////////////////////////////////////////////////////////////////
 //DEFINES
 //////////////////////////////////////////////////////////////////////////
@@ -49,6 +51,16 @@ along with CANDrive firmware.  If not, see <http://www.gnu.org/licenses/>.
  */
 void FirmwareManager_Init(void);
 
+/**
+ * Update the internal state.
+ */
 void FirmwareManager_Update(void);
+
+/**
+ * Check if the firmware manager is active.
+ *
+ * @return True if active, otherwise false.
+ */
+bool FirmwareManager_Active(void);
 
 #endif

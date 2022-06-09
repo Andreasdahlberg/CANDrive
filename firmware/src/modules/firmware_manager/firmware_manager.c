@@ -29,6 +29,7 @@ along with CANDrive firmware.  If not, see <http://www.gnu.org/licenses/>.
 #include <assert.h>
 #include <stddef.h>
 #include <string.h>
+#include "board.h"
 #include "utility.h"
 #include "logging.h"
 #include "systime.h"
@@ -38,6 +39,7 @@ along with CANDrive firmware.  If not, see <http://www.gnu.org/licenses/>.
 #include "protocol.h"
 #include "board.h"
 #include "flash.h"
+#include "image.h"
 #include "firmware_manager.h"
 
 //////////////////////////////////////////////////////////////////////////
@@ -49,8 +51,10 @@ along with CANDrive firmware.  If not, see <http://www.gnu.org/licenses/>.
 #define FIRMWAREMANAGER_LOGGER_DEBUG_LEVEL LOGGING_INFO
 #endif
 
+#define RX_ID 0x1
+#define TX_ID 0x2
 #define RX_BUFFER_SIZE 1152
-#define TX_BUFFER_SIZE 64
+#define TX_BUFFER_SIZE 128
 #define PAGE_SIZE 1024
 _Static_assert(RX_BUFFER_SIZE > PAGE_SIZE, "The RX-buffer must have space for an entire page!");
 
@@ -80,6 +84,7 @@ struct module_t
     uint8_t rx_buffer[RX_BUFFER_SIZE];
     uint8_t tx_buffer[TX_BUFFER_SIZE];
     uint32_t page_index;
+    bool active;
 };
 
 //////////////////////////////////////////////////////////////////////////
@@ -112,6 +117,7 @@ void FirmwareManager_Init(void)
 {
     module = (__typeof__(module)) {0};
 
+    module.active = true;
     module.logger_p = Logging_GetLogger(FIRMWAREMANAGER_LOGGER_NAME);
     Logging_SetLevel(module.logger_p, FIRMWAREMANAGER_LOGGER_DEBUG_LEVEL);
 
@@ -120,21 +126,24 @@ void FirmwareManager_Init(void)
                sizeof(module.rx_buffer),
                module.tx_buffer,
                sizeof(module.tx_buffer),
-               (uint16_t)Config_GetValue("rx_id"),
-               (uint16_t)Config_GetValue("tx_id"),
+               RX_ID,
+               TX_ID,
                RxStatusCallback,
                TxStatusCallback
               );
 
-    Logging_Info(module.logger_p, "Firmware manager initialized: {version: %u, addr: %x, up_addr: %x}",
-                 firmware_information.version,
-                 Board_GetApplicationAddress(),
-                 Board_GetUpgradeMemoryAddress());
+
+    Logging_Info(module.logger_p, "Firmware manager initialized");
 }
 
 void FirmwareManager_Update(void)
 {
     ISOTP_Proccess(&module.ctx);
+}
+
+bool FirmwareManager_Active(void)
+{
+    return module.active;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -244,15 +253,24 @@ static void OnReqFirmwareInformation(void)
     struct firmware_info_msg_t info =
     {
         .type = REQ_FW_INFO,
-        .version = firmware_information.version,
+        .version = "None",
         .hardware_revision = Board_GetHardwareRevision(),
-        .name = NAME,
-        .offset = Board_GetUpgradeMemoryAddress(),
-        .id = {0, 0, 0}
+        .name = "None",
+        .id = {0, 0, 0},
+        .git_sha = "None"
+
     };
 
     struct board_id_t id = Board_GetId();
     memcpy(info.id, &id, sizeof(info.id));
+
+    const struct image_header_t *header_p = Image_GetHeader((uintptr_t *)Board_GetApplicationAddress());
+    if (header_p != NULL && Image_IsValid((uintptr_t *)Board_GetApplicationAddress()))
+    {
+        CopyString(info.version, header_p->version, sizeof(info.version));
+        CopyString(info.name, Image_TypeToString(header_p->image_type), sizeof(info.name));
+        CopyString(info.git_sha, header_p->git_sha, sizeof(info.git_sha));
+    }
 
     if (!ISOTP_Send(&module.ctx, &info, sizeof(info)))
     {
@@ -262,8 +280,8 @@ static void OnReqFirmwareInformation(void)
 
 static void OnReqReset(void)
 {
-    Logging_Info(module.logger_p, "Restart on request");
-    Board_Reset();
+    Logging_Info(module.logger_p, "Leave update mode, restarting...");
+    module.active = false;
 }
 
 static void OnFirmwareHeader(const struct message_header_t *message_header_p)
@@ -301,7 +319,7 @@ static void OnFirmwareHeader(const struct message_header_t *message_header_p)
 
 static uint32_t GetPageAddress(uint32_t page_index)
 {
-    return page_index * PAGE_SIZE + Board_GetUpgradeMemoryAddress();
+    return page_index * PAGE_SIZE + Board_GetApplicationAddress();
 }
 
 static void OnFirmwareData(const struct message_header_t *message_header_p __attribute__((unused)))
@@ -318,7 +336,7 @@ static void OnFirmwareData(const struct message_header_t *message_header_p __att
             break;
         }
 
-        const uint32_t address = Board_GetUpgradeMemoryAddress() + module.payload.received_bytes;
+        const uint32_t address = (uint32_t)Board_GetApplicationAddress() + module.payload.received_bytes;
         const uint32_t number_of_pages = (module.payload.size + PAGE_SIZE - 1) / PAGE_SIZE;
         const uint32_t page_index = (module.payload.received_bytes) / PAGE_SIZE;
         Logging_Debug(module.logger_p, "data: {received_bytes: %u, pages: %u, page_index: %u, address: %x}", module.payload.received_bytes, number_of_pages, page_index, address);
