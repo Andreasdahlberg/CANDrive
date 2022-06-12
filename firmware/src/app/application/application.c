@@ -409,7 +409,16 @@ static size_t GetBuildID(char *build_id, size_t length)
     size_t number_of_chars = 0;
     for (size_t i = 0; i < number_of_bytes; ++i)
     {
-        number_of_chars += snprintf(&build_id[number_of_chars], length, "%02x", build_id_data[i]);
+        int32_t result = (int32_t)snprintf(&build_id[number_of_chars], length, "%02x", build_id_data[i]);
+        if (result >= 0)
+        {
+            number_of_chars += (size_t)result;
+        }
+        else
+        {
+            number_of_chars = 0;
+            break;
+        }
     }
 
     return number_of_chars;

@@ -106,7 +106,7 @@ void NVCom_SetData(const struct nvcom_data_t *data_p)
     internal_data_p->reset_flags_low = (uint16_t)(data_p->reset_flags & 0xFFFF);
     internal_data_p->number_of_watchdog_restarts = data_p->number_of_watchdog_restarts;
     internal_data_p->number_of_restarts = data_p->number_of_restarts;
-    internal_data_p->bootloader_flags = data_p->request_firmware_update | (data_p->firmware_was_updated << 1);
+    internal_data_p->bootloader_flags = (uint16_t)data_p->request_firmware_update | (uint16_t)((uint16_t)data_p->firmware_was_updated << 1);
     pwr_enable_backup_domain_write_protect();
 }
 
@@ -122,7 +122,7 @@ static inline void ClockSetup(void)
 
 static void InitData(void)
 {
-    volatile struct nvcom_internal_data_t *internal_data_p = (volatile struct nvcom_internal_data_t *)(Board_GetBackupMemoryAddress());
+    const volatile struct nvcom_internal_data_t *internal_data_p = (volatile struct nvcom_internal_data_t *)(Board_GetBackupMemoryAddress());
 
     if (IsColdRestart(internal_data_p))
     {
