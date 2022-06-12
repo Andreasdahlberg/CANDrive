@@ -91,4 +91,11 @@ void SystemMonitor_ReportActivity(void);
 
 enum system_monitor_state_t SystemMonitor_GetState(void);
 
+/**
+ * Get the MCU reset flags.
+ *
+ * @return Reset flags.
+ */
+uint32_t SystemMonitor_GetResetFlags(void);
+
 #endif

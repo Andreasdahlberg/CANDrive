@@ -29,7 +29,9 @@ env.Append(CPPPATH=[
     '#src/modules/utility',
     '#src/modules/logging',
     '#src/modules/systime',
-    '#src/modules/system_monitor'
+    '#src/modules/system_monitor',
+    '#src/modules/nvcom'
+
 ])
 
 OBJECTS = env.Object(SOURCE)
