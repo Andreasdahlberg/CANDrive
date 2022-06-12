@@ -83,6 +83,10 @@ __attribute__((weak)) enum system_monitor_state_t SystemMonitor_GetState(void)
     return mock_type(enum system_monitor_state_t);
 }
 
+__attribute__((weak)) uint32_t SystemMonitor_GetResetFlags(void)
+{
+    return mock_type(uint32_t);
+}
 
 //////////////////////////////////////////////////////////////////////////
 //LOCAL FUNCTIONS

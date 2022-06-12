@@ -33,10 +33,11 @@ along with CANDrive firmware.  If not, see <http://www.gnu.org/licenses/>.
 #include <stdio.h>
 #include <stdbool.h>
 #include <string.h>
-#include "utility.h"
-#include "logging.h"
 #include <libopencm3/stm32/iwdg.h>
 #include <libopencm3/stm32/rcc.h>
+#include "utility.h"
+#include "logging.h"
+#include "nvcom.h"
 #include "system_monitor.h"
 
 //////////////////////////////////////////////////////////////////////////
@@ -54,7 +55,7 @@ along with CANDrive firmware.  If not, see <http://www.gnu.org/licenses/>.
 //////////////////////////////////////////////////////////////////////////
 
 static struct logging_logger_t *dummy_logger;
-static uint32_t backup_registers[42];
+static struct nvcom_data_t restart_information;
 
 //////////////////////////////////////////////////////////////////////////
 //FUNCTION PROTOTYPES
@@ -70,18 +71,18 @@ static uint32_t backup_registers[42];
 
 static void NormalReset(void)
 {
-    will_return(Board_GetBackupMemoryAddress, (uintptr_t)backup_registers);
+    restart_information.reset_flags = 0;
     will_return(Logging_GetLogger, dummy_logger);
-    will_return_count(Board_GetResetFlags, 0, 2);
+
     expect_any(iwdg_set_period_ms, period);
     expect_function_call(iwdg_start);
 }
 
 static void WatchdogReset(bool expect_assert_failure)
 {
-    will_return(Board_GetBackupMemoryAddress, (uintptr_t)backup_registers);
+    restart_information.reset_flags = RCC_CSR_IWDGRSTF;
     will_return(Logging_GetLogger, dummy_logger);
-    will_return_count(Board_GetResetFlags, RCC_CSR_IWDGRSTF, 2);
+
     if (!expect_assert_failure)
     {
         expect_any(iwdg_set_period_ms, period);
@@ -91,6 +92,9 @@ static void WatchdogReset(bool expect_assert_failure)
 
 static int Setup(void **state)
 {
+    restart_information = (__typeof__(restart_information)) {0};
+    will_return_always(NVCom_GetData, &restart_information);
+
     NormalReset();
     SystemMonitor_Init();
     return 0;
@@ -102,6 +106,8 @@ static int Setup(void **state)
 
 static void test_SystemMonitor_Init(void **state)
 {
+    will_return_always(NVCom_GetData, &restart_information);
+
     /* Cold/normal start */
     NormalReset();
     SystemMonitor_Init();
@@ -249,6 +255,19 @@ static void test_SystemMonitor_Emergency(void **state)
     assert_int_equal(SystemMonitor_GetState(), SYSTEM_MONITOR_EMERGENCY);
 }
 
+static void test_SystemMonitor_GetResetFlags(void **state)
+{
+    will_return_always(NVCom_GetData, &restart_information);
+
+    uint32_t data[] = {0x00000000, 0x00000001, 0x10010110, UINT32_MAX};
+
+    for (size_t i = 0; i < ElementsIn(data); ++i)
+    {
+        restart_information.reset_flags = data[i];
+        assert_int_equal(SystemMonitor_GetResetFlags(), data[i]);
+    }
+}
+
 //////////////////////////////////////////////////////////////////////////
 //FUNCTIONS
 //////////////////////////////////////////////////////////////////////////
@@ -258,13 +277,13 @@ int main(int argc, char *argv[])
     const struct CMUnitTest test_system_monitor[] =
     {
         cmocka_unit_test(test_SystemMonitor_Init),
-        cmocka_unit_test_setup(test_SystemMonitor_Init, Setup),
         cmocka_unit_test_setup(test_SystemMonitor_GetWatchdogHandle_Invalid, Setup),
         cmocka_unit_test_setup(test_SystemMonitor_GetWatchdogHandle, Setup),
         cmocka_unit_test_setup(test_SystemMonitor_FeedWatchdog_Invalid, Setup),
         cmocka_unit_test_setup(test_SystemMonitor_Update, Setup),
         cmocka_unit_test_setup(test_SystemMonitor_ControlActivity, Setup),
-        cmocka_unit_test_setup(test_SystemMonitor_Emergency, Setup)
+        cmocka_unit_test_setup(test_SystemMonitor_Emergency, Setup),
+        cmocka_unit_test_setup(test_SystemMonitor_GetResetFlags, Setup),
     };
 
     if (argc >= 2)
