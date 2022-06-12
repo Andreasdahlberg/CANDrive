@@ -55,7 +55,7 @@ along with CANDrive firmware.  If not, see <http://www.gnu.org/licenses/>.
 //////////////////////////////////////////////////////////////////////////
 
 static struct logging_logger_t *dummy_logger;
-const static struct motor_config_t motor_configs[NUMBER_OF_MOTORS];
+const static struct board_motor_config_t motor_configs[NUMBER_OF_MOTORS];
 struct pid_parameters_t pid_parameters;
 
 //////////////////////////////////////////////////////////////////////////
