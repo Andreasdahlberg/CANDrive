@@ -105,6 +105,7 @@ static int Setup(void **state)
     expect_function_call(SysTime_Init);
     expect_any(Serial_Init, baud_rate);
     expect_function_call(Logging_Init);
+    expect_function_call(NVCom_Init);
     expect_function_call(SystemMonitor_Init);
     will_return(Board_GetNVSAddress, 0x801F800);
     will_return(Board_GetNumberOfPagesInNVS, 2);
@@ -120,7 +121,7 @@ static int Setup(void **state)
     expect_any(CANInterface_AddFilter, mask);
     will_return_always(Config_GetNumberOfMotors, number_of_motors);
     expect_any_always(SignalHandler_RegisterHandler, id);
-    will_return_maybe(Board_GetResetFlags, 0);
+    will_return_maybe(SystemMonitor_GetResetFlags, 0);
     will_return_maybe(Board_GetHardwareRevision, 1);
     will_return_maybe(Board_GetSoftwareRevision, 2);
     will_return_maybe(Config_IsValid, true);
@@ -163,6 +164,7 @@ static void test_Application_Init_NoMotors(void **state)
     expect_function_call(SysTime_Init);
     expect_value(Serial_Init, baud_rate, BAUD_RATE);
     expect_function_call(Logging_Init);
+    expect_function_call(NVCom_Init);
     expect_function_call(SystemMonitor_Init);
     will_return(Board_GetNVSAddress, 0x801F800);
     will_return(Board_GetNumberOfPagesInNVS, 2);
@@ -177,7 +179,7 @@ static void test_Application_Init_NoMotors(void **state)
     expect_any(CANInterface_AddFilter, id);
     expect_any(CANInterface_AddFilter, mask);
     will_return_always(Config_GetNumberOfMotors, number_of_motors);
-    will_return_maybe(Board_GetResetFlags, 0);
+    will_return_maybe(SystemMonitor_GetResetFlags, 0);
     will_return_maybe(Board_GetHardwareRevision, 1);
     will_return_maybe(Board_GetSoftwareRevision, 2);
     will_return_maybe(Config_IsValid, false);
@@ -199,6 +201,7 @@ static void test_Application_Init(void **state)
     expect_function_call(SysTime_Init);
     expect_value(Serial_Init, baud_rate, BAUD_RATE);
     expect_function_call(Logging_Init);
+    expect_function_call(NVCom_Init);
     expect_function_call(SystemMonitor_Init);
     will_return(Board_GetNVSAddress, 0x801F800);
     will_return(Board_GetNumberOfPagesInNVS, 2);
@@ -214,7 +217,7 @@ static void test_Application_Init(void **state)
     expect_any(CANInterface_AddFilter, mask);
     will_return_always(Config_GetNumberOfMotors, number_of_motors);
     expect_any_always(SignalHandler_RegisterHandler, id);
-    will_return_maybe(Board_GetResetFlags, 0);
+    will_return_maybe(SystemMonitor_GetResetFlags, 0);
     will_return_maybe(Board_GetHardwareRevision, 1);
     will_return_maybe(Board_GetSoftwareRevision, 2);
     will_return_maybe(Config_IsValid, true);

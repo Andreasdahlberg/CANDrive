@@ -129,7 +129,6 @@ static inline void PrintSoftwareInformation(void);
 static inline void PrintConfig(void);
 static void SendMotorStatus(void);
 static size_t GetBuildID(char *build_id, size_t length);
-static uint32_t GetResetFlags(void);
 static bool EnterUpdateMode(void);
 
 //////////////////////////////////////////////////////////////////////////
@@ -333,7 +332,7 @@ static void BrakeAllMotors(void)
 
 static inline void PrintResetFlags(void)
 {
-    const uint32_t reset_flags = GetResetFlags();
+    const uint32_t reset_flags = SystemMonitor_GetResetFlags();
     Logging_Info(module.logger, "reset_flags: {LPWRR: %u, IWDGRSTF: %u, PINRSTF: %u, SFTRSTF: %u}",
                  !!(reset_flags & RCC_CSR_LPWRRSTF),
                  !!(reset_flags & RCC_CSR_IWDGRSTF),
@@ -414,12 +413,6 @@ static size_t GetBuildID(char *build_id, size_t length)
     }
 
     return number_of_chars;
-}
-
-static uint32_t GetResetFlags(void)
-{
-    struct nvcom_data_t *data_p = NVCom_GetData();
-    return data_p->reset_flags;
 }
 
 static bool EnterUpdateMode(void)
