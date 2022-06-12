@@ -171,7 +171,7 @@ enum system_monitor_state_t SystemMonitor_GetState(void)
 
 uint32_t SystemMonitor_GetResetFlags(void)
 {
-    struct nvcom_data_t *data_p = NVCom_GetData();
+    const struct nvcom_data_t *data_p = NVCom_GetData();
     return data_p->reset_flags;
 }
 
