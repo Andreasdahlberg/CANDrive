@@ -150,6 +150,63 @@ static void test_FirmwareManager_GetFirmwareInformation(void **state)
     tx_cb_fp(ISOTP_STATUS_DONE);
 }
 
+static void test_FirmwareManager_GetFirmwareInformation_InvalidImageHeader(void **state)
+{
+    const uint32_t fake_crc = 0xAABBCCDD;
+    struct message_header_t message_header = {REQ_FW_INFO, 0, 0, fake_crc};
+    ExpectMessageHeader(&message_header, fake_crc);
+
+    will_return_maybe(Board_GetHardwareRevision, 1);
+    will_return_maybe(Board_GetApplicationAddress, 0x1000);
+    will_return_maybe(Image_GetHeader, NULL);
+
+    const struct firmware_info_msg_t info =
+    {
+        .type = REQ_FW_INFO,
+        .version = "None",
+        .hardware_revision = 1,
+        .name = "None",
+        .id = {1, 2, 3},
+        .git_sha = "None"
+    };
+
+    will_return(ISOTP_Send, true);
+    expect_memory(ISOTP_Send, data_p, &info, sizeof(info));
+
+    rx_cb_fp(ISOTP_STATUS_DONE);
+    tx_cb_fp(ISOTP_STATUS_WAITING);
+    tx_cb_fp(ISOTP_STATUS_DONE);
+}
+
+static void test_FirmwareManager_GetFirmwareInformation_InvalidImage(void **state)
+{
+    const uint32_t fake_crc = 0xAABBCCDD;
+    struct message_header_t message_header = {REQ_FW_INFO, 0, 0, fake_crc};
+    ExpectMessageHeader(&message_header, fake_crc);
+
+    will_return_maybe(Board_GetHardwareRevision, 1);
+    will_return_maybe(Board_GetApplicationAddress, 0x1000);
+    will_return_maybe(Image_GetHeader, &image_header);
+    will_return_maybe(Image_IsValid, false);
+
+    const struct firmware_info_msg_t info =
+    {
+        .type = REQ_FW_INFO,
+        .version = "None",
+        .hardware_revision = 1,
+        .name = "None",
+        .id = {1, 2, 3},
+        .git_sha = "None"
+    };
+
+    will_return(ISOTP_Send, true);
+    expect_memory(ISOTP_Send, data_p, &info, sizeof(info));
+
+    rx_cb_fp(ISOTP_STATUS_DONE);
+    tx_cb_fp(ISOTP_STATUS_WAITING);
+    tx_cb_fp(ISOTP_STATUS_DONE);
+}
+
 static void test_FirmwareManager_GetFirmwareInformation_SendFailed(void **state)
 {
     const uint32_t fake_crc = 0xAABBCCDD;
@@ -537,6 +594,8 @@ int main(int argc, char *argv[])
         cmocka_unit_test(test_FirmwareManager_Init),
         cmocka_unit_test_setup(test_FirmwareManager_Update, Setup),
         cmocka_unit_test_setup(test_FirmwareManager_GetFirmwareInformation, Setup),
+        cmocka_unit_test_setup(test_FirmwareManager_GetFirmwareInformation_InvalidImageHeader, Setup),
+        cmocka_unit_test_setup(test_FirmwareManager_GetFirmwareInformation_InvalidImage, Setup),
         cmocka_unit_test_setup(test_FirmwareManager_GetFirmwareInformation_SendFailed, Setup),
         cmocka_unit_test_setup(test_FirmwareManager_GetFirmwareInformation_Timeout, Setup),
         cmocka_unit_test_setup(test_FirmwareManager_GetFirmwareInformation_UnknownStatus, Setup),
