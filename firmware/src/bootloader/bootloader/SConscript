@@ -27,10 +27,15 @@ SOURCE = Glob('*.c')
 GIT_DESC = get_git_desc()
 
 env.Append(CPPPATH=[
+    '#src/modules/board',
     '#src/modules/logging',
     '#src/modules/serial',
     '#src/modules/systime',
-    '#src/modules/image'
+    '#src/modules/image',
+    '#src/modules/can_interface',
+    '#src/modules/flash',
+    '#src/modules/firmware_manager',
+    '#src/modules/nvcom'
 ])
 
 env.Append(CPPDEFINES=['GIT_DESC=\\"{}\\"'.format(GIT_DESC)])

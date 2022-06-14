@@ -32,10 +32,15 @@ along with CANDrive firmware.  If not, see <http://www.gnu.org/licenses/>.
 #include <libopencm3/cm3/scb.h>
 #include <libopencm3/cm3/vector.h>
 #include "memory_map.h"
+#include "board.h"
 #include "serial.h"
 #include "systime.h"
 #include "logging.h"
 #include "image.h"
+#include "can_interface.h"
+#include "flash.h"
+#include "firmware_manager.h"
+#include "nvcom.h"
 #include "bootloader.h"
 
 //////////////////////////////////////////////////////////////////////////
@@ -70,10 +75,14 @@ static struct module_t module;
 //LOCAL FUNCTION PROTOTYPES
 //////////////////////////////////////////////////////////////////////////
 
-static inline void ClockSetup(void);
-static inline void StartApplication(const uintptr_t *start_p) __attribute__((noreturn));
+static void UpdateRestartInformation(void);
+static inline void StartApplication(const uintptr_t *start_p);
 static inline void PrepareForApplication(const struct image_header_t *header_p);
 static void JumpToApplication(void *pc, void *sp) __attribute__((naked, noreturn));
+static inline void UpdateFirmware(void);
+static bool IsUpdateRequested(void);
+static void ClearUpdateRequest(void);
+static inline bool IsWatchdogRestart(void);
 
 //////////////////////////////////////////////////////////////////////////
 //FUNCTIONS
@@ -81,10 +90,11 @@ static void JumpToApplication(void *pc, void *sp) __attribute__((naked, noreturn
 
 void Bootloader_Init(void)
 {
-    ClockSetup();
+    Board_Init();
     SysTime_Init();
     Serial_Init(BAUD_RATE);
     Logging_Init(SysTime_GetSystemTime);
+    NVCom_Init();
     Image_Init();
 
     module.logger = Logging_GetLogger(BOOTLOADER_LOGGER_NAME);
@@ -94,11 +104,18 @@ void Bootloader_Init(void)
 
 void Bootloader_Start(void)
 {
-    StartApplication(&__approm_start__);
+    UpdateRestartInformation();
 
-    while (1)
+    if (IsUpdateRequested())
     {
-        /* Should never reach this. */
+        Logging_Info(module.logger, "Firmware update requested");
+        UpdateFirmware();
+    }
+    else
+    {
+        StartApplication(&__approm_start__);
+        Logging_Error(module.logger, "Failed to start application");
+        UpdateFirmware();
     }
 }
 
@@ -106,9 +123,29 @@ void Bootloader_Start(void)
 //LOCAL FUNCTIONS
 //////////////////////////////////////////////////////////////////////////
 
-static inline void ClockSetup(void)
+static void UpdateRestartInformation(void)
 {
-    rcc_clock_setup_pll(&rcc_hse_configs[RCC_CLOCK_HSE8_72MHZ]);
+    struct nvcom_data_t *data_p = NVCom_GetData();
+
+    if (data_p->number_of_restarts < UINT16_MAX)
+    {
+        data_p->number_of_restarts += 1;
+    }
+    data_p->reset_flags = Board_GetResetFlags();
+
+    if (IsWatchdogRestart())
+    {
+        if (data_p->number_of_watchdog_restarts < UINT16_MAX)
+        {
+            data_p->number_of_watchdog_restarts += 1;
+        }
+    }
+    else
+    {
+        data_p->number_of_watchdog_restarts = 0;
+    }
+
+    NVCom_SetData(data_p);
 }
 
 static inline void StartApplication(const uintptr_t *start_p)
@@ -118,24 +155,20 @@ static inline void StartApplication(const uintptr_t *start_p)
     {
         PrepareForApplication(header_p);
 
-        Logging_Info(module.logger, "image: {type: %s, version: %s, sha: %s, crc: %u, size: %u}",
-                     Image_TypeToString(header_p->image_type),
-                     header_p->version,
-                     header_p->git_sha,
-                     header_p->crc,
-                     header_p->size
-                    );
+        Logging_Debug(module.logger, "image: {type: %s, version: %s, sha: %s, crc: %u, size: %u}",
+                      Image_TypeToString(header_p->image_type),
+                      header_p->version,
+                      header_p->git_sha,
+                      header_p->crc,
+                      header_p->size
+                     );
 
         const vector_table_t *vector_table_p = (const vector_table_t *)header_p->vector_address;
         JumpToApplication(vector_table_p->reset, vector_table_p->initial_sp_value);
     }
     else
     {
-        Logging_Error(module.logger, "Invalid firmware, Wait for firmware download...");
-        while (1)
-        {
-            /* Wait for new firmware here */
-        }
+        Logging_Error(module.logger, "Invalid firmware");
     }
 }
 
@@ -149,4 +182,40 @@ static void JumpToApplication(__attribute__((unused)) void *pc, __attribute__((u
 {
     __asm("MSR MSP,r1");
     __asm("BX r0");
+}
+
+static inline void UpdateFirmware()
+{
+    CANInterface_Init();
+    Flash_Init();
+    FirmwareManager_Init();
+
+    Logging_Info(module.logger, "Wait for new firmware...");
+    while (FirmwareManager_Active())
+    {
+        FirmwareManager_Update();
+    }
+
+    ClearUpdateRequest();
+    Board_Reset();
+}
+
+static bool IsUpdateRequested(void)
+{
+    const struct nvcom_data_t *data_p = NVCom_GetData();
+    return data_p->number_of_restarts > 0 && data_p->request_firmware_update;
+}
+
+static void ClearUpdateRequest(void)
+{
+    struct nvcom_data_t *data_p = NVCom_GetData();
+    data_p->request_firmware_update = false;
+    NVCom_SetData(data_p);
+}
+
+static inline bool IsWatchdogRestart(void)
+{
+    const uint32_t reset_flags = Board_GetResetFlags();
+
+    return (bool)(reset_flags & RCC_CSR_IWDGRSTF);
 }
