@@ -39,6 +39,8 @@ along with CANDrive firmware.  If not, see <http://www.gnu.org/licenses/>.
 #include "signal_handler.h"
 #include "system_monitor.h"
 #include "motor_controller.h"
+#include "nvcom.h"
+#include "application_cmd.h"
 #include "application.h"
 
 //////////////////////////////////////////////////////////////////////////
@@ -405,6 +407,16 @@ static void test_Application_SignalHandlers_Emergency(void **state)
     GetCallback(signal.id)(&signal);
 }
 
+static void test_ApplicationCmd_UpdateFirmware(void **state)
+{
+    struct nvcom_data_t restart_information;
+    will_return_always(NVCom_GetData, &restart_information);
+    expect_function_call(Board_Reset);
+
+    assert_true(ApplicationCmd_UpdateFirmware());
+    assert_true(restart_information.request_firmware_update);
+}
+
 //////////////////////////////////////////////////////////////////////////
 //FUNCTIONS
 //////////////////////////////////////////////////////////////////////////
@@ -421,10 +433,18 @@ int main(int argc, char *argv[])
         cmocka_unit_test_setup(test_Application_SignalHandlers_Emergency, Setup)
     };
 
+    const struct CMUnitTest test_application_cmd[] =
+    {
+        cmocka_unit_test(test_ApplicationCmd_UpdateFirmware)
+    };
+
     if (argc >= 2)
     {
         cmocka_set_test_filter(argv[1]);
     }
 
-    return cmocka_run_group_tests(test_application, NULL, NULL);
+    int status = 0;
+    status = cmocka_run_group_tests(test_application, NULL, NULL);
+    status += cmocka_run_group_tests(test_application_cmd, NULL, NULL);
+    return status;
 }
