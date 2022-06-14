@@ -49,6 +49,7 @@ along with CANDrive firmware.  If not, see <http://www.gnu.org/licenses/>.
 #include "flash.h"
 #include "image.h"
 #include "nvcom.h"
+#include "application_cmd.h"
 #include "application.h"
 
 //////////////////////////////////////////////////////////////////////////
@@ -129,7 +130,6 @@ static inline void PrintSoftwareInformation(void);
 static inline void PrintConfig(void);
 static void SendMotorStatus(void);
 static size_t GetBuildID(char *build_id, size_t length);
-static bool EnterUpdateMode(void);
 
 //////////////////////////////////////////////////////////////////////////
 //FUNCTIONS
@@ -211,7 +211,7 @@ static void RegisterConsoleCommands(void)
     Console_RegisterCommand("level", LoggingCmd_SetLevel);
     Console_RegisterCommand("store", NVSCmd_Store);
     Console_RegisterCommand("remove", NVSCmd_Remove);
-    Console_RegisterCommand("update", EnterUpdateMode);
+    Console_RegisterCommand("update", ApplicationCmd_UpdateFirmware);
 }
 
 static void ConfigureSignalHandler(void)
@@ -422,14 +422,4 @@ static size_t GetBuildID(char *build_id, size_t length)
     }
 
     return number_of_chars;
-}
-
-static bool EnterUpdateMode(void)
-{
-    struct nvcom_data_t *data_p = NVCom_GetData();
-    data_p->request_firmware_update = true;
-    NVCom_SetData(data_p);
-    Board_Reset();
-
-    return true;
 }
