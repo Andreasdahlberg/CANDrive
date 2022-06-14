@@ -28,7 +28,15 @@ MODULES = [
     '../modules/systime',
     '../modules/utility',
     '../modules/image',
-    '../modules/crc'
+    '../modules/crc',
+    '../modules/stream',
+    '../modules/fifo',
+    '../modules/flash',
+    '../modules/can_interface',
+    '../modules/isotp',
+    '../modules/firmware_manager',
+    '../modules/nvcom',
+    '../modules/board'
 ]
 
 module_objects = []
