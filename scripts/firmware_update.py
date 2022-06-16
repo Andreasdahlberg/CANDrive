@@ -1,8 +1,6 @@
 """CANDrive firmware updater"""
 
-import logging
 import time
-import os
 import argparse
 import struct
 import io
@@ -95,7 +93,7 @@ class ISOTPLink():
 
 class Device():
     def __init__(self, interface, source, destination, wftmax=5):
-        self._link = ISOTPLink(interface, source, destination, self._error_handler, wftmax=5)
+        self._link = ISOTPLink(interface, source, destination, self._error_handler, wftmax=wftmax)
         self._populate_device_information()
         self._send_status = True
 
@@ -111,28 +109,16 @@ class Device():
         if data:
             msg = FirmwareInformationMessage.from_data(data)
             self.version = msg.version
-            self.address = msg.address
             self.hardware_revision = msg.hardware_revision
             self.name = msg.name
             self.id = msg.device_id
+            self.git_sha = msg.git_sha
         else:
             self.version = None
-            self.address = None
             self.hardware_revision = None
             self.name = None
             self.id = None
-
-    def _get_compatible_firmware(self, path):
-        hex_files = [os.path.join(path, f) for f in os.listdir(path) if f.endswith('.hex')]
-        for hex_file in hex_files:
-            bin_file = bincopy.BinFile(hex_file)
-            if self.address == bin_file.minimum_address:
-                return hex_file
-        return None
-
-    def _hex_to_binary(self, file_name):
-        bin_file = bincopy.BinFile(file_name)
-        return bin_file.as_binary()
+            self.git_sha = None
 
     def _send_firmware_header(self, data):
 
@@ -161,15 +147,14 @@ class Device():
             print('{}/{} pages sent'.format(sent_pages, number_of_pages))
         print('Firmware upgrade done')
 
-    def upgrade(self, path):
-        upgrade_file = self._get_compatible_firmware(path)
-        print(upgrade_file)
-        binary_data = self._hex_to_binary(upgrade_file)
+    def upgrade(self, upgrade_file):
+        with open(upgrade_file, "rb") as f:
+            binary_data = f.read()
 
         self._send_firmware_header(binary_data)
         self._send_firmware_data(binary_data)
-        self.reset()
         self._populate_device_information()
+        self.reset()
         #TODO: Verify correct version
 
     def reset(self):
@@ -205,30 +190,30 @@ class Message():
 
 
 class FirmwareInformationMessage():
-    def __init__(self, message_type, version, address, hardware_revision, name, device_id):
+    def __init__(self, message_type, version, hardware_revision, name, device_id, git_sha):
         self.message_type = message_type
         self.version = version
-        self.address = address
         self.hardware_revision = hardware_revision
         self.name = name
         self.device_id = device_id
+        self.git_sha = git_sha
 
     @classmethod
     def from_data(cls, data):
-        message_type, version, address, hardware_revision, name, id1, id2, id3 = struct.unpack('<IIII16sIII', data)
+        message_type, version, hardware_revision, name, id1, id2, id3, git_sha = struct.unpack('<I32sI16sIII14s', data)
         device_id = '{:x}{:x}{:x}'.format(id1, id2, id3)
-        return cls(message_type, version, address, hardware_revision, name, device_id)
+        return cls(message_type, version, hardware_revision, name, device_id, git_sha)
 
 
 def handle_info(args):
     """Execute the info command."""
     device = Device(args.interface, args.src_id, args.dest_id, args.w)
-    print('version={}, address={:02X}, hardware_revision={}, name={}, id={}'.format(
-        device.version,
-        device.address,
+    print('version={}, hardware_revision={}, name={}, id={}, git_sha={}'.format(
+        device.version.decode('utf-8'),
         device.hardware_revision,
-        device.name.decode("utf-8"),
-        device.id
+        device.name.decode('utf-8'),
+        device.id,
+        device.git_sha.decode('utf-8')
     ))
 
 
@@ -260,13 +245,12 @@ def main():
     parser_info.set_defaults(func=handle_reset)
 
     parser_upgrade = subparsers.add_parser('upgrade', help='Upgrade device firmware')
-    parser_upgrade.add_argument('path', type=str, help='Path to firmware files')
+    parser_upgrade.add_argument('path', type=str, help='Path to firmware')
     parser_upgrade.add_argument('-w', type=int, default=5, help='Max number of wait indications')
     parser_upgrade.set_defaults(func=handle_upgrade)
 
     args = parser.parse_args()
     args.func(args)
-
 
 if __name__ == '__main__':
     generate_crc32_table()
