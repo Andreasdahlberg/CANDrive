@@ -36,7 +36,7 @@ along with SillyCat firmware.  If not, see <http://www.gnu.org/licenses/>.
 
 #define IMAGE_LOGGER_NAME "Image"
 #ifndef IMAGE_LOGGER_DEBUG_LEVEL
-#define IMAGE_LOGGER_DEBUG_LEVEL LOGGING_DEBUG
+#define IMAGE_LOGGER_DEBUG_LEVEL LOGGING_INFO
 #endif
 
 //////////////////////////////////////////////////////////////////////////
