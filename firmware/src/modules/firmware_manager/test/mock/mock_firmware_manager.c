@@ -63,6 +63,16 @@ __attribute__((weak)) void FirmwareManager_Update(void)
 
 }
 
+__attribute__((weak)) bool FirmwareManager_Active(void)
+{
+    return mock_type(bool);
+}
+
+__attribute__((weak)) bool FirmwareManager_DownloadActive(void)
+{
+    return mock_type(bool);
+}
+
 //////////////////////////////////////////////////////////////////////////
 //LOCAL FUNCTIONS
 //////////////////////////////////////////////////////////////////////////

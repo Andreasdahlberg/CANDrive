@@ -63,4 +63,11 @@ void FirmwareManager_Update(void);
  */
 bool FirmwareManager_Active(void);
 
+/**
+ * Check if the firmware manager is downloading new firmware.
+ *
+ * @return True if downloading, otherwise false.
+ */
+bool FirmwareManager_DownloadActive(void);
+
 #endif

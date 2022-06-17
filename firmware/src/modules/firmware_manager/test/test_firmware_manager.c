@@ -112,6 +112,9 @@ static void test_FirmwareManager_Init(void **state)
     will_return_always(Logging_GetLogger, dummy_logger);
     will_return_maybe(Board_GetApplicationAddress, 0x1000);
     FirmwareManager_Init();
+
+    assert_true(FirmwareManager_Active());
+    assert_false(FirmwareManager_DownloadActive());
 }
 
 static void test_FirmwareManager_Update(void **state)
@@ -384,6 +387,7 @@ static void test_FirmwareManager_DownloadFirmware(void **state)
     ExpectFirmwareImage(&image, fake_crc);
 
     rx_cb_fp(ISOTP_STATUS_DONE);
+    assert_true(FirmwareManager_DownloadActive());
 
     /* Firmware data part */
     message_header = (struct message_header_t) {REQ_FW_DATA, 0, 0, fake_crc};
@@ -396,6 +400,7 @@ static void test_FirmwareManager_DownloadFirmware(void **state)
         will_return(ISOTP_Receive, data);
     }
     rx_cb_fp(ISOTP_STATUS_DONE);
+    assert_false(FirmwareManager_DownloadActive());
 }
 
 static void test_FirmwareManager_DownloadFirmware_NoFirmwareHeader(void **state)
