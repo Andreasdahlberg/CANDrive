@@ -63,6 +63,7 @@ along with CANDrive firmware.  If not, see <http://www.gnu.org/licenses/>.
 struct module_t
 {
     logging_logger_t *logger;
+    uint32_t status_led_last_update;
 };
 
 //////////////////////////////////////////////////////////////////////////
@@ -83,6 +84,7 @@ static inline void UpdateFirmware(void);
 static bool IsUpdateRequested(void);
 static void ClearUpdateRequest(void);
 static inline bool IsWatchdogRestart(void);
+static void UpdateStatusLED(void);
 
 //////////////////////////////////////////////////////////////////////////
 //FUNCTIONS
@@ -194,6 +196,7 @@ static inline void UpdateFirmware()
     while (FirmwareManager_Active())
     {
         FirmwareManager_Update();
+        UpdateStatusLED();
     }
 
     ClearUpdateRequest();
@@ -218,4 +221,15 @@ static inline bool IsWatchdogRestart(void)
     const uint32_t reset_flags = Board_GetResetFlags();
 
     return (bool)(reset_flags & RCC_CSR_IWDGRSTF);
+}
+
+static void UpdateStatusLED(void)
+{
+    const uint32_t status_led_period_ms = FirmwareManager_DownloadActive() ? 50 : 1000;
+
+    if (SysTime_GetDifference(module.status_led_last_update) >= status_led_period_ms)
+    {
+        Board_ToggleStatusLED();
+        module.status_led_last_update = SysTime_GetSystemTime();
+    }
 }
