@@ -98,8 +98,9 @@ static void test_Logging_GetLogger_NoAvailableLoggers(void **state)
 {
     for (char i = 'A'; (size_t)(i - 'A') < number_of_loggers; ++i)
     {
+        const char postfix[2] = {i, '\0'};
         char logger_name[12] = "TestLogger";
-        strncat(logger_name, &i, 1);
+        strncat(logger_name, postfix, 1);
         assert_non_null(Logging_GetLogger(logger_name));
     }
     assert_null(Logging_GetLogger("TestLoggerX"));
@@ -152,8 +153,9 @@ static void test_LoggingCmd_SetLevel_InvalidName(void **state)
     /* Use all available loggers */
     for (char i = 'A'; (size_t)(i - 'A') < number_of_loggers; ++i)
     {
+        const char postfix[2] = {i, '\0'};
         char logger_name[12] = "TestLogger";
-        strncat(logger_name, &i, 1);
+        strncat(logger_name, postfix, 1);
         assert_non_null(Logging_GetLogger(logger_name));
     }
     assert_null(Logging_GetLogger("TestLoggerX"));
