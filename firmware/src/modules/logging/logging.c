@@ -38,7 +38,7 @@ along with CANDrive firmware.  If not, see <http://www.gnu.org/licenses/>.
 //DEFINES
 //////////////////////////////////////////////////////////////////////////
 
-#define MAX_NUMBER_OF_LOGGERS 12
+#define MAX_NUMBER_OF_LOGGERS 14
 #define LOGGER_NAME_MAX_LENGTH 16
 
 #define LOGGING_LOGGER_NAME "Log"
