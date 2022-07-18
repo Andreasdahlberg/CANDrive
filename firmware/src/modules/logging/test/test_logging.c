@@ -32,6 +32,7 @@ along with CANDrive firmware.  If not, see <http://www.gnu.org/licenses/>.
 #include <cmocka.h>
 #include <stdio.h>
 #include <stdbool.h>
+#include <string.h>
 #include "utility.h"
 #include "logging.h"
 #include "logging_cmd.h"
@@ -47,6 +48,8 @@ along with CANDrive firmware.  If not, see <http://www.gnu.org/licenses/>.
 //////////////////////////////////////////////////////////////////////////
 //VARIABLES
 //////////////////////////////////////////////////////////////////////////
+
+static const size_t number_of_loggers = 13;
 
 //////////////////////////////////////////////////////////////////////////
 //LOCAL FUNCTIONS
@@ -93,18 +96,13 @@ static void test_Logging_GetLogger(void **state)
 
 static void test_Logging_GetLogger_NoAvailableLoggers(void **state)
 {
-    assert_non_null(Logging_GetLogger("TestLoggerA"));
-    assert_non_null(Logging_GetLogger("TestLoggerB"));
-    assert_non_null(Logging_GetLogger("TestLoggerC"));
-    assert_non_null(Logging_GetLogger("TestLoggerD"));
-    assert_non_null(Logging_GetLogger("TestLoggerE"));
-    assert_non_null(Logging_GetLogger("TestLoggerF"));
-    assert_non_null(Logging_GetLogger("TestLoggerG"));
-    assert_non_null(Logging_GetLogger("TestLoggerH"));
-    assert_non_null(Logging_GetLogger("TestLoggerI"));
-    assert_non_null(Logging_GetLogger("TestLoggerJ"));
-    assert_non_null(Logging_GetLogger("TestLoggerK"));
-    assert_null(Logging_GetLogger("TestLoggerL"));
+    for (char i = 'A'; (size_t)(i - 'A') < number_of_loggers; ++i)
+    {
+        char logger_name[12] = "TestLogger";
+        strncat(logger_name, &i, 1);
+        assert_non_null(Logging_GetLogger(logger_name));
+    }
+    assert_null(Logging_GetLogger("TestLoggerX"));
     assert_non_null(Logging_GetLogger("TestLoggerA"));
 }
 
@@ -152,18 +150,13 @@ static void test_LoggingCmd_SetLevel_InvalidLevel(void **state)
 static void test_LoggingCmd_SetLevel_InvalidName(void **state)
 {
     /* Use all available loggers */
-    assert_non_null(Logging_GetLogger("a"));
-    assert_non_null(Logging_GetLogger("b"));
-    assert_non_null(Logging_GetLogger("c"));
-    assert_non_null(Logging_GetLogger("d"));
-    assert_non_null(Logging_GetLogger("e"));
-    assert_non_null(Logging_GetLogger("f"));
-    assert_non_null(Logging_GetLogger("g"));
-    assert_non_null(Logging_GetLogger("h"));
-    assert_non_null(Logging_GetLogger("i"));
-    assert_non_null(Logging_GetLogger("j"));
-    assert_non_null(Logging_GetLogger("k"));
-    assert_null(Logging_GetLogger("l"));
+    for (char i = 'A'; (size_t)(i - 'A') < number_of_loggers; ++i)
+    {
+        char logger_name[12] = "TestLogger";
+        strncat(logger_name, &i, 1);
+        assert_non_null(Logging_GetLogger(logger_name));
+    }
+    assert_null(Logging_GetLogger("TestLoggerX"));
 
     const char name[] = "InvalidName";
     will_return(Console_GetStringArgument, true);
