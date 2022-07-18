@@ -54,6 +54,11 @@ along with CANDrive firmware.  If not, see <http://www.gnu.org/licenses/>.
 //FUNCTIONS
 //////////////////////////////////////////////////////////////////////////
 
+__attribute__((weak)) void Image_Init(void)
+{
+
+}
+
 __attribute__((weak)) const struct image_header_t *Image_GetHeader(const uintptr_t *image_p)
 {
     return mock_ptr_type(struct image_header_t *);
