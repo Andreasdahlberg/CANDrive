@@ -58,7 +58,7 @@ __attribute__((weak)) void FirmwareManager_Init(firmware_manager_reset_t reset)
 
 }
 
-__attribute__((weak)) void FirmwareManager_SetActionChecks(firmware_manager_action_allowed_t reset, firmware_manager_action_allowed_t update)
+__attribute__((weak)) void FirmwareManager_SetActionChecks(firmware_manager_allowed_t reset, firmware_manager_allowed_t update)
 {
 
 }
