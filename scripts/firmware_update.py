@@ -147,7 +147,13 @@ class Device():
             print('{}/{} pages sent'.format(sent_pages, number_of_pages))
         print('Firmware upgrade done')
 
-    def upgrade(self, upgrade_file):
+    def upgrade(self, upgrade_file, reqest_upgrade=True):
+        if reqest_upgrade:
+            message = Message(MessageType.REQ_UPDATE)
+            self.send(message.dump())
+            self.reset()
+            time.sleep(0.1)
+
         with open(upgrade_file, "rb") as f:
             binary_data = f.read()
 
@@ -172,8 +178,9 @@ class MessageType(IntEnum):
     """Message type identifier"""
     REQ_FW_INFO = 0
     REQ_RESET = 1
-    REQ_FW_HEADER = 2
-    REQ_FW_DATA = 3
+    REQ_UPDATE = 2
+    REQ_FW_HEADER = 3
+    REQ_FW_DATA = 4
 
 
 class Message():
@@ -226,7 +233,7 @@ def handle_reset(args):
 def handle_upgrade(args):
     """Execute the upgrade command."""
     device = Device(args.interface, args.src_id, args.dest_id, args.w)
-    device.upgrade(args.path)
+    device.upgrade(args.path, not args.s)
 
 
 def main():
@@ -247,6 +254,7 @@ def main():
     parser_upgrade = subparsers.add_parser('upgrade', help='Upgrade device firmware')
     parser_upgrade.add_argument('path', type=str, help='Path to firmware')
     parser_upgrade.add_argument('-w', type=int, default=5, help='Max number of wait indications')
+    parser_upgrade.add_argument('-s', action='store_true', default=False, help='Skip upgrade mode request')
     parser_upgrade.set_defaults(func=handle_upgrade)
 
     args = parser.parse_args()
