@@ -80,8 +80,8 @@ struct payload_info_t
 struct module_t
 {
     logging_logger_t *logger_p;
-    firmware_manager_action_allowed_t reset_allowed_func;
-    firmware_manager_action_allowed_t update_allowed_func;
+    firmware_manager_allowed_t reset_allowed_func;
+    firmware_manager_allowed_t update_allowed_func;
     firmware_manager_reset_t reset_func;
     struct payload_info_t payload;
     struct isotp_ctx_t ctx;
@@ -142,7 +142,7 @@ void FirmwareManager_Init(firmware_manager_reset_t reset)
     Logging_Info(module.logger_p, "Firmware manager initialized");
 }
 
-void FirmwareManager_SetActionChecks(firmware_manager_action_allowed_t reset, firmware_manager_action_allowed_t update)
+void FirmwareManager_SetActionChecks(firmware_manager_allowed_t reset, firmware_manager_allowed_t update)
 {
     module.reset_allowed_func = reset;
     module.update_allowed_func = update;
@@ -285,7 +285,7 @@ static void OnReqFirmwareInformation(void)
     memcpy(info.id, &id, sizeof(info.id));
 
     const struct image_header_t *header_p = Image_GetHeader((uintptr_t *)Board_GetApplicationAddress());
-    if (header_p != NULL && Image_IsValid((uintptr_t *)Board_GetApplicationAddress()))
+    if ((header_p != NULL) && (Image_IsValid((uintptr_t *)Board_GetApplicationAddress())))
     {
         CopyString(info.version, header_p->version, sizeof(info.version));
         CopyString(info.name, Image_TypeToString(header_p->image_type), sizeof(info.name));
