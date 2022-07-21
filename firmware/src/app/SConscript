@@ -45,7 +45,11 @@ MODULES = [
     '../modules/crc',
     '../modules/config',
     '../modules/flash',
-    '../modules/nvcom'
+    '../modules/nvcom',
+    '../modules/stream',
+    '../modules/image',
+    '../modules/isotp',
+    '../modules/firmware_manager'
 ]
 
 module_objects = []

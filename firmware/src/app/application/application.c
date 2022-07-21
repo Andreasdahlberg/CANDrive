@@ -49,6 +49,7 @@ along with CANDrive firmware.  If not, see <http://www.gnu.org/licenses/>.
 #include "flash.h"
 #include "image.h"
 #include "nvcom.h"
+#include "firmware_manager.h"
 #include "application_cmd.h"
 #include "application.h"
 
@@ -130,6 +131,7 @@ static inline void PrintSoftwareInformation(void);
 static inline void PrintConfig(void);
 static void SendMotorStatus(void);
 static size_t GetBuildID(char *build_id, size_t length);
+static bool IsAllMotorsStill(void);
 
 //////////////////////////////////////////////////////////////////////////
 //FUNCTIONS
@@ -152,6 +154,9 @@ void Application_Init(void)
     ADC_Init();
     MotorController_Init();
     SignalHandler_Init();
+    Image_Init();
+    FirmwareManager_Init(Board_Reset);
+    FirmwareManager_SetActionChecks(IsAllMotorsStill, IsAllMotorsStill);
 
     module.logger = Logging_GetLogger(APPLICATION_LOGGER_NAME);
     Logging_SetLevel(module.logger, APPLICATION_LOGGER_DEBUG_LEVEL);
@@ -175,6 +180,7 @@ void Application_Run(void)
     MotorController_Update();
     Console_Process();
     SystemMonitor_Update();
+    FirmwareManager_Update();
     HandleStateChanges();
 
     const uint32_t motor_status_period_ms = 200;
@@ -422,4 +428,22 @@ static size_t GetBuildID(char *build_id, size_t length)
     }
 
     return number_of_chars;
+}
+
+static bool IsAllMotorsStill(void)
+{
+    bool status = true;
+
+    const size_t number_of_motors = Config_GetNumberOfMotors();
+    for (size_t i = 0; i < number_of_motors; ++i)
+    {
+        struct motor_controller_motor_status_t motor_status = MotorController_GetStatus(i);
+        if (motor_status.rpm.actual > 0)
+        {
+            status = false;
+            break;
+        }
+    }
+
+    return status;
 }
