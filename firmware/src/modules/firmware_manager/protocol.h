@@ -55,6 +55,7 @@ enum msg_type_t
 {
     REQ_FW_INFO = 0,
     REQ_RESET,
+    REQ_UPDATE,
     REQ_FW_HEADER,
     REQ_FW_DATA,
     REQ_END,
