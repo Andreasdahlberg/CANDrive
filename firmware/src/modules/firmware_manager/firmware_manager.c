@@ -40,6 +40,7 @@ along with CANDrive firmware.  If not, see <http://www.gnu.org/licenses/>.
 #include "board.h"
 #include "flash.h"
 #include "image.h"
+#include "nvcom.h"
 #include "firmware_manager.h"
 
 //////////////////////////////////////////////////////////////////////////
@@ -79,6 +80,9 @@ struct payload_info_t
 struct module_t
 {
     logging_logger_t *logger_p;
+    firmware_manager_action_allowed_t reset_allowed_func;
+    firmware_manager_action_allowed_t update_allowed_func;
+    firmware_manager_reset_t reset_func;
     struct payload_info_t payload;
     struct isotp_ctx_t ctx;
     uint8_t rx_buffer[RX_BUFFER_SIZE];
@@ -103,6 +107,7 @@ static void TxStatusCallback(enum isotp_status_t status);
 static void HandleMessage(void);
 static void OnReqFirmwareInformation(void);
 static void OnReqReset(void);
+static void OnReqUpdate(void);
 static void OnFirmwareHeader(const struct message_header_t *message_header_p);
 static void OnFirmwareData(const struct message_header_t *message_header_p);
 static uint32_t GetPageAddress(uint32_t page_index);
@@ -113,11 +118,12 @@ static void UpdatePageIndex(void);
 //FUNCTIONS
 //////////////////////////////////////////////////////////////////////////
 
-void FirmwareManager_Init(void)
+void FirmwareManager_Init(firmware_manager_reset_t reset)
 {
     module = (__typeof__(module)) {0};
 
     module.active = true;
+    module.reset_func = reset;
     module.logger_p = Logging_GetLogger(FIRMWAREMANAGER_LOGGER_NAME);
     Logging_SetLevel(module.logger_p, FIRMWAREMANAGER_LOGGER_DEBUG_LEVEL);
 
@@ -134,6 +140,12 @@ void FirmwareManager_Init(void)
 
 
     Logging_Info(module.logger_p, "Firmware manager initialized");
+}
+
+void FirmwareManager_SetActionChecks(firmware_manager_action_allowed_t reset, firmware_manager_action_allowed_t update)
+{
+    module.reset_allowed_func = reset;
+    module.update_allowed_func = update;
 }
 
 void FirmwareManager_Update(void)
@@ -229,6 +241,9 @@ static void HandleMessage(void)
                 case REQ_RESET:
                     OnReqReset();
                     break;
+                case REQ_UPDATE:
+                    OnReqUpdate();
+                    break;
                 case REQ_FW_HEADER:
                     OnFirmwareHeader(&header);
                     break;
@@ -285,40 +300,73 @@ static void OnReqFirmwareInformation(void)
 
 static void OnReqReset(void)
 {
-    Logging_Info(module.logger_p, "Leave update mode, restarting...");
-    module.active = false;
+    if ((module.reset_allowed_func == NULL) || module.reset_allowed_func())
+    {
+        Logging_Info(module.logger_p, "Restarting...");
+        module.active = false;
+        if (module.reset_func != NULL)
+        {
+            module.reset_func();
+        }
+    }
+    else
+    {
+        Logging_Warning(module.logger_p, "Reset not allowed");
+    }
+}
+
+static void OnReqUpdate(void)
+{
+    if ((module.update_allowed_func == NULL) || module.update_allowed_func())
+    {
+        Logging_Info(module.logger_p, "Request update...");
+        struct nvcom_data_t *data_p = NVCom_GetData();
+        data_p->request_firmware_update = true;
+        NVCom_SetData(data_p);
+    }
+    else
+    {
+        Logging_Warning(module.logger_p, "Update not allowed");
+    }
 }
 
 static void OnFirmwareHeader(const struct message_header_t *message_header_p)
 {
-    struct firmware_image_t image;
-    const size_t number_of_bytes = ISOTP_Receive(&module.ctx, &image, sizeof(image));
-    if (number_of_bytes == sizeof(image))
+    if ((module.update_allowed_func == NULL) || module.update_allowed_func())
     {
-        const uint32_t crc = CRC_Calculate(&image, sizeof(image));
-        Logging_Info(module.logger_p,
-                     "Download started: {size: %u, data_crc: 0x%x, crc: 0x%x, expected_crc: 0x%x}",
-                     image.size,
-                     image.crc,
-                     message_header_p->payload_crc,
-                     crc);
-
-        if (message_header_p->payload_crc == crc)
+        struct firmware_image_t image;
+        const size_t number_of_bytes = ISOTP_Receive(&module.ctx, &image, sizeof(image));
+        if (number_of_bytes == sizeof(image))
         {
-            const uint32_t page_address = GetPageAddress(0);
-            if (Flash_ErasePage(page_address))
+            const uint32_t crc = CRC_Calculate(&image, sizeof(image));
+            Logging_Info(module.logger_p,
+                         "Download started: {size: %u, data_crc: 0x%x, crc: 0x%x, expected_crc: 0x%x}",
+                         image.size,
+                         image.crc,
+                         message_header_p->payload_crc,
+                         crc);
+
+            if (message_header_p->payload_crc == crc)
             {
-                module.payload.size = image.size;
-                module.payload.crc = image.crc;
-                module.payload.received_bytes = 0;
-                module.payload.state = ACTIVE;
-                module.page_index = 0;
+                const uint32_t page_address = GetPageAddress(0);
+                if (Flash_ErasePage(page_address))
+                {
+                    module.payload.size = image.size;
+                    module.payload.crc = image.crc;
+                    module.payload.received_bytes = 0;
+                    module.payload.state = ACTIVE;
+                    module.page_index = 0;
+                }
+            }
+            else
+            {
+                Logging_Error(module.logger_p, "CRC mismatch: {crc: %x, expected_crc: %x}", message_header_p->payload_crc, crc);
             }
         }
-        else
-        {
-            Logging_Error(module.logger_p, "CRC mismatch: {crc: %x, expected_crc: %x}", message_header_p->payload_crc, crc);
-        }
+    }
+    else
+    {
+        Logging_Warning(module.logger_p, "Update not allowed");
     }
 }
 

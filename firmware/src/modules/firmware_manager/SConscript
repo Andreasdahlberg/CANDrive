@@ -37,6 +37,7 @@ env.Append(CPPPATH=[
     '#src/modules/isotp',
     '#src/modules/flash',
     '#src/modules/image',
+    '#src/modules/nvcom',
     '#src/modules/firmware_manager'
 ])
 

@@ -42,6 +42,9 @@ along with CANDrive firmware.  If not, see <http://www.gnu.org/licenses/>.
 //TYPE DEFINITIONS
 //////////////////////////////////////////////////////////////////////////
 
+typedef bool (*firmware_manager_action_allowed_t)(void);
+typedef void (*firmware_manager_reset_t)(void);
+
 //////////////////////////////////////////////////////////////////////////
 //FUNCTION PROTOTYPES
 //////////////////////////////////////////////////////////////////////////
@@ -49,7 +52,15 @@ along with CANDrive firmware.  If not, see <http://www.gnu.org/licenses/>.
 /**
  * Initialize the firmware manager.
  */
-void FirmwareManager_Init(void);
+void FirmwareManager_Init(firmware_manager_reset_t reset);
+
+/**
+ * Set callbacks used determine if an action is allowed.
+ *
+ * @param reset Callback for reset check, NULL if always allowed.
+ * @param update Callback for update check, NULL if always allowed.
+ */
+void FirmwareManager_SetActionChecks(firmware_manager_action_allowed_t reset, firmware_manager_action_allowed_t update);
 
 /**
  * Update the internal state.

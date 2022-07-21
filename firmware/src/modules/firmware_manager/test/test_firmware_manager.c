@@ -86,7 +86,7 @@ static int Setup(void **state)
 {
     will_return_always(Logging_GetLogger, dummy_logger);
     will_return_maybe(Board_GetApplicationAddress, 0x1000);
-    FirmwareManager_Init();
+    FirmwareManager_Init(NULL);
     return 0;
 }
 
@@ -111,7 +111,7 @@ static void test_FirmwareManager_Init(void **state)
 {
     will_return_always(Logging_GetLogger, dummy_logger);
     will_return_maybe(Board_GetApplicationAddress, 0x1000);
-    FirmwareManager_Init();
+    FirmwareManager_Init(NULL);
 
     assert_true(FirmwareManager_Active());
     assert_false(FirmwareManager_DownloadActive());
