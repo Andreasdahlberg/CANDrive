@@ -85,6 +85,7 @@ static bool IsUpdateRequested(void);
 static void ClearUpdateRequest(void);
 static inline bool IsWatchdogRestart(void);
 static void UpdateStatusLED(void);
+static void Reset(void);
 
 //////////////////////////////////////////////////////////////////////////
 //FUNCTIONS
@@ -190,7 +191,7 @@ static inline void UpdateFirmware()
 {
     CANInterface_Init();
     Flash_Init();
-    FirmwareManager_Init();
+    FirmwareManager_Init(Reset);
 
     Logging_Info(module.logger, "Wait for new firmware...");
     while (FirmwareManager_Active())
@@ -198,9 +199,6 @@ static inline void UpdateFirmware()
         FirmwareManager_Update();
         UpdateStatusLED();
     }
-
-    ClearUpdateRequest();
-    Board_Reset();
 }
 
 static bool IsUpdateRequested(void)
@@ -232,4 +230,10 @@ static void UpdateStatusLED(void)
         Board_ToggleStatusLED();
         module.status_led_last_update = SysTime_GetSystemTime();
     }
+}
+
+static void Reset(void)
+{
+    ClearUpdateRequest();
+    Board_Reset();
 }
