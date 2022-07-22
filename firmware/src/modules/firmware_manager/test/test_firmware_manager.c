@@ -82,11 +82,21 @@ void ISOTP_Bind(struct isotp_ctx_t *ctx_p, void *rx_buffer_p, size_t rx_buffer_s
 //LOCAL FUNCTIONS
 //////////////////////////////////////////////////////////////////////////
 
+static bool ResetAllowedCallback(void)
+{
+    return mock_type(bool);
+}
+
+static void ResetCallback(void)
+{
+    function_called();
+}
+
 static int Setup(void **state)
 {
     will_return_always(Logging_GetLogger, dummy_logger);
     will_return_maybe(Board_GetApplicationAddress, 0x1000);
-    FirmwareManager_Init(NULL);
+    FirmwareManager_Init(ResetCallback);
     return 0;
 }
 
@@ -103,6 +113,7 @@ static void ExpectFirmwareImage(struct firmware_image_t *image_p, uint32_t crc)
     will_return(ISOTP_Receive, image_p);
     will_return(CRC_Calculate, crc);
 }
+
 //////////////////////////////////////////////////////////////////////////
 //TESTS
 //////////////////////////////////////////////////////////////////////////
@@ -111,7 +122,7 @@ static void test_FirmwareManager_Init(void **state)
 {
     will_return_always(Logging_GetLogger, dummy_logger);
     will_return_maybe(Board_GetApplicationAddress, 0x1000);
-    FirmwareManager_Init(NULL);
+    FirmwareManager_Init(ResetCallback);
 
     assert_true(FirmwareManager_Active());
     assert_false(FirmwareManager_DownloadActive());
@@ -321,6 +332,48 @@ static void test_FirmwareManager_Reset(void **state)
     struct message_header_t message_header = {REQ_RESET, 0, 0, fake_crc};
     ExpectMessageHeader(&message_header, fake_crc);
 
+    expect_function_call(ResetCallback);
+    rx_cb_fp(ISOTP_STATUS_DONE);
+    assert_false(FirmwareManager_Active());
+}
+
+static void test_FirmwareManager_Reset_NoCallback(void **state)
+{
+    will_return_always(Logging_GetLogger, dummy_logger);
+    will_return_maybe(Board_GetApplicationAddress, 0x1000);
+    FirmwareManager_Init(NULL);
+
+    const uint32_t fake_crc = 0xAABBCCDD;
+    struct message_header_t message_header = {REQ_RESET, 0, 0, fake_crc};
+    ExpectMessageHeader(&message_header, fake_crc);
+
+    rx_cb_fp(ISOTP_STATUS_DONE);
+    assert_false(FirmwareManager_Active());
+}
+
+static void test_FirmwareManager_Reset_NotAllowed(void **state)
+{
+    FirmwareManager_SetActionChecks(ResetAllowedCallback, NULL);
+
+    const uint32_t fake_crc = 0xAABBCCDD;
+    struct message_header_t message_header = {REQ_RESET, 0, 0, fake_crc};
+    ExpectMessageHeader(&message_header, fake_crc);
+
+    will_return(ResetAllowedCallback, false);
+    rx_cb_fp(ISOTP_STATUS_DONE);
+    assert_true(FirmwareManager_Active());
+}
+
+static void test_FirmwareManager_Reset_Allowed(void **state)
+{
+    FirmwareManager_SetActionChecks(ResetAllowedCallback, NULL);
+
+    const uint32_t fake_crc = 0xAABBCCDD;
+    struct message_header_t message_header = {REQ_RESET, 0, 0, fake_crc};
+    ExpectMessageHeader(&message_header, fake_crc);
+
+    will_return(ResetAllowedCallback, true);
+    expect_function_call(ResetCallback);
     rx_cb_fp(ISOTP_STATUS_DONE);
     assert_false(FirmwareManager_Active());
 }
@@ -334,6 +387,7 @@ static void test_FirmwareManager_WaitForRxSpace(void **state)
     struct message_header_t message_header = {REQ_RESET, 0, 0, fake_crc};
     ExpectMessageHeader(&message_header, fake_crc);
 
+    expect_function_call(ResetCallback);
     rx_cb_fp(ISOTP_STATUS_DONE);
     assert_false(FirmwareManager_Active());
 }
@@ -605,6 +659,9 @@ int main(int argc, char *argv[])
         cmocka_unit_test_setup(test_FirmwareManager_GetFirmwareInformation_Timeout, Setup),
         cmocka_unit_test_setup(test_FirmwareManager_GetFirmwareInformation_UnknownStatus, Setup),
         cmocka_unit_test_setup(test_FirmwareManager_Reset, Setup),
+        cmocka_unit_test_setup(test_FirmwareManager_Reset_NoCallback, Setup),
+        cmocka_unit_test_setup(test_FirmwareManager_Reset_NotAllowed, Setup),
+        cmocka_unit_test_setup(test_FirmwareManager_Reset_Allowed, Setup),
         cmocka_unit_test_setup(test_FirmwareManager_WaitForRxSpace, Setup),
         cmocka_unit_test_setup(test_FirmwareManager_HeaderSizeMismatch, Setup),
         cmocka_unit_test_setup(test_FirmwareManager_HeaderCRCMismatch, Setup),
