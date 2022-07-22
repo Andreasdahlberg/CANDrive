@@ -40,6 +40,7 @@ along with CANDrive firmware.  If not, see <http://www.gnu.org/licenses/>.
 #include "system_monitor.h"
 #include "motor_controller.h"
 #include "nvcom.h"
+#include "firmware_manager.h"
 #include "application_cmd.h"
 #include "application.h"
 
@@ -74,6 +75,8 @@ struct note_section_t
 static struct logging_logger_t *dummy_logger;
 static struct signal_handler_t signal_handlers[MAX_NUMBER_OF_HANDLERS];
 static size_t number_of_handlers;
+static firmware_manager_allowed_t reset_allowed_func;
+static firmware_manager_allowed_t update_allowed_func;
 vector_table_t vector_table;
 const struct note_section_t note_build_id;
 
@@ -93,6 +96,15 @@ void SignalHandler_RegisterHandler(enum signal_id_t id, signalhandler_handler_cb
     signal_handlers[number_of_handlers].id = id;
     signal_handlers[number_of_handlers].callback = handler_cb;
     ++number_of_handlers;
+}
+
+void FirmwareManager_SetActionChecks(firmware_manager_allowed_t reset, firmware_manager_allowed_t update)
+{
+    assert_non_null(reset);
+    assert_non_null(update);
+
+    reset_allowed_func = reset;
+    update_allowed_func = update;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -407,6 +419,34 @@ static void test_Application_SignalHandlers_Emergency(void **state)
     GetCallback(signal.id)(&signal);
 }
 
+static void test_Application_ResetCheck(void **state)
+{
+    const size_t number_of_motors = 1;
+    struct motor_controller_motor_status_t status =
+    {
+        .rpm = {
+            .actual = 0,
+            .target = 0
+        },
+        .current = {
+            .actual = 150,
+            .target = 1000
+        },
+        .status = MOTOR_RUN
+    };
+
+    /* Allowed */
+    will_return(Config_GetNumberOfMotors, number_of_motors);
+    will_return(MotorController_GetStatus, &status);
+    assert_true(reset_allowed_func());
+
+    /* Not allowed */
+    status.rpm.actual = 1;
+    will_return(Config_GetNumberOfMotors, number_of_motors);
+    will_return(MotorController_GetStatus, &status);
+    assert_false(reset_allowed_func());
+}
+
 static void test_ApplicationCmd_UpdateFirmware(void **state)
 {
     struct nvcom_data_t restart_information;
@@ -430,7 +470,8 @@ int main(int argc, char *argv[])
         cmocka_unit_test_setup(test_Application_Run, Setup),
         cmocka_unit_test_setup(test_Application_Run_StateChanges, Setup),
         cmocka_unit_test_setup(test_Application_SignalHandlers, Setup),
-        cmocka_unit_test_setup(test_Application_SignalHandlers_Emergency, Setup)
+        cmocka_unit_test_setup(test_Application_SignalHandlers_Emergency, Setup),
+        cmocka_unit_test_setup(test_Application_ResetCheck, Setup),
     };
 
     const struct CMUnitTest test_application_cmd[] =
