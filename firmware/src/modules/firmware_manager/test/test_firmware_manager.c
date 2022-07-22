@@ -40,6 +40,7 @@ along with CANDrive firmware.  If not, see <http://www.gnu.org/licenses/>.
 #include "isotp.h"
 #include "protocol.h"
 #include "image.h"
+#include "nvcom.h"
 #include "firmware_manager.h"
 
 //////////////////////////////////////////////////////////////////////////
@@ -82,7 +83,7 @@ void ISOTP_Bind(struct isotp_ctx_t *ctx_p, void *rx_buffer_p, size_t rx_buffer_s
 //LOCAL FUNCTIONS
 //////////////////////////////////////////////////////////////////////////
 
-static bool ResetAllowedCallback(void)
+static bool ActionAllowedCallback(void)
 {
     return mock_type(bool);
 }
@@ -353,29 +354,68 @@ static void test_FirmwareManager_Reset_NoCallback(void **state)
 
 static void test_FirmwareManager_Reset_NotAllowed(void **state)
 {
-    FirmwareManager_SetActionChecks(ResetAllowedCallback, NULL);
+    FirmwareManager_SetActionChecks(ActionAllowedCallback, NULL);
 
     const uint32_t fake_crc = 0xAABBCCDD;
     struct message_header_t message_header = {REQ_RESET, 0, 0, fake_crc};
     ExpectMessageHeader(&message_header, fake_crc);
 
-    will_return(ResetAllowedCallback, false);
+    will_return(ActionAllowedCallback, false);
     rx_cb_fp(ISOTP_STATUS_DONE);
     assert_true(FirmwareManager_Active());
 }
 
 static void test_FirmwareManager_Reset_Allowed(void **state)
 {
-    FirmwareManager_SetActionChecks(ResetAllowedCallback, NULL);
+    FirmwareManager_SetActionChecks(ActionAllowedCallback, NULL);
 
     const uint32_t fake_crc = 0xAABBCCDD;
     struct message_header_t message_header = {REQ_RESET, 0, 0, fake_crc};
     ExpectMessageHeader(&message_header, fake_crc);
 
-    will_return(ResetAllowedCallback, true);
+    will_return(ActionAllowedCallback, true);
     expect_function_call(ResetCallback);
     rx_cb_fp(ISOTP_STATUS_DONE);
     assert_false(FirmwareManager_Active());
+}
+
+static void test_FirmwareManager_RequestUpdate(void **state)
+{
+    const uint32_t fake_crc = 0xAABBCCDD;
+    struct message_header_t message_header = {REQ_UPDATE, 0, 0, fake_crc};
+    ExpectMessageHeader(&message_header, fake_crc);
+
+    struct nvcom_data_t data = {0};
+    will_return(NVCom_GetData, &data);
+    rx_cb_fp(ISOTP_STATUS_DONE);
+    assert_true(data.request_firmware_update);
+}
+
+static void test_FirmwareManager_RequestUpdate_NotAllowed(void **state)
+{
+    FirmwareManager_SetActionChecks(NULL, ActionAllowedCallback);
+
+    const uint32_t fake_crc = 0xAABBCCDD;
+    struct message_header_t message_header = {REQ_UPDATE, 0, 0, fake_crc};
+    ExpectMessageHeader(&message_header, fake_crc);
+
+    will_return(ActionAllowedCallback, false);
+    rx_cb_fp(ISOTP_STATUS_DONE);
+}
+
+static void test_FirmwareManager_RequestUpdate_Allowed(void **state)
+{
+    FirmwareManager_SetActionChecks(NULL, ActionAllowedCallback);
+
+    const uint32_t fake_crc = 0xAABBCCDD;
+    struct message_header_t message_header = {REQ_UPDATE, 0, 0, fake_crc};
+    ExpectMessageHeader(&message_header, fake_crc);
+
+    will_return(ActionAllowedCallback, true);
+    struct nvcom_data_t data = {0};
+    will_return(NVCom_GetData, &data);
+    rx_cb_fp(ISOTP_STATUS_DONE);
+    assert_true(data.request_firmware_update);
 }
 
 static void test_FirmwareManager_WaitForRxSpace(void **state)
@@ -662,6 +702,9 @@ int main(int argc, char *argv[])
         cmocka_unit_test_setup(test_FirmwareManager_Reset_NoCallback, Setup),
         cmocka_unit_test_setup(test_FirmwareManager_Reset_NotAllowed, Setup),
         cmocka_unit_test_setup(test_FirmwareManager_Reset_Allowed, Setup),
+        cmocka_unit_test_setup(test_FirmwareManager_RequestUpdate, Setup),
+        cmocka_unit_test_setup(test_FirmwareManager_RequestUpdate_NotAllowed, Setup),
+        cmocka_unit_test_setup(test_FirmwareManager_RequestUpdate_Allowed, Setup),
         cmocka_unit_test_setup(test_FirmwareManager_WaitForRxSpace, Setup),
         cmocka_unit_test_setup(test_FirmwareManager_HeaderSizeMismatch, Setup),
         cmocka_unit_test_setup(test_FirmwareManager_HeaderCRCMismatch, Setup),
