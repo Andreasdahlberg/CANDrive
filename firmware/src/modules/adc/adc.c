@@ -201,9 +201,9 @@ static void SetupADC(void)
 static inline uint32_t SampleToVoltage(uint32_t sample)
 {
     const uint32_t reference_voltage = 3300;
-    const uint32_t adc_resolution = 4096;
+    const uint32_t adc_resolution = 4095;
 
-    return (sample * reference_voltage) / adc_resolution;
+    return ((sample * reference_voltage) + (adc_resolution / 2)) / adc_resolution;
 }
 
 static inline void UpdateSamples(void)
@@ -215,7 +215,7 @@ static inline void UpdateSamples(void)
 
         for (size_t i = channel_index; i < total_number_of_readings; i += module.number_of_channels)
         {
-            sample_sum += module.sample_buffer[i] & 0xFF00;
+            sample_sum += module.sample_buffer[i] & 0xFFF;
         }
 
         module.channels[channel_index]->value = sample_sum / NUMBER_OF_READINGS_PER_SAMPLE;

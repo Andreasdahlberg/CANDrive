@@ -191,7 +191,7 @@ static void test_ADC_GetVoltage(void **state)
     ADC_Start();
 
     ClearSampleBuffer();
-    FillSampleBuffer(4096, number_of_readings_per_sample, 0, number_of_channels);
+    FillSampleBuffer(4095, number_of_readings_per_sample, 0, number_of_channels);
     dma1_channel1_isr();
     assert_int_equal(ADC_GetVoltage(&inputs[0]), 3300);
 
@@ -201,7 +201,7 @@ static void test_ADC_GetVoltage(void **state)
     assert_int_equal(ADC_GetVoltage(&inputs[0]), 1650);
 
     ClearSampleBuffer();
-    FillSampleBuffer(4096, number_of_readings_per_sample / 2, 0, number_of_channels);
+    FillSampleBuffer(4095, number_of_readings_per_sample / 2, 0, number_of_channels);
     dma1_channel1_isr();
     assert_int_equal(ADC_GetVoltage(&inputs[0]), 1650);
 
@@ -213,7 +213,7 @@ static void test_ADC_GetVoltage(void **state)
 
     ClearSampleBuffer();
     FillSampleBuffer(2048, number_of_readings_per_sample, 0, number_of_channels);
-    FillSampleBuffer(4096, number_of_readings_per_sample, 1, number_of_channels);
+    FillSampleBuffer(4095, number_of_readings_per_sample, 1, number_of_channels);
     dma1_channel1_isr();
     assert_int_equal(ADC_GetVoltage(&inputs[0]), 1650);
     assert_int_equal(ADC_GetVoltage(&inputs[1]), 3300);
