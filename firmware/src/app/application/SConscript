@@ -33,6 +33,7 @@ env.Append(CPPPATH=[
     '#src/modules/can_interface',
     '#src/modules/serial',
     '#src/modules/motor',
+    '#src/modules/filter',
     '#src/modules/pwm',
     '#src/modules/adc',
     '#src/modules/systime',

@@ -32,6 +32,7 @@ env.Append(CPPPATH=[
     '#src/modules/adc',
     '#src/modules/console',
     '#src/modules/system_monitor',
+    '#src/modules/filter',
     '#src/modules/config'
 ])
 

@@ -128,6 +128,7 @@ static void ExpectUpdate(uint32_t time_difference, uint32_t count)
     {
         expect_value(timer_get_counter, timer_peripheral, motor_config.encoder.timer);
         will_return(timer_get_counter, count);
+        will_return(ADC_GetVoltage, 0);
         will_return(SysTime_GetSystemTime, time_difference);
     }
 }
@@ -137,6 +138,14 @@ static void ExpectNewDuty(uint32_t duty)
     expect_function_call(PWM_Disable);
     expect_value(PWM_SetDuty, duty, duty);
     expect_function_call(PWM_Enable);
+}
+
+static void SetSpeed(int16_t speed)
+{
+    expect_function_call(PWM_Disable);
+    expect_any(PWM_SetDuty, duty);
+    expect_function_call(PWM_Enable);
+    Motor_SetSpeed(&motor, speed);
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -191,6 +200,8 @@ static void test_Motor_Update_Invalid(void **state)
 
 static void test_Motor_Update(void **state)
 {
+    will_return_maybe(Filter_IsInitialized, true);
+
     /* Not time for update */
     ExpectUpdate(9, 0);
     Motor_Update(&motor);
@@ -221,6 +232,8 @@ static void test_Motor_Update(void **state)
 
 static void test_Motor_Update_WrapAround(void **state)
 {
+    will_return_maybe(Filter_IsInitialized, false);
+
     /* First update to init the internal motor state to a known value. */
     ExpectUpdate(10, 9550);
     Motor_Update(&motor);
@@ -246,22 +259,20 @@ static void test_Motor_GetCurrent(void **state)
     const uint32_t current_sense_voltages[] = {0, 1, 2000, INT16_MAX - 1};
 
     /* Clockwise -> positive current */
+    SetSpeed(500);
     for (size_t i = 0; i < ElementsIn(current_sense_voltages); ++i)
     {
-        will_return(ADC_GetVoltage, current_sense_voltages[i]);
-        expect_value(timer_get_direction, timer_peripheral, motor_config.encoder.timer);
-        will_return(timer_get_direction, TIM_CR1_DIR_UP);
+        will_return(Filter_Output, current_sense_voltages[i]);
 
         int16_t current = current_sense_voltages[i];
         assert_int_equal(Motor_GetCurrent(&motor), current);
     }
 
     /* Counter clockwise -> negative current */
+    SetSpeed(-500);
     for (size_t i = 0; i < ElementsIn(current_sense_voltages); ++i)
     {
-        will_return(ADC_GetVoltage, current_sense_voltages[i]);
-        expect_value(timer_get_direction, timer_peripheral, motor_config.encoder.timer);
-        will_return(timer_get_direction, TIM_CR1_DIR_DOWN);
+        will_return(Filter_Output, current_sense_voltages[i]);
 
         int16_t current = current_sense_voltages[i] * -1;
         assert_int_equal(Motor_GetCurrent(&motor), current);
@@ -347,12 +358,16 @@ static void test_Motor_GetDirection_Invalid(void **state)
 
 static void test_Motor_GetDirection(void **state)
 {
-    expect_value(timer_get_direction, timer_peripheral, motor_config.encoder.timer);
-    will_return(timer_get_direction, TIM_CR1_DIR_UP);
+    SetSpeed(750);
     assert_int_equal(Motor_GetDirection(&motor), MOTOR_DIR_CW);
 
-    expect_value(timer_get_direction, timer_peripheral, motor_config.encoder.timer);
-    will_return(timer_get_direction, TIM_CR1_DIR_DOWN);
+    SetSpeed(0);
+    assert_int_equal(Motor_GetDirection(&motor), MOTOR_DIR_CW);
+
+    SetSpeed(-750);
+    assert_int_equal(Motor_GetDirection(&motor), MOTOR_DIR_CCW);
+
+    SetSpeed(0);
     assert_int_equal(Motor_GetDirection(&motor), MOTOR_DIR_CCW);
 }
 

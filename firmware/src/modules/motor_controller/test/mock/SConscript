@@ -27,6 +27,7 @@ env.Append(CPPPATH=[
     '#src/modules/logging',
     '#src/modules/pwm',
     '#src/modules/adc',
+    '#src/modules/filter',
     '#src/modules/board'
 ])
 

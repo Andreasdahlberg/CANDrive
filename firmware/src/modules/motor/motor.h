@@ -34,6 +34,7 @@ along with CANDrive firmware.  If not, see <http://www.gnu.org/licenses/>.
 #include "logging.h"
 #include "pwm.h"
 #include "adc.h"
+#include "filter.h"
 #include "board.h"
 
 //////////////////////////////////////////////////////////////////////////
@@ -74,6 +75,8 @@ struct motor_t
     int32_t counts_per_revolution;
     int16_t rpm;
     uint32_t timer;
+    struct filter_t filter;
+    enum motor_direction_t direction;
 };
 
 //////////////////////////////////////////////////////////////////////////
