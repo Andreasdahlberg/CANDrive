@@ -153,6 +153,7 @@ void Application_Init(void)
     CANInterface_Init();
     ADC_Init();
     MotorController_Init();
+    ADC_Start();
     SignalHandler_Init();
     Image_Init();
     FirmwareManager_Init(Board_Reset);
