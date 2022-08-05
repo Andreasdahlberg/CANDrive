@@ -93,7 +93,7 @@ bool Image_IsValid(const uintptr_t *image_p)
     if (header_p != NULL)
     {
         const size_t image_size = header_p->size;
-        const uint8_t *image_content_p = ((uint8_t *)image_p) + 12;
+        const uint8_t *image_content_p = ((const uint8_t *)image_p) + 12;
         const uint32_t image_crc = CRC_Calculate(image_content_p, image_size);
         Logging_Debug(module.logger_p, "image_size: %u, image_crc: %u", image_size, image_crc);
 
