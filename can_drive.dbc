@@ -1,66 +1,83 @@
 VERSION ""
 
 
-NS_ :
-    NS_DESC_
-    CM_
-    BA_DEF_
-    BA_
-    VAL_
-    CAT_DEF_
-    CAT_
-    FILTER
-    BA_DEF_DEF_
-    EV_DATA_
-    ENVVAR_DATA_
-    SGTYPE_
-    SGTYPE_VAL_
-    BA_DEF_SGTYPE_
-    BA_SGTYPE_
-    SIG_TYPE_REF_
-    VAL_TABLE_
-    SIG_GROUP_
-    SIG_VALTYPE_
-    SIGTYPE_VALTYPE_
-    BO_TX_BU_
-    BA_DEF_REL_
-    BA_REL_
-    BA_DEF_DEF_REL_
-    BU_SG_REL_
-    BU_EV_REL_
-    BU_BO_REL_
-    SG_MUL_VAL_
+NS_ : 
+	NS_DESC_
+	CM_
+	BA_DEF_
+	BA_
+	VAL_
+	CAT_DEF_
+	CAT_
+	FILTER
+	BA_DEF_DEF_
+	EV_DATA_
+	ENVVAR_DATA_
+	SGTYPE_
+	SGTYPE_VAL_
+	BA_DEF_SGTYPE_
+	BA_SGTYPE_
+	SIG_TYPE_REF_
+	VAL_TABLE_
+	SIG_GROUP_
+	SIG_VALTYPE_
+	SIGTYPE_VALTYPE_
+	BO_TX_BU_
+	BA_DEF_REL_
+	BA_REL_
+	BA_DEF_DEF_REL_
+	BU_SG_REL_
+	BU_EV_REL_
+	BU_BO_REL_
+	SG_MUL_VAL_
 
-BU_: Motor Controller
-BO_ 10 MotorMsgStatus: 8 Motor
-   SG_ MotorMsgStatusSigRPM1 : 7|15@0- (1,0) [-15000|15000] "RPM" Controller
-   SG_ MotorMsgStatusSigRPM2 : 8|15@0- (1,0) [-15000|15000] "RPM" Controller
-   SG_ MotorMsgStatusSigCurrent1 : 25|14@0- (1,0) [-6000|6000] "mA" Controller
-   SG_ MotorMsgStatusSigCurrent2 : 43|14@0- (1,0) [-6000|6000] "mA" Controller
-   SG_ MotorMsgStatusSigStatus1 : 61|3@0+ (1,0) [0|7] "" Controller
-   SG_ MotorMsgStatusSigStatus2 : 58|3@0+ (1,0) [0|7] "" Controller
+BS_:
+
+BU_: Controller Motor
+
 
 BO_ 9 ControllerMsgMotorControl: 8 Controller
-   SG_ ControllerMsgMotorControlSigRPM1 : 7|15@0- (1,0) [-15000|15000] "RPM" Motor
-   SG_ ControllerMsgMotorControlSigRPM2 : 8|15@0- (1,0) [-15000|15000] "RPM" Motor
-   SG_ ControllerMsgMotorControlSigCurrent1 : 25|14@0- (1,0) [-6000|6000] "mA" Motor
-   SG_ ControllerMsgMotorControlSigCurrent2 : 43|14@0- (1,0) [-6000|6000] "mA" Motor
-   SG_ ControllerMsgMotorControlSigMode1 : 61|3@0+ (1,0) [0|7] "" Motor
-   SG_ ControllerMsgMotorControlSigMode2 : 58|3@0+ (1,0) [0|7] "" Motor
+ SG_ MotorControlSigMode2 : 58|3@0+ (1,0) [0|3] ""  Motor
+ SG_ MotorControlSigMode1 : 61|3@0+ (1,0) [0|3] ""  Motor
+ SG_ MotorControlSigCurrent2 : 43|14@0- (1,0) [-6000|6000] "mA"  Motor
+ SG_ MotorControlSigCurrent1 : 25|14@0- (1,0) [-6000|6000] "mA"  Motor
+ SG_ MotorControlSigRPM2 : 8|15@0- (1,0) [-15000|15000] "RPM"  Motor
+ SG_ MotorControlSigRPM1 : 7|15@0- (1,0) [-15000|15000] "RPM"  Motor
 
-BA_DEF_  "BusType" STRING ;
-BA_DEF_ SG_  "GenSigStartValue" INT 0 2147483647;
-BA_DEF_ BO_  "GenMsgSendType" ENUM  "cyclic","NotUsed","IfActive","NotUsed","NotUsed","NotUsed","NotUsed","NotUsed","noMsgSendType";
-BA_DEF_ BO_  "GenMsgCycleTime" INT 0 1000;
-BA_DEF_DEF_  "BusType" "CAN";
-BA_DEF_DEF_  "GenSigStartValue" 0;
-BA_DEF_DEF_  "GenMsgSendType" "noMsgSendType";
-BA_DEF_DEF_  "GenMsgCycleTime" 0;
-BA_ "GenMsgCycleTime" BO_ 9 100;
-BA_ "GenMsgSendType" BO_ 9 0;
+BO_ 10 MotorMsgStatus: 8 Motor
+ SG_ MotorStatusSigStatus2 : 58|3@0+ (1,0) [0|3] ""  Controller
+ SG_ MotorStatusSigStatus1 : 61|3@0+ (1,0) [0|3] ""  Controller
+ SG_ MotorStatusSigCurrent2 : 43|14@0- (1,0) [-6000|6000] "mA"  Controller
+ SG_ MotorStatusSigCurrent1 : 25|14@0- (1,0) [-6000|6000] "mA"  Controller
+ SG_ MotorStatusSigRPM2 : 8|15@0- (1,0) [-15000|15000] "RPM"  Controller
+ SG_ MotorStatusSigRPM1 : 7|15@0- (1,0) [-15000|15000] "RPM"  Controller
 
-VAL_ 10 MotorMsgStatusSigStatus1 0 "UNKNOWN" 1 "RUN" 2 "COAST" 3 "BRAKE" 4 "SHORT_TO_GROUND" 5 "SHORT_TO_VCC" 6 "OPEN_LOAD" 7 "THERMAL_SHUTDOWN";
-VAL_ 10 MotorMsgStatusSigStatus2 0 "UNKNOWN" 1 "RUN" 2 "COAST" 3 "BRAKE" 4 "SHORT_TO_GROUND" 5 "SHORT_TO_VCC" 6 "OPEN_LOAD" 7 "THERMAL_SHUTDOWN";
 
-VAL_ 9 ControllerMsgMotorControlSigMode1 0 "UNKNOWN" 1 "RUN" 2 "COAST" 3 "BRAKE";
-VAL_ 9 ControllerMsgMotorControlSigMode2 0 "UNKNOWN" 1 "RUN" 2 "COAST" 3 "BRAKE";
+
+
+CM_ BU_ Controller "Node controlling the motor";
+CM_ BU_ Motor "Node representing the motor";
+CM_ BO_ 9 "Motor control message.";
+CM_ SG_ 9 MotorControlSigMode2 "Mode for motor 2.";
+CM_ SG_ 9 MotorControlSigMode1 "Mode for motor 1.";
+CM_ SG_ 9 MotorControlSigCurrent2 "Max allowed current for motor 2.";
+CM_ SG_ 9 MotorControlSigCurrent1 "Max allowed current for motor 1.";
+CM_ SG_ 9 MotorControlSigRPM2 "Target RPM for motor 2.";
+CM_ SG_ 9 MotorControlSigRPM1 "Target RPM for motor 1.";
+CM_ BO_ 10 "Motor status message.";
+CM_ SG_ 10 MotorStatusSigStatus2 "Actual mode for motor 2.";
+CM_ SG_ 10 MotorStatusSigStatus1 "Actual mode for motor 1.";
+CM_ SG_ 10 MotorStatusSigCurrent2 "Actual current for motor 2.";
+CM_ SG_ 10 MotorStatusSigCurrent1 "Actual current for motor 1.";
+CM_ SG_ 10 MotorStatusSigRPM2 "Actual RPM for motor 2.";
+CM_ SG_ 10 MotorStatusSigRPM1 "Actual RPM for motor 1.";
+
+
+
+VAL_ 9 MotorControlSigMode2 0 "UNKNOWN" 1 "RUN" 2 "COAST" 3 "BRAKE" ;
+VAL_ 9 MotorControlSigMode1 0 "UNKNOWN" 1 "RUN" 2 "COAST" 3 "BRAKE" ;
+VAL_ 10 MotorStatusSigStatus2 0 "UNKNOWN" 1 "RUN" 2 "COAST" 3 "BRAKE" 4 "SHORT_TO_GROUND" 5 "SHORT_TO_VCC" 6 "OPEN_LOAD" 7 "THERMAL_SHUTDOWN" ;
+VAL_ 10 MotorStatusSigStatus1 0 "UNKNOWN" 1 "RUN" 2 "COAST" 3 "BRAKE" 4 "SHORT_TO_GROUND" 5 "SHORT_TO_VCC" 6 "OPEN_LOAD" 7 "THERMAL_SHUTDOWN" ;
+
+
+

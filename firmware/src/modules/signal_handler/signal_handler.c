@@ -146,21 +146,21 @@ void SignalHandler_Listener(const struct can_frame_t *frame_p, __attribute__((un
 bool SignalHandler_SendMotorStatus(int16_t rpm1, int16_t current1, uint8_t msg_status_1, int16_t rpm2, int16_t current2, uint8_t msg_status_2)
 {
 
-    const bool valid_values = (candb_motor_msg_status_motor_msg_status_sig_rpm1_is_in_range(rpm1) &&
-                               candb_motor_msg_status_motor_msg_status_sig_current1_is_in_range(current1 ) &&
-                               candb_motor_msg_status_motor_msg_status_sig_rpm2_is_in_range(rpm2) &&
-                               candb_motor_msg_status_motor_msg_status_sig_current2_is_in_range(current2));
+    const bool valid_values = (candb_motor_msg_status_motor_status_sig_rpm1_is_in_range(rpm1) &&
+                               candb_motor_msg_status_motor_status_sig_current1_is_in_range(current1 ) &&
+                               candb_motor_msg_status_motor_status_sig_rpm2_is_in_range(rpm2) &&
+                               candb_motor_msg_status_motor_status_sig_current2_is_in_range(current2));
 
     bool status = true;
     if (valid_values)
     {
         struct candb_motor_msg_status_t msg;
-        msg.motor_msg_status_sig_rpm1 = rpm1;
-        msg.motor_msg_status_sig_current1 = current1;
-        msg.motor_msg_status_sig_rpm2 = rpm2;
-        msg.motor_msg_status_sig_current2 = current2;
-        msg.motor_msg_status_sig_status1 = msg_status_1;
-        msg.motor_msg_status_sig_status2 = msg_status_2;
+        msg.motor_status_sig_rpm1 = rpm1;
+        msg.motor_status_sig_current1 = current1;
+        msg.motor_status_sig_rpm2 = rpm2;
+        msg.motor_status_sig_current2 = current2;
+        msg.motor_status_sig_status1 = msg_status_1;
+        msg.motor_status_sig_status2 = msg_status_2;
 
         uint8_t data[CANDB_MOTOR_MSG_STATUS_LENGTH];
         const int32_t pack_status = candb_motor_msg_status_pack(data, &msg, sizeof(data));
@@ -196,27 +196,27 @@ static void HandleMotorControlFrame(const struct can_frame_t *frame_p)
         struct signal_t control_signal;
 
         control_signal.id = SIGNAL_CONTROL_RPM1;
-        control_signal.data_p = &msg.controller_msg_motor_control_sig_rpm1;
+        control_signal.data_p = &msg.motor_control_sig_rpm1;
         DistributeSignal(&control_signal);
 
         control_signal.id = SIGNAL_CONTROL_RPM2;
-        control_signal.data_p = &msg.controller_msg_motor_control_sig_rpm2;
+        control_signal.data_p = &msg.motor_control_sig_rpm2;
         DistributeSignal(&control_signal);
 
         control_signal.id = SIGNAL_CONTROL_CURRENT1;
-        control_signal.data_p = &msg.controller_msg_motor_control_sig_current1;
+        control_signal.data_p = &msg.motor_control_sig_current1;
         DistributeSignal(&control_signal);
 
         control_signal.id = SIGNAL_CONTROL_CURRENT2;
-        control_signal.data_p = &msg.controller_msg_motor_control_sig_current2;
+        control_signal.data_p = &msg.motor_control_sig_current2;
         DistributeSignal(&control_signal);
 
         control_signal.id = SIGNAL_CONTROL_MODE1;
-        control_signal.data_p = &msg.controller_msg_motor_control_sig_mode1;
+        control_signal.data_p = &msg.motor_control_sig_mode1;
         DistributeSignal(&control_signal);
 
         control_signal.id = SIGNAL_CONTROL_MODE2;
-        control_signal.data_p = &msg.controller_msg_motor_control_sig_mode2;
+        control_signal.data_p = &msg.motor_control_sig_mode2;
         DistributeSignal(&control_signal);
 
         SystemMonitor_ReportActivity();

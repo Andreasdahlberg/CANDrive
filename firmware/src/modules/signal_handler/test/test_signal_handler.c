@@ -156,7 +156,7 @@ static void test_SignalHandler_Process_FullFIFO(void **state)
     frame.id = CANDB_CONTROLLER_MSG_MOTOR_CONTROL_FRAME_ID;
 
     struct candb_controller_msg_motor_control_t msg = {0};
-    msg.controller_msg_motor_control_sig_rpm1 = 1;
+    msg.motor_control_sig_rpm1 = 1;
     candb_controller_msg_motor_control_pack(frame.data, &msg, sizeof(frame.data));
 
     /* Fill the frame buffer. */
@@ -167,7 +167,7 @@ static void test_SignalHandler_Process_FullFIFO(void **state)
     }
 
     /* Expect this frame to be discarded. */
-    msg.controller_msg_motor_control_sig_rpm1 = 2;
+    msg.motor_control_sig_rpm1 = 2;
     candb_controller_msg_motor_control_pack(frame.data, &msg, sizeof(frame.data));
     SignalHandler_Listener(&frame, NULL);
 
