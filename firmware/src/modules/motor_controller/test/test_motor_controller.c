@@ -145,6 +145,7 @@ static void test_MotorController_Init(void **state)
 static void test_MotorController_Update(void **state)
 {
     will_return_maybe(Config_GetNumberOfMotors, NUMBER_OF_MOTORS);
+    will_return_maybe(PID_GetSetpoint, 0);
 
     /* No PID update */
     will_return(SysTime_GetDifference, 0);
@@ -162,7 +163,7 @@ static void test_MotorController_Update(void **state)
     MotorController_Update();
 
     /* PID update */
-    ExpectPIDUpdate(INT16_MIN, 0, INT16_MIN);
+    ExpectPIDUpdate(INT16_MIN, 0, 0);
     MotorController_Update();
     ExpectPIDUpdate(INT16_MAX, 1, 1);
     MotorController_Update();
@@ -232,7 +233,6 @@ static void test_MotorController_SetCurrent(void **state)
     {
         expect_value(PID_SetSetpoint, setpoint, data[i]);
         MotorController_SetCurrent(0, data[i]);
-        AssertCVLimits(data[i]);
     }
 }
 

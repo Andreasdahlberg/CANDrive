@@ -27,6 +27,7 @@ along with CANDrive firmware.  If not, see <http://www.gnu.org/licenses/>.
 
 #include <assert.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <inttypes.h>
 #include "utility.h"
 #include "logging.h"
@@ -124,8 +125,12 @@ void MotorController_SetRPM(size_t index, int16_t rpm)
     const int32_t min_rpm = max_rpm * -1;
     const int32_t limited_rpm = LimitValue(rpm, min_rpm, max_rpm);
 
-    struct pid_parameters_t *parameters_p = PID_GetParameters(&module.instances[index].rpm_pid);
-    UpdateCVLimits(parameters_p, limited_rpm);
+    /**
+     * Limit the control value in one direction to prevent driving the motor in
+     * the opposite direction when decreasing/increasing the RPM.
+     */
+    UpdateCVLimits(PID_GetParameters(&module.instances[index].rpm_pid), limited_rpm);
+    UpdateCVLimits(PID_GetParameters(&module.instances[index].current_pid), limited_rpm);
 
     PID_SetSetpoint(&module.instances[index].rpm_pid, limited_rpm);
     Logging_Debug(module.logger_p, "M%u sp: {rpm: %i}", index, limited_rpm);
@@ -140,9 +145,6 @@ void MotorController_SetCurrent(size_t index, int16_t current)
     const int32_t max_current = (max_board_current < stall_current) ? (int32_t)max_board_current : (int32_t)stall_current;
     const int32_t min_current = max_current * -1;
     const int32_t limited_current = LimitValue(current, min_current, max_current);
-
-    struct pid_parameters_t *parameters_p = PID_GetParameters(&module.instances[index].current_pid);
-    UpdateCVLimits(parameters_p, limited_current);
 
     PID_SetSetpoint(&module.instances[index].current_pid, limited_current);
     Logging_Debug(module.logger_p, "M%u sp: {current: %i}", index, limited_current);
@@ -230,8 +232,22 @@ static inline void InitializeMotors(void)
                "Invalid PID parameter cvmax");
         PID_Init(&module.instances[i].rpm_pid);
         PID_SetParameters(&module.instances[i].rpm_pid, &pid_parameters);
+
+        /* TODO: Use separate PID parameters for current control. */
+        struct pid_parameters_t c_pid_parameters =
+        {
+            .kp = (int32_t)Config_GetValue("kp"),
+            .ki = (int32_t)Config_GetValue("ki"),
+            .kd = 0,
+            .imax = (int32_t)Config_GetValue("imax"),
+            .imin = (int32_t)Config_GetValue("imin"),
+            .cvmax = PID_CV_MAX,
+            .cvmin = PID_CV_MIN,
+            .scale = PID_SCALE
+        };
+
         PID_Init(&module.instances[i].current_pid);
-        PID_SetParameters(&module.instances[i].current_pid, &pid_parameters);
+        PID_SetParameters(&module.instances[i].current_pid, &c_pid_parameters);
     }
 }
 
@@ -255,7 +271,9 @@ static inline void UpdateMotorSpeeds(void)
         {
             const int32_t rpm_cv = PID_Update(&instance_p->rpm_pid, Motor_GetRPM(&instance_p->motor));
             const int32_t current_cv = PID_Update(&instance_p->current_pid, Motor_GetCurrent(&instance_p->motor));
-            const int32_t cv = (current_cv < rpm_cv) ? current_cv : rpm_cv;
+            Logging_Debug(module.logger_p, "{rpm_cv: % i, current_cv: %i, rpm_sp: %i, current_sp: %i}", rpm_cv, current_cv, PID_GetSetpoint(&instance_p->rpm_pid), PID_GetSetpoint(&instance_p->current_pid));
+
+            const int32_t cv = (abs(current_cv) < abs(rpm_cv)) ? current_cv : rpm_cv;
             Motor_SetSpeed(&instance_p->motor, (int16_t)cv);
         }
     }
