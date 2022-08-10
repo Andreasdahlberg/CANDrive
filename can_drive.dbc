@@ -36,6 +36,24 @@ BS_:
 BU_: Controller Motor
 
 
+BO_ 2 MotorMsgIsotpTx: 3 Motor
+ SG_ MotorIsotpSigSeparationTime m3 : 23|8@0+ (1,0) [0|255] ""  Controller,Motor
+ SG_ MotorIsotpSigBlockSize m3 : 15|8@0+ (1,0) [0|255] ""  Controller,Motor
+ SG_ MotorIsotpSigMessageLength m1 : 3|12@0+ (1,0) [8|4095] ""  Controller,Motor
+ SG_ MotorIsotpSigSize m0 : 3|4@0+ (1,0) [0|7] ""  Controller,Motor
+ SG_ MotorIsotpSigIndex m2 : 3|4@0+ (1,0) [0|15] ""  Controller,Motor
+ SG_ MotorIsotpSigFlowControlFlag m3 : 3|4@0+ (1,0) [0|2] ""  Controller,Motor
+ SG_ MotorIsotpSigType M : 7|4@0+ (1,0) [0|3] ""  Controller,Motor
+
+BO_ 1 MotorMsgIsotpRx: 3 Controller
+ SG_ MotorIsotpSigSeparationTime m3 : 23|8@0+ (1,0) [0|255] ""  Controller,Motor
+ SG_ MotorIsotpSigBlockSize m3 : 15|8@0+ (1,0) [0|255] ""  Controller,Motor
+ SG_ MotorIsotpSigMessageLength m1 : 3|12@0+ (1,0) [8|4095] ""  Controller,Motor
+ SG_ MotorIsotpSigSize m0 : 3|4@0+ (1,0) [0|7] ""  Controller,Motor
+ SG_ MotorIsotpSigIndex m2 : 3|4@0+ (1,0) [0|15] ""  Controller,Motor
+ SG_ MotorIsotpSigFlowControlFlag m3 : 3|4@0+ (1,0) [0|2] ""  Controller,Motor
+ SG_ MotorIsotpSigType M : 7|4@0+ (1,0) [0|3] ""  Controller,Motor
+
 BO_ 9 ControllerMsgMotorControl: 8 Controller
  SG_ MotorControlSigMode2 : 58|3@0+ (1,0) [0|3] ""  Motor
  SG_ MotorControlSigMode1 : 61|3@0+ (1,0) [0|3] ""  Motor
@@ -57,6 +75,22 @@ BO_ 10 MotorMsgStatus: 8 Motor
 
 CM_ BU_ Controller "Node controlling the motor";
 CM_ BU_ Motor "Node representing the motor";
+CM_ BO_ 2 "ISO-TP message.";
+CM_ SG_ 2 MotorIsotpSigSeparationTime "Separation time between frames.";
+CM_ SG_ 2 MotorIsotpSigBlockSize "Number of consecutive frames before flow control.";
+CM_ SG_ 2 MotorIsotpSigMessageLength "Number of bytes in the message.";
+CM_ SG_ 2 MotorIsotpSigSize "Number of bytes.";
+CM_ SG_ 2 MotorIsotpSigIndex "Frame index.";
+CM_ SG_ 2 MotorIsotpSigFlowControlFlag "Flow control flag.";
+CM_ SG_ 2 MotorIsotpSigType "Frame type.";
+CM_ BO_ 1 "ISO-TP message.";
+CM_ SG_ 1 MotorIsotpSigSeparationTime "Separation time between frames.";
+CM_ SG_ 1 MotorIsotpSigBlockSize "Number of consecutive frames before flow control.";
+CM_ SG_ 1 MotorIsotpSigMessageLength "Number of bytes in the message.";
+CM_ SG_ 1 MotorIsotpSigSize "Number of bytes.";
+CM_ SG_ 1 MotorIsotpSigIndex "Frame index.";
+CM_ SG_ 1 MotorIsotpSigFlowControlFlag "Flow control flag.";
+CM_ SG_ 1 MotorIsotpSigType "Frame type.";
 CM_ BO_ 9 "Motor control message.";
 CM_ SG_ 9 MotorControlSigMode2 "Mode for motor 2.";
 CM_ SG_ 9 MotorControlSigMode1 "Mode for motor 1.";
@@ -74,6 +108,10 @@ CM_ SG_ 10 MotorStatusSigRPM1 "Actual RPM for motor 1.";
 
 
 
+VAL_ 2 MotorIsotpSigFlowControlFlag 0 "CONTINUE" 1 "WAIT" 2 "OVERFLOW/ABORT" ;
+VAL_ 2 MotorIsotpSigType 0 "SF" 1 "FF" 2 "CF" 3 "FC" ;
+VAL_ 1 MotorIsotpSigFlowControlFlag 0 "CONTINUE" 1 "WAIT" 2 "OVERFLOW/ABORT" ;
+VAL_ 1 MotorIsotpSigType 0 "SF" 1 "FF" 2 "CF" 3 "FC" ;
 VAL_ 9 MotorControlSigMode2 0 "UNKNOWN" 1 "RUN" 2 "COAST" 3 "BRAKE" ;
 VAL_ 9 MotorControlSigMode1 0 "UNKNOWN" 1 "RUN" 2 "COAST" 3 "BRAKE" ;
 VAL_ 10 MotorStatusSigStatus2 0 "UNKNOWN" 1 "RUN" 2 "COAST" 3 "BRAKE" 4 "SHORT_TO_GROUND" 5 "SHORT_TO_VCC" 6 "OPEN_LOAD" 7 "THERMAL_SHUTDOWN" ;
