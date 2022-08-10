@@ -100,12 +100,12 @@ class CanDriveInterface():
 
     def _on_motor_msg_status(self, message):
         result = self._database.decode_message(message.arbitration_id, message.data)
-        self._motor_data[0].actual_rpm = result['MotorMsgStatusSigRPM1']
-        self._motor_data[0].actual_current = result['MotorMsgStatusSigCurrent1']
-        self._motor_data[0].status = result['MotorMsgStatusSigStatus1']
-        self._motor_data[1].actual_rpm = result['MotorMsgStatusSigRPM2']
-        self._motor_data[1].actual_current = result['MotorMsgStatusSigCurrent2']
-        self._motor_data[1].status = result['MotorMsgStatusSigStatus2']
+        self._motor_data[0].actual_rpm = result['MotorStatusSigRPM1']
+        self._motor_data[0].actual_current = result['MotorStatusSigCurrent1']
+        self._motor_data[0].status = result['MotorStatusSigStatus1']
+        self._motor_data[1].actual_rpm = result['MotorStatusSigRPM2']
+        self._motor_data[1].actual_current = result['MotorStatusSigCurrent2']
+        self._motor_data[1].status = result['MotorStatusSigStatus2']
 
     def _signal_handler(self, *_):
         self._exit_event.set()
@@ -128,12 +128,12 @@ class CanDriveInterface():
             control_message = self._database.get_message_by_name('ControllerMsgMotorControl')
 
             data = control_message.encode({
-                'ControllerMsgMotorControlSigRPM1': self._motor_data[0].set_rpm,
-                'ControllerMsgMotorControlSigCurrent1': self._motor_data[0].set_current,
-                'ControllerMsgMotorControlSigMode1': self._motor_data[0].mode,
-                'ControllerMsgMotorControlSigRPM2': self._motor_data[1].set_rpm,
-                'ControllerMsgMotorControlSigCurrent2': self._motor_data[1].set_current,
-                'ControllerMsgMotorControlSigMode2': self._motor_data[1].mode})
+                'MotorControlSigRPM1': self._motor_data[0].set_rpm,
+                'MotorControlSigCurrent1': self._motor_data[0].set_current,
+                'MotorControlSigMode1': self._motor_data[0].mode,
+                'MotorControlSigRPM2': self._motor_data[1].set_rpm,
+                'MotorControlSigCurrent2': self._motor_data[1].set_current,
+                'MotorControlSigMode2': self._motor_data[1].mode})
 
             message = can.Message(arbitration_id=control_message.frame_id, data=data, is_extended_id=False)
             self._can_bus.send(message)
