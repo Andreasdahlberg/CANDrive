@@ -241,21 +241,23 @@ static inline void SetupGPIO(const struct motor_t *self_p)
 
 static inline void SetupTimer(const struct motor_t *self_p)
 {
-    const uint8_t encoder_mode = TIM_SMCR_SMS_EM3;
-
     rcc_periph_clock_enable(self_p->config_p->encoder.timer_clock);
     rcc_periph_reset_pulse(self_p->config_p->encoder.timer_rst);
 
+    const uint8_t encoder_mode = TIM_SMCR_SMS_EM3;
+    const enum tim_ic_id input_capture_channel_a = TIM_IC1;
+    const enum tim_ic_id input_capture_channel_b = TIM_IC2;
+
     timer_set_period(self_p->config_p->encoder.timer, (uint32_t)self_p->counts_per_revolution - 1);
     timer_slave_set_mode(self_p->config_p->encoder.timer, encoder_mode);
-    timer_ic_disable(self_p->config_p->encoder.timer, TIM_IC1);
-    timer_ic_disable(self_p->config_p->encoder.timer, TIM_IC2);
-    timer_ic_set_input(self_p->config_p->encoder.timer, TIM_IC1, TIM_IC_IN_TI1);
-    timer_ic_set_input(self_p->config_p->encoder.timer, TIM_IC2, TIM_IC_IN_TI2);
-    timer_ic_set_filter(self_p->config_p->encoder.timer, TIM_IC1, TIM_IC_CK_INT_N_8);
-    timer_ic_set_filter(self_p->config_p->encoder.timer, TIM_IC2, TIM_IC_CK_INT_N_8);
-    timer_ic_enable(self_p->config_p->encoder.timer, TIM_IC1);
-    timer_ic_enable(self_p->config_p->encoder.timer, TIM_IC2);
+    timer_ic_disable(self_p->config_p->encoder.timer, input_capture_channel_a);
+    timer_ic_disable(self_p->config_p->encoder.timer, input_capture_channel_b);
+    timer_ic_set_input(self_p->config_p->encoder.timer, input_capture_channel_a, TIM_IC_IN_TI1);
+    timer_ic_set_input(self_p->config_p->encoder.timer, input_capture_channel_b, TIM_IC_IN_TI2);
+    timer_ic_set_filter(self_p->config_p->encoder.timer, input_capture_channel_a, TIM_IC_CK_INT_N_8);
+    timer_ic_set_filter(self_p->config_p->encoder.timer, input_capture_channel_b, TIM_IC_CK_INT_N_8);
+    timer_ic_enable(self_p->config_p->encoder.timer, input_capture_channel_a);
+    timer_ic_enable(self_p->config_p->encoder.timer, input_capture_channel_b);
     timer_enable_counter(self_p->config_p->encoder.timer);
 }
 
