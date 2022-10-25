@@ -181,13 +181,13 @@ static void InitCANPeripheral(void)
     Logging_Debug(module.logger, "%s()", __func__);
 
     rcc_periph_clock_enable(RCC_AFIO);
-    rcc_periph_clock_enable(RCC_GPIOB);
+    rcc_periph_clock_enable(RCC_GPIOA);
     rcc_periph_clock_enable(RCC_CAN1);
 
-    gpio_primary_remap(AFIO_MAPR_CAN1_REMAP_PORTB, 0);
-    gpio_set_mode(GPIO_BANK_CAN1_PB_RX, GPIO_MODE_INPUT, GPIO_CNF_INPUT_PULL_UPDOWN, GPIO_CAN1_PB_RX);
-    gpio_set(GPIO_BANK_CAN1_PB_RX, GPIO_CAN1_PB_RX);
-    gpio_set_mode(GPIO_BANK_CAN1_PB_TX, GPIO_MODE_OUTPUT_50_MHZ, GPIO_CNF_OUTPUT_ALTFN_PUSHPULL, GPIO_CAN1_PB_TX);
+    gpio_primary_remap(AFIO_MAPR_SWJ_CFG_FULL_SWJ, AFIO_MAPR_CAN1_REMAP_PORTA);
+    gpio_set_mode(GPIO_BANK_CAN_RX, GPIO_MODE_INPUT, GPIO_CNF_INPUT_PULL_UPDOWN, GPIO_CAN1_RX);
+    gpio_set(GPIO_BANK_CAN1_RX, GPIO_CAN1_RX);
+    gpio_set_mode(GPIO_BANK_CAN1_TX, GPIO_MODE_OUTPUT_50_MHZ, GPIO_CNF_OUTPUT_ALTFN_PUSHPULL, GPIO_CAN1_TX);
 
     nvic_enable_irq(NVIC_USB_LP_CAN_RX0_IRQ);
     nvic_set_priority(NVIC_USB_LP_CAN_RX0_IRQ, 1);
