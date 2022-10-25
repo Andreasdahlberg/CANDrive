@@ -132,7 +132,7 @@ static void SetupGPIO(const struct pwm_config_t *config_p)
                   GPIO_CNF_OUTPUT_ALTFN_PUSHPULL,
                   config_p->gpio);
 
-    gpio_primary_remap(config_p->remap, 0);
+    gpio_primary_remap(AFIO_MAPR_SWJ_CFG_FULL_SWJ, config_p->remap);
 }
 
 static void SetupTimer(const struct pwm_config_t *config_p)
