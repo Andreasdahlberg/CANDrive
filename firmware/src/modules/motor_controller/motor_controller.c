@@ -271,7 +271,7 @@ static inline void UpdateMotorSpeeds(void)
         {
             const int32_t rpm_cv = PID_Update(&instance_p->rpm_pid, Motor_GetRPM(&instance_p->motor));
             const int32_t current_cv = PID_Update(&instance_p->current_pid, Motor_GetCurrent(&instance_p->motor));
-            Logging_Debug(module.logger_p, "{rpm_cv: % i, current_cv: %i, rpm_sp: %i, current_sp: %i}", rpm_cv, current_cv, PID_GetSetpoint(&instance_p->rpm_pid), PID_GetSetpoint(&instance_p->current_pid));
+            Logging_Debug(module.logger_p, "{i: %u, rpm_cv: %i, current_cv: %i, rpm_sp: %i, current_sp: %i}", i, rpm_cv, current_cv, PID_GetSetpoint(&instance_p->rpm_pid), PID_GetSetpoint(&instance_p->current_pid));
 
             const int32_t cv = (abs(current_cv) < abs(rpm_cv)) ? current_cv : rpm_cv;
             Motor_SetSpeed(&instance_p->motor, (int16_t)cv);
