@@ -39,7 +39,7 @@ along with CANDrive firmware.  If not, see <http://www.gnu.org/licenses/>.
 //DEFINES
 //////////////////////////////////////////////////////////////////////////
 
-#define NUMBER_OF_MOTORS 1
+#define NUMBER_OF_MOTORS 2
 #define GPIO_STATUS_LED_CLOCK RCC_GPIOA
 #define GPIO_STATUS_LED_PORT GPIOA
 #define GPIO_STATUS_LED GPIO5
@@ -94,6 +94,36 @@ static struct module_t module =
                 .channel = 11
             }
         },
+        {
+            .pwm = {
+                .timer_peripheral = TIM3,
+                .remap = AFIO_MAPR_TIM3_REMAP_FULL_REMAP,
+                .gpio_port = GPIOC,
+                .gpio = GPIO6,
+                .oc_id = TIM_OC1,
+                .peripheral_clocks = {RCC_GPIOC, RCC_TIM3, RCC_AFIO}
+            },
+            .driver = {
+                .port = GPIOB,
+                .sel = GPIO13,
+                .cs = GPIO1,
+                .ina = GPIO14,
+                .inb = GPIO15,
+                .gpio_clock = RCC_GPIOB
+            },
+            .encoder = {
+                .port = GPIOA,
+                .a = GPIO0,
+                .b = GPIO1,
+                .gpio_clock = RCC_GPIOA,
+                .timer = TIM2,
+                .timer_clock = RCC_TIM2,
+                .timer_rst = RST_TIM2
+            },
+            .adc = {
+                .channel = 9
+            }
+        }
     },
     0
 };

@@ -207,7 +207,7 @@ static void test_SignalHandler_RegisterHandler_Invalid(void **state)
 
 static void test_SignalHandler_RegisterHandler_MaxNumberOfHandlers(void **state)
 {
-    const size_t max_number_of_handlers = 5;
+    const size_t max_number_of_handlers = 6;
     for (size_t i = 0; i < max_number_of_handlers; ++i)
     {
         SignalHandler_RegisterHandler(SIGNAL_CONTROL_RPM1, SignalHandlerFunc1);
