@@ -44,7 +44,7 @@ along with CANDrive firmware.  If not, see <http://www.gnu.org/licenses/>.
 #endif
 
 #define FRAME_BUFFER_SIZE 5
-#define MAX_NUMBER_OF_HANDLERS 5
+#define MAX_NUMBER_OF_HANDLERS 6
 
 //////////////////////////////////////////////////////////////////////////
 //TYPE DEFINITIONS
