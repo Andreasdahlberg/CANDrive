@@ -26,8 +26,8 @@ __version__ = '0.1.0'
 
 
 def get_test_file_name(xml_file_name):
-    test_file_path = xml_file_name.replace('build', 'firmware')
-    test_file_path = test_file_path.replace('test/test_result.xml', '')
+    test_file_path = xml_file_name.replace('build/test', 'firmware/src/modules')
+    test_file_path = test_file_path.replace('test_result.xml', '')
 
     module_name = os.path.basename(os.path.normpath(test_file_path))
     test_file_name = 'test_{}.c'.format(module_name)
