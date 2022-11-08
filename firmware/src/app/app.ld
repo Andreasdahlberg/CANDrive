@@ -4,7 +4,8 @@ MEMORY
     bootrom  (rx)  : ORIGIN = 0x08000000, LENGTH = 32K
     rom (rx) : ORIGIN = 0x8008000, LENGTH = 94k
     nvsrom (rx) : ORIGIN = 0x0801F800, LENGTH = 2K
-    ram (rwx) : ORIGIN = 0x20000000, LENGTH = 20K
+    ram (rwx) : ORIGIN = 0x20000000, LENGTH = 20K - 2k
+    NOINIT (rwx) : ORIGIN = 0x20000000 + 20K - 2k, LENGTH = 2k
 }
 
 __bootrom_start__ = ORIGIN(bootrom);
@@ -35,6 +36,7 @@ SECTIONS
 	} >rom
 
 	.gnu_build_id : {
+		__start_gnu_build_id_start = .;
 		PROVIDE(note_build_id = .);
 		*(.note.gnu.build-id)
 	} >rom
@@ -80,8 +82,8 @@ SECTIONS
 
 	/* ram, but not cleared on reset, eg boot/app comms */
 	.noinit (NOLOAD) : {
-		*(.noinit*)
-	} >ram
+		*(*.noinit*)
+	} >NOINIT
 	. = ALIGN(4);
 
 	.data : {
@@ -118,4 +120,3 @@ SECTIONS
 }
 
 PROVIDE(_stack = ORIGIN(ram) + LENGTH(ram));
-
