@@ -56,7 +56,7 @@ bool ApplicationCmd_UpdateFirmware(void)
     data_p->request_firmware_update = true;
     NVCom_SetData(data_p);
 
-    DeviceMonitoring_ResetImminent(DEVICE_MONITORING_REBOOT_REASON_FIRMWARE_UPDATE);
+    DeviceMonitoring_ResetImminent(DEV_MON_REBOOT_REAS_FW_UPDATE);
     Board_Reset();
 
     return true;
@@ -64,7 +64,7 @@ bool ApplicationCmd_UpdateFirmware(void)
 
 bool ApplicationCmd_Reset(void)
 {
-    DeviceMonitoring_ResetImminent(DEVICE_MONITORING_REBOOT_REASON_USER_RESET);
+    DeviceMonitoring_ResetImminent(DEV_MON_REBOOT_REAS_USER_RESET);
     Board_Reset();
 
     return true;

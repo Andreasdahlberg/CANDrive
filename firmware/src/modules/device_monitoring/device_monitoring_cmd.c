@@ -57,24 +57,6 @@ bool DeviceMonitoringCmd_DumpData(void)
     return true;
 }
 
-bool DeviceMonitoringCmd_TestAssert(void)
-{
-    MEMFAULT_ASSERT(0);
-    return true;
-}
-
-bool DeviceMonitoringCmd_TestHeartbeat(void)
-{
-    memfault_metrics_heartbeat_debug_trigger();
-    return true;
-}
-
-bool DeviceMonitoringCmd_TestTrace(void)
-{
-    MEMFAULT_TRACE_EVENT_WITH_LOG(critical_error, "Test of trace!");
-    return true;
-}
-
 //////////////////////////////////////////////////////////////////////////
 //LOCAL FUNCTIONS
 //////////////////////////////////////////////////////////////////////////
