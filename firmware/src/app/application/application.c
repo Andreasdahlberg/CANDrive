@@ -50,6 +50,8 @@ along with CANDrive firmware.  If not, see <http://www.gnu.org/licenses/>.
 #include "image.h"
 #include "nvcom.h"
 #include "firmware_manager.h"
+#include "device_monitoring.h"
+#include "device_monitoring_cmd.h"
 #include "application_cmd.h"
 #include "application.h"
 
@@ -147,6 +149,7 @@ void Application_Init(void)
 
     NVCom_Init();
     SystemMonitor_Init();
+    DeviceMonitoring_Init();
     Flash_Init();
     NVS_Init(Board_GetNVSAddress(), Board_GetNumberOfPagesInNVS());
     Config_Init();
@@ -214,11 +217,12 @@ static void RegisterConsoleCommands(void)
     Console_RegisterCommand("run", MotorControllerCmd_Run);
     Console_RegisterCommand("coast", MotorControllerCmd_Coast);
     Console_RegisterCommand("brake", MotorControllerCmd_Brake);
-    Console_RegisterCommand("reset", BoardCmd_Reset);
+    Console_RegisterCommand("reset", ApplicationCmd_Reset);
     Console_RegisterCommand("level", LoggingCmd_SetLevel);
     Console_RegisterCommand("store", NVSCmd_Store);
     Console_RegisterCommand("remove", NVSCmd_Remove);
     Console_RegisterCommand("update", ApplicationCmd_UpdateFirmware);
+    Console_RegisterCommand("dump", DeviceMonitoringCmd_DumpData);
 }
 
 static void ConfigureSignalHandler(void)

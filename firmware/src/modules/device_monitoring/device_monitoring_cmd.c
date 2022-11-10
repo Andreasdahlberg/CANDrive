@@ -1,7 +1,7 @@
 /**
- * @file   application_cmd.h
- * @Author Andreas Dahlberg (andreas.dahlberg90@gmail.com)
- * @brief  Application command module.
+ * @file   device_monitoring_cmd.c
+ * @author Andreas Dahlberg (andreas.dahlberg90@gmail.com)
+ * @brief  Device monitoring command module.
  */
 
 /*
@@ -25,14 +25,11 @@ along with CANDrive firmware.  If not, see <http://www.gnu.org/licenses/>.
 //INCLUDES
 //////////////////////////////////////////////////////////////////////////
 
-#ifndef APPLICATION_CMD_H_
-#define APPLICATION_CMD_H_
-
-//////////////////////////////////////////////////////////////////////////
-//INCLUDES
-//////////////////////////////////////////////////////////////////////////
-
-#include <stdbool.h>
+#include <assert.h>
+#include "memfault/components.h"
+#include "console.h"
+#include "device_monitoring.h"
+#include "device_monitoring_cmd.h"
 
 //////////////////////////////////////////////////////////////////////////
 //DEFINES
@@ -43,21 +40,41 @@ along with CANDrive firmware.  If not, see <http://www.gnu.org/licenses/>.
 //////////////////////////////////////////////////////////////////////////
 
 //////////////////////////////////////////////////////////////////////////
-//FUNCTION PROTOTYPES
+//VARIABLES
 //////////////////////////////////////////////////////////////////////////
 
-/**
- * Enter firmware update mode.
- *
- * @return Command status.
- */
-bool ApplicationCmd_UpdateFirmware(void);
+//////////////////////////////////////////////////////////////////////////
+//LOCAL FUNCTION PROTOTYPES
+//////////////////////////////////////////////////////////////////////////
 
-/**
- * Reset the device.
- *
- * @return Does not return.
- */
-bool ApplicationCmd_Reset(void);
+//////////////////////////////////////////////////////////////////////////
+//FUNCTIONS
+//////////////////////////////////////////////////////////////////////////
 
-#endif
+bool DeviceMonitoringCmd_DumpData(void)
+{
+    memfault_data_export_dump_chunks();
+    return true;
+}
+
+bool DeviceMonitoringCmd_TestAssert(void)
+{
+    MEMFAULT_ASSERT(0);
+    return true;
+}
+
+bool DeviceMonitoringCmd_TestHeartbeat(void)
+{
+    memfault_metrics_heartbeat_debug_trigger();
+    return true;
+}
+
+bool DeviceMonitoringCmd_TestTrace(void)
+{
+    MEMFAULT_TRACE_EVENT_WITH_LOG(critical_error, "Test of trace!");
+    return true;
+}
+
+//////////////////////////////////////////////////////////////////////////
+//LOCAL FUNCTIONS
+//////////////////////////////////////////////////////////////////////////
