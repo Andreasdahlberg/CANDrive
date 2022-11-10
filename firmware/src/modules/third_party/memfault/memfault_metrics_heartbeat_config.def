@@ -1,0 +1,2 @@
+MEMFAULT_METRICS_KEY_DEFINE(can_tx_error, kMemfaultMetricType_Unsigned)
+MEMFAULT_METRICS_KEY_DEFINE(emergency_stop, kMemfaultMetricType_Unsigned)
