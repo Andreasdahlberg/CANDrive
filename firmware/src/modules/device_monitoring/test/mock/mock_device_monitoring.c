@@ -1,7 +1,7 @@
 /**
- * @file   application_cmd.h
- * @Author Andreas Dahlberg (andreas.dahlberg90@gmail.com)
- * @brief  Application command module.
+ * @file   mock_device_monitoring.c
+ * @Author Andreas Dahlberg
+ * @brief  Mock functions for device_monitoring.
  */
 
 /*
@@ -25,14 +25,15 @@ along with CANDrive firmware.  If not, see <http://www.gnu.org/licenses/>.
 //INCLUDES
 //////////////////////////////////////////////////////////////////////////
 
-#ifndef APPLICATION_CMD_H_
-#define APPLICATION_CMD_H_
-
-//////////////////////////////////////////////////////////////////////////
-//INCLUDES
-//////////////////////////////////////////////////////////////////////////
-
+#include <stdarg.h>
+#include <stddef.h>
+#include <stdint.h>
+#include <setjmp.h>
+#include <cmocka.h>
+#include <stdio.h>
 #include <stdbool.h>
+#include "device_monitoring.h"
+#include "device_monitoring_cmd.h"
 
 //////////////////////////////////////////////////////////////////////////
 //DEFINES
@@ -43,21 +44,47 @@ along with CANDrive firmware.  If not, see <http://www.gnu.org/licenses/>.
 //////////////////////////////////////////////////////////////////////////
 
 //////////////////////////////////////////////////////////////////////////
-//FUNCTION PROTOTYPES
+//VARIABLES
 //////////////////////////////////////////////////////////////////////////
 
-/**
- * Enter firmware update mode.
- *
- * @return Command status.
- */
-bool ApplicationCmd_UpdateFirmware(void);
+//////////////////////////////////////////////////////////////////////////
+//LOCAL FUNCTION PROTOTYPES
+//////////////////////////////////////////////////////////////////////////
 
-/**
- * Reset the device.
- *
- * @return Does not return.
- */
-bool ApplicationCmd_Reset(void);
+//////////////////////////////////////////////////////////////////////////
+//FUNCTIONS
+//////////////////////////////////////////////////////////////////////////
 
-#endif
+__attribute__((weak)) void DeviceMonitoring_Init(void)
+{
+
+}
+
+__attribute__((weak)) void DeviceMonitoring_ResetImminent(enum device_monitoring_reboot_reason reason)
+{
+
+}
+
+__attribute__((weak)) void DeviceMonitoring_Count(enum device_monitoring_metric_id id, int32_t amount)
+{
+
+}
+
+__attribute__((weak)) void DeviceMonitoring_StartTimer(enum device_monitoring_metric_id id)
+{
+
+}
+
+__attribute__((weak)) void DeviceMonitoring_StopTimer(enum device_monitoring_metric_id id)
+{
+
+}
+
+__attribute__((weak)) bool DeviceMonitoringCmd_DumpData(void)
+{
+
+}
+
+//////////////////////////////////////////////////////////////////////////
+//LOCAL FUNCTIONS
+//////////////////////////////////////////////////////////////////////////

@@ -1,7 +1,7 @@
 /**
- * @file   application_cmd.h
- * @Author Andreas Dahlberg (andreas.dahlberg90@gmail.com)
- * @brief  Application command module.
+ * @file   device_monitoring_cmd.h
+ * @author Andreas Dahlberg (andreas.dahlberg90@gmail.com)
+ * @brief  Device Monitoring command module.
  */
 
 /*
@@ -25,8 +25,8 @@ along with CANDrive firmware.  If not, see <http://www.gnu.org/licenses/>.
 //INCLUDES
 //////////////////////////////////////////////////////////////////////////
 
-#ifndef APPLICATION_CMD_H_
-#define APPLICATION_CMD_H_
+#ifndef DEVICE_MONITORING_CMD_H_
+#define DEVICE_MONITORING_CMD_H_
 
 //////////////////////////////////////////////////////////////////////////
 //INCLUDES
@@ -47,17 +47,10 @@ along with CANDrive firmware.  If not, see <http://www.gnu.org/licenses/>.
 //////////////////////////////////////////////////////////////////////////
 
 /**
- * Enter firmware update mode.
+ * Dump collected device monitoring data.
  *
  * @return Command status.
  */
-bool ApplicationCmd_UpdateFirmware(void);
-
-/**
- * Reset the device.
- *
- * @return Does not return.
- */
-bool ApplicationCmd_Reset(void);
+bool DeviceMonitoringCmd_DumpData(void);
 
 #endif
