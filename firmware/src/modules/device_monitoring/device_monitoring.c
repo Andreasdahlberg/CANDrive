@@ -107,13 +107,13 @@ eMemfaultRebootReason ResetReasonToMemfault(enum device_monitoring_reboot_reason
 {
     switch (reason)
     {
-        case DEVICE_MONITORING_REBOOT_REASON_USER_RESET:
+        case DEV_MON_REBOOT_REAS_USER_RESET:
             return kMfltRebootReason_UserReset;
 
-        case DEVICE_MONITORING_REBOOT_REASON_FIRMWARE_UPDATE:
+        case DEV_MON_REBOOT_REAS_FW_UPDATE:
             return kMfltRebootReason_FirmwareUpdate;
 
-        case DEVICE_MONITORING_REBOOT_REASON_SOFTWARE_RESET:
+        case DEV_MON_REBOOT_REAS_SW_RESET:
             return kMfltRebootReason_SoftwareReset;
 
         default:
@@ -126,11 +126,14 @@ MemfaultMetricId MetricIdToMemfault(enum device_monitoring_metric_id id)
 
     switch (id)
     {
-        case DEVICE_MONITORING_METRIC_CAN_TX_ERROR:
+        case DEV_MON_METRIC_CAN_TX_ERROR:
             return MEMFAULT_METRICS_KEY(can_tx_error);
 
-        case DEVICE_MONITORING_METRIC_EMERGENCY_STOP:
+        case DEV_MON_METRIC_EMERGENCY_STOP:
             return MEMFAULT_METRICS_KEY(emergency_stop);
+
+        default:
+            assert(0);
     }
 
     assert(0);
