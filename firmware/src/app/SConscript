@@ -49,7 +49,8 @@ MODULES = [
     '../modules/stream',
     '../modules/image',
     '../modules/isotp',
-    '../modules/firmware_manager'
+    '../modules/firmware_manager',
+    '../modules/third_party'
 ]
 
 module_objects = []
