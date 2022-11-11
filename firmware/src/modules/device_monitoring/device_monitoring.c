@@ -29,6 +29,8 @@ along with SillyCat firmware.  If not, see <http://www.gnu.org/licenses/>.
 #include <stddef.h>
 #include "memfault/components.h"
 #include "logging.h"
+#include "systime.h"
+#include "transport.h"
 #include "device_monitoring.h"
 
 //////////////////////////////////////////////////////////////////////////
@@ -47,6 +49,10 @@ along with SillyCat firmware.  If not, see <http://www.gnu.org/licenses/>.
 struct module_t
 {
     logging_logger_t *logger_p;
+    uint32_t last_callback_time;
+    uint32_t timer_callback_period;
+    device_monitoring_timer_cb_t timer_callback;
+
 };
 
 //////////////////////////////////////////////////////////////////////////
@@ -73,14 +79,35 @@ void DeviceMonitoring_Init(void)
     Logging_SetLevel(module.logger_p, DEVICE_MONITORING_LOGGER_DEBUG_LEVEL);
 
     memfault_platform_boot();
+    Transport_Init();
 
     Logging_Info(module.logger_p, "DeviceMonitoring initialized {type: mflt}");
+}
+
+void DeviceMonitoring_Update(void)
+{
+    if ((module.timer_callback != NULL) &&
+            (SysTime_GetDifference(module.last_callback_time) >= module.timer_callback_period))
+    {
+        module.timer_callback();
+        module.last_callback_time = SysTime_GetSystemTime();
+    }
+
+    Transport_Update();
+}
+
+void DeviceMonitoring_RegisterTimerCallback(uint32_t period, device_monitoring_timer_cb_t timer_callback)
+{
+    assert(period > 0);
+
+    module.timer_callback_period = period;
+    module.timer_callback = timer_callback;
+    Logging_Info(module.logger_p, "Timer callback registered: {cb: 0x%x, period: %u ms}", (uintptr_t)timer_callback, period);
 }
 
 void DeviceMonitoring_ResetImminent(enum device_monitoring_reboot_reason reason)
 {
     Logging_Info(module.logger_p, "Reset imminent {reason: %d}", reason);
-
     memfault_reboot_tracking_mark_reset_imminent(ResetReasonToMemfault(reason), NULL);
 }
 
@@ -131,6 +158,9 @@ MemfaultMetricId MetricIdToMemfault(enum device_monitoring_metric_id id)
 
         case DEV_MON_METRIC_EMERGENCY_STOP:
             return MEMFAULT_METRICS_KEY(emergency_stop);
+
+        case DEV_MON_METRIC_MAIN_TASK_TIME:
+            return MEMFAULT_METRICS_KEY(main_task_time);
 
         default:
             assert(0);

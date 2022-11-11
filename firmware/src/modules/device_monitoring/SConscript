@@ -23,6 +23,10 @@ SOURCE = Glob('*.c')
 
 env.Append(CPPPATH=[
     '#src/modules/logging',
+    '#src/modules/utility',
+    '#src/modules/systime',
+    '#src/modules/can_interface',
+    '#src/modules/isotp',
     '#src/modules/third_party/memfault/memfault-firmware-sdk/components/include'
 ])
 

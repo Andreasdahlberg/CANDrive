@@ -49,7 +49,10 @@ enum device_monitoring_metric_id
 {
   DEV_MON_METRIC_CAN_TX_ERROR = 1,
   DEV_MON_METRIC_EMERGENCY_STOP,
+  DEV_MON_METRIC_MAIN_TASK_TIME,
 };
+
+typedef void (*device_monitoring_timer_cb_t)();
 
 //////////////////////////////////////////////////////////////////////////
 //VARIABLES
@@ -67,6 +70,19 @@ enum device_monitoring_metric_id
  * Initialize the device monitoring module.
  */
 void DeviceMonitoring_Init(void);
+
+/**
+ * Update the internal state of the device monitoring module.
+ */
+void DeviceMonitoring_Update(void);
+
+/**
+ * Register a timed callback.
+ *
+ * @param period_sec Period between calls.
+ * @param timer_callback Callback.
+ */
+void DeviceMonitoring_RegisterTimerCallback(uint32_t period_sec, device_monitoring_timer_cb_t timer_callback);
 
 /**
  * Indicate that a reset is imminent and store the reason.

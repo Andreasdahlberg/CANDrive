@@ -1,7 +1,7 @@
 /**
- * @file   mock_device_monitoring.c
- * @Author Andreas Dahlberg
- * @brief  Mock functions for device_monitoring.
+ * @file   transport.h
+ * @Author Andreas Dahlberg (andreas.dahlberg90@gmail.com)
+ * @brief  Transport link for debug data.
  */
 
 /*
@@ -25,15 +25,12 @@ along with CANDrive firmware.  If not, see <http://www.gnu.org/licenses/>.
 //INCLUDES
 //////////////////////////////////////////////////////////////////////////
 
-#include <stdarg.h>
-#include <stddef.h>
-#include <stdint.h>
-#include <setjmp.h>
-#include <cmocka.h>
-#include <stdio.h>
-#include <stdbool.h>
-#include "device_monitoring.h"
-#include "device_monitoring_cmd.h"
+#ifndef TRANSPORT_H_
+#define TRANSPORT_H_
+
+//////////////////////////////////////////////////////////////////////////
+//INCLUDES
+//////////////////////////////////////////////////////////////////////////
 
 //////////////////////////////////////////////////////////////////////////
 //DEFINES
@@ -44,47 +41,17 @@ along with CANDrive firmware.  If not, see <http://www.gnu.org/licenses/>.
 //////////////////////////////////////////////////////////////////////////
 
 //////////////////////////////////////////////////////////////////////////
-//VARIABLES
+//FUNCTION PROTOTYPES
 //////////////////////////////////////////////////////////////////////////
 
-//////////////////////////////////////////////////////////////////////////
-//LOCAL FUNCTION PROTOTYPES
-//////////////////////////////////////////////////////////////////////////
+/**
+ * Initialize the transport link.
+ */
+void Transport_Init(void);
 
-//////////////////////////////////////////////////////////////////////////
-//FUNCTIONS
-//////////////////////////////////////////////////////////////////////////
+/**
+ * Update the internal state.
+ */
+void Transport_Update(void);
 
-__attribute__((weak)) void DeviceMonitoring_Init(void)
-{
-
-}
-
-__attribute__((weak)) void DeviceMonitoring_ResetImminent(enum device_monitoring_reboot_reason reason)
-{
-
-}
-
-__attribute__((weak)) void DeviceMonitoring_Count(enum device_monitoring_metric_id id, int32_t amount)
-{
-
-}
-
-__attribute__((weak)) void DeviceMonitoring_StartTimer(enum device_monitoring_metric_id id)
-{
-
-}
-
-__attribute__((weak)) void DeviceMonitoring_StopTimer(enum device_monitoring_metric_id id)
-{
-
-}
-
-__attribute__((weak)) bool DeviceMonitoringCmd_DumpData(void)
-{
-    return mock_type(bool);
-}
-
-//////////////////////////////////////////////////////////////////////////
-//LOCAL FUNCTIONS
-//////////////////////////////////////////////////////////////////////////
+#endif
