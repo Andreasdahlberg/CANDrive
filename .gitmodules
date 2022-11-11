@@ -1,6 +1,3 @@
 [submodule "firmware/libopencm3"]
 	path = firmware/src/libopencm3
 	url = https://github.com/Andreasdahlberg/libopencm3.git
-[submodule "firmware/src/modules/third_party/memfault/memfault-firmware-sdk"]
-	path = firmware/src/modules/third_party/memfault/memfault-firmware-sdk
-	url = https://github.com/memfault/memfault-firmware-sdk.git
