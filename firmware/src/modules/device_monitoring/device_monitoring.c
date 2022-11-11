@@ -96,7 +96,7 @@ void DeviceMonitoring_Update(void)
     Transport_Update();
 }
 
-void DeviceMonitoring_RegisterTimerCallback(uint32_t period, device_monitoring_timer_cb_t timer_callback)
+void DeviceMonitoring_SetCallback(uint32_t period, device_monitoring_timer_cb_t timer_callback)
 {
     assert(period > 0);
 

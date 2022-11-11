@@ -199,7 +199,7 @@ void memfault_platform_reboot_tracking_boot(void)
 
 bool memfault_platform_metrics_timer_boot(uint32_t period_sec, MemfaultPlatformTimerCallback callback)
 {
-  DeviceMonitoring_RegisterTimerCallback(period_sec * 1000, callback);
+  DeviceMonitoring_SetCallback(period_sec * 1000, callback);
   return true;
 }
 

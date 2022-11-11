@@ -95,7 +95,7 @@ void Transport_Update(void)
     bool data_available = memfault_packetizer_get_chunk(data, &number_of_bytes);
     if (data_available )
     {
-        bool status = ISOTP_Send(&module.ctx, data, number_of_bytes);
+        ISOTP_Send(&module.ctx, data, number_of_bytes);
     }
 
     ISOTP_Proccess(&module.ctx);
@@ -105,30 +105,12 @@ void Transport_Update(void)
 //LOCAL FUNCTIONS
 //////////////////////////////////////////////////////////////////////////
 
-static void RxStatusCallback(enum isotp_status_t status)
+static void RxStatusCallback(enum isotp_status_t status __attribute__((unused)))
 {
-    switch(status)
-    {
-        case ISOTP_STATUS_DONE:
-        case ISOTP_STATUS_WAITING:
-        case ISOTP_STATUS_TIMEOUT:
-        case ISOTP_STATUS_LOST_FRAME:
-        case ISOTP_STATUS_OVERFLOW_ABORT:
-        default:
-            break;
-    }
+    /* Empty callback. */
 }
 
-static void TxStatusCallback(enum isotp_status_t status)
+static void TxStatusCallback(enum isotp_status_t status __attribute__((unused)))
 {
-    switch(status)
-    {
-        case ISOTP_STATUS_DONE:
-        case ISOTP_STATUS_WAITING:
-        case ISOTP_STATUS_TIMEOUT:
-        case ISOTP_STATUS_LOST_FRAME:
-        case ISOTP_STATUS_OVERFLOW_ABORT:
-        default:
-            break;
-    }
+    /* Empty callback. */
 }
