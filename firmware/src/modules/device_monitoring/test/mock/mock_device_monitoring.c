@@ -60,6 +60,16 @@ __attribute__((weak)) void DeviceMonitoring_Init(void)
 
 }
 
+__attribute__((weak)) void DeviceMonitoring_Update(void)
+{
+
+}
+
+__attribute__((weak)) void DeviceMonitoring_RegisterTimerCallback(uint32_t period_sec, device_monitoring_timer_cb_t timer_callback)
+{
+
+}
+
 __attribute__((weak)) void DeviceMonitoring_ResetImminent(enum device_monitoring_reboot_reason reason)
 {
 
