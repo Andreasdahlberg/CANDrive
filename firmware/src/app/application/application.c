@@ -149,11 +149,11 @@ void Application_Init(void)
 
     NVCom_Init();
     SystemMonitor_Init();
+    CANInterface_Init();
     DeviceMonitoring_Init();
     Flash_Init();
     NVS_Init(Board_GetNVSAddress(), Board_GetNumberOfPagesInNVS());
     Config_Init();
-    CANInterface_Init();
     ADC_Init();
     MotorController_Init();
     ADC_Start();
@@ -180,12 +180,14 @@ void Application_Init(void)
 
 void Application_Run(void)
 {
+    DeviceMonitoring_StartTimer(DEV_MON_METRIC_MAIN_TASK_TIME);
     SignalHandler_Process();
     MotorController_Update();
     Console_Process();
     SystemMonitor_Update();
     FirmwareManager_Update();
     HandleStateChanges();
+    DeviceMonitoring_Update();
 
     const uint32_t motor_status_period_ms = 200;
     if (SysTime_GetDifference(module.motor_status_time) >= motor_status_period_ms)
@@ -194,6 +196,7 @@ void Application_Run(void)
         SendMotorStatus();
         module.motor_status_time = SysTime_GetSystemTime();
     }
+    DeviceMonitoring_StopTimer(DEV_MON_METRIC_MAIN_TASK_TIME);
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -322,6 +325,9 @@ static void HandleStateChanges(void)
                 break;
 
             case SYSTEM_MONITOR_EMERGENCY:
+                DeviceMonitoring_Count(DEV_MON_METRIC_EMERGENCY_STOP, 1);
+                BrakeAllMotors();
+                break;
             case SYSTEM_MONITOR_INACTIVE:
                 BrakeAllMotors();
                 break;

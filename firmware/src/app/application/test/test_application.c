@@ -121,11 +121,11 @@ static int Setup(void **state)
     expect_function_call(Logging_Init);
     expect_function_call(NVCom_Init);
     expect_function_call(SystemMonitor_Init);
+    expect_function_call(CANInterface_Init);
     will_return(Board_GetNVSAddress, 0x801F800);
     will_return(Board_GetNumberOfPagesInNVS, 2);
     expect_function_call(NVS_Init);
     expect_function_call(Config_Init);
-    expect_function_call(CANInterface_Init);
     expect_function_call(ADC_Init);
     expect_function_call(MotorController_Init);
     expect_function_call(SignalHandler_Init);
@@ -180,11 +180,11 @@ static void test_Application_Init_NoMotors(void **state)
     expect_function_call(Logging_Init);
     expect_function_call(NVCom_Init);
     expect_function_call(SystemMonitor_Init);
+    expect_function_call(CANInterface_Init);
     will_return(Board_GetNVSAddress, 0x801F800);
     will_return(Board_GetNumberOfPagesInNVS, 2);
     expect_function_call(NVS_Init);
     expect_function_call(Config_Init);
-    expect_function_call(CANInterface_Init);
     expect_function_call(ADC_Init);
     expect_function_call(MotorController_Init);
     expect_function_call(SignalHandler_Init);
@@ -217,11 +217,11 @@ static void test_Application_Init(void **state)
     expect_function_call(Logging_Init);
     expect_function_call(NVCom_Init);
     expect_function_call(SystemMonitor_Init);
+    expect_function_call(CANInterface_Init);
     will_return(Board_GetNVSAddress, 0x801F800);
     will_return(Board_GetNumberOfPagesInNVS, 2);
     expect_function_call(NVS_Init);
     expect_function_call(Config_Init);
-    expect_function_call(CANInterface_Init);
     expect_function_call(ADC_Init);
     expect_function_call(MotorController_Init);
     expect_function_call(SignalHandler_Init);
