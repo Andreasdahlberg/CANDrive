@@ -600,6 +600,7 @@ static void CheckForFlowControlFrame(struct isotp_send_link_t *link_p)
     }
     else if (SysTime_GetDifference(link_p->wait_timer) > FC_TIMEOUT_MS)
     {
+        Stream_Clear(&link_p->tx_stream);
         link_p->state = ISOTP_TX_INACTIVE;
         link_p->base.active = false;
         link_p->base.callback_fp(ISOTP_STATUS_TIMEOUT);
