@@ -197,10 +197,10 @@ void memfault_platform_reboot_tracking_boot(void)
     memfault_reboot_tracking_boot(s_reboot_tracking, &reset_info);
 }
 
-bool memfault_platform_metrics_timer_boot(uint32_t period_sec __attribute__((unused)),
-        MemfaultPlatformTimerCallback callback __attribute__((unused)))
+bool memfault_platform_metrics_timer_boot(uint32_t period_sec, MemfaultPlatformTimerCallback callback)
 {
-    return false;
+  DeviceMonitoring_RegisterTimerCallback(period_sec * 1000, callback);
+  return true;
 }
 
 uint64_t memfault_platform_get_time_since_boot_ms(void)
