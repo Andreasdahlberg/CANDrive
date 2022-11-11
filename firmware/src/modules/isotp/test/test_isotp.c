@@ -408,11 +408,14 @@ static void test_ISOTP_FlowControlFrameTimeout(void **state)
 
     /* Drop the First frame so that the receiver does not send a Flow control frame in response.*/
     drop_frame = true;
-    uint8_t tx_data[] = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9};
+    uint8_t tx_data[ISOTP_MAX_DATA_LENGTH] = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9};
     assert_true(ISOTP_Send(&ctx, tx_data, sizeof(tx_data)));
 
     expect_value(MockTxStatusHandler, status, ISOTP_STATUS_TIMEOUT);
     Proccess(&ctx, 1);
+
+    /* Make sure that the buffer is cleared after a flow control frame timeout. */
+    assert_true(ISOTP_Send(&ctx, tx_data, sizeof(tx_data)));
 }
 
 static void test_ISOTP_ConsecutiveFrameLost(void **state)
