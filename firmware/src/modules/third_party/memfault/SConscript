@@ -30,6 +30,7 @@ SOURCE.append(Glob('memfault-firmware-sdk/ports/panics/src/*.c'))
 env.Append(CPPPATH=[
     '#src/modules/board',
     '#src/modules/system_monitor',
+    '#src/modules/device_monitoring',
     '#src/modules/systime',
     '#src/modules/third_party/memfault/memfault-firmware-sdk/components/include',
     '#src/modules/third_party/memfault/memfault-firmware-sdk/ports/include',
