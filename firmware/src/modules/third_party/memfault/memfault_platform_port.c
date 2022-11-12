@@ -37,6 +37,7 @@ along with CANDrive firmware.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "board.h"
 #include "system_monitor.h"
+#include "device_monitoring.h"
 #include "systime.h"
 
 //////////////////////////////////////////////////////////////////////////
