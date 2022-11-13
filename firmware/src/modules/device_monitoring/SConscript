@@ -27,7 +27,10 @@ env.Append(CPPPATH=[
     '#src/modules/systime',
     '#src/modules/can_interface',
     '#src/modules/isotp',
-    '#src/modules/third_party/memfault/memfault-firmware-sdk/components/include'
+    '#src/modules/fifo',
+    '#src/modules/stream',
+    '#src/modules/third_party/memfault/memfault-firmware-sdk/components/include',
+    '#src/modules/third_party/memfault'
 ])
 
 OBJECTS = env.Object(SOURCE)

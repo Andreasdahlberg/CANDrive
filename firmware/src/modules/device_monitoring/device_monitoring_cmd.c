@@ -27,7 +27,6 @@ along with CANDrive firmware.  If not, see <http://www.gnu.org/licenses/>.
 
 #include <assert.h>
 #include "memfault/components.h"
-#include "console.h"
 #include "device_monitoring.h"
 #include "device_monitoring_cmd.h"
 
