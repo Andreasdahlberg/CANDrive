@@ -77,7 +77,8 @@ __attribute__((weak)) void DeviceMonitoring_ResetImminent(enum device_monitoring
 
 __attribute__((weak)) void DeviceMonitoring_Count(enum device_monitoring_metric_id id, int32_t amount)
 {
-
+    check_expected(id);
+    check_expected(amount);
 }
 
 __attribute__((weak)) void DeviceMonitoring_StartTimer(enum device_monitoring_metric_id id)
