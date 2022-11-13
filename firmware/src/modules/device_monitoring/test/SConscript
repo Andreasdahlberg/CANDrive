@@ -19,15 +19,17 @@ import os
 
 Import(['*'])
 
-SOURCE = Glob('*.c')
-
-env.Append(CPPPATH=[
+test_env = env.Clone()
+test_env['CCFLAGS'].remove('--coverage')
+test_env.Append(CPPPATH=[
     '#src/modules/logging',
+    '#src/modules/utility',
+    '#src/modules/device_monitoring',
     '#src/modules/third_party/memfault/memfault-firmware-sdk/components/include',
-    '#src/modules/third_party/memfault/memfault-firmware-sdk/ports/include',
     '#src/modules/third_party/memfault'
-])
+    ])
 
-OBJECTS = env.Object(SOURCE)
+source = Glob('*.c')
+objects = test_env.Object(source=source)
 
-Return('OBJECTS')
+Return('objects')
