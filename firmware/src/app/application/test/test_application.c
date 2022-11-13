@@ -38,6 +38,7 @@ along with CANDrive firmware.  If not, see <http://www.gnu.org/licenses/>.
 #include "board.h"
 #include "signal_handler.h"
 #include "system_monitor.h"
+#include "device_monitoring.h"
 #include "motor_controller.h"
 #include "nvcom.h"
 #include "firmware_manager.h"
@@ -327,6 +328,8 @@ static void test_Application_Run_StateChanges(void **state)
     expect_function_call(Console_Process);
     expect_function_call(SystemMonitor_Update);
     will_return(SystemMonitor_GetState, SYSTEM_MONITOR_EMERGENCY);
+    expect_value(DeviceMonitoring_Count, id, DEV_MON_METRIC_EMERGENCY_STOP);
+    expect_value(DeviceMonitoring_Count, amount, 1);
     for (size_t i = 0; i < number_of_motors; ++i)
     {
         expect_value(MotorController_Brake, index, i);
