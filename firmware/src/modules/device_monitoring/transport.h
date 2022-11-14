@@ -32,6 +32,8 @@ along with CANDrive firmware.  If not, see <http://www.gnu.org/licenses/>.
 //INCLUDES
 //////////////////////////////////////////////////////////////////////////
 
+#include "logging.h"
+
 //////////////////////////////////////////////////////////////////////////
 //DEFINES
 //////////////////////////////////////////////////////////////////////////
@@ -45,9 +47,11 @@ along with CANDrive firmware.  If not, see <http://www.gnu.org/licenses/>.
 //////////////////////////////////////////////////////////////////////////
 
 /**
- * Initialize the transport link.
+ *  Initialize the transport link.
+ *
+ * @param logger_p Pointer to logger instance.
  */
-void Transport_Init(void);
+void Transport_Init(logging_logger_t *logger_p);
 
 /**
  * Update the internal state.

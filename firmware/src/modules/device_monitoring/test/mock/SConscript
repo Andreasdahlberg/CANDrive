@@ -22,6 +22,7 @@ Import(['*'])
 SOURCE = Glob('*.c')
 
 env.Append(CPPPATH=[
+    '#src/modules/logging',
     '#src/modules/device_monitoring'
 ])
 
