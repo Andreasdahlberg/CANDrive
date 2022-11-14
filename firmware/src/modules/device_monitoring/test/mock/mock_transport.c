@@ -54,7 +54,7 @@ along with CANDrive firmware.  If not, see <http://www.gnu.org/licenses/>.
 //FUNCTIONS
 //////////////////////////////////////////////////////////////////////////
 
-__attribute__((weak)) void Transport_Init(void)
+__attribute__((weak)) void Transport_Init(logging_logger_t *logger_p)
 {
 
 }

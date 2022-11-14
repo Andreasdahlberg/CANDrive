@@ -48,6 +48,7 @@ along with CANDrive firmware.  If not, see <http://www.gnu.org/licenses/>.
 
 struct module_t
 {
+    logging_logger_t *logger_p;
     struct isotp_ctx_t ctx;
     uint8_t rx_buffer[RX_BUFFER_SIZE];
     uint8_t tx_buffer[TX_BUFFER_SIZE];
@@ -70,9 +71,10 @@ static void TxStatusCallback(enum isotp_status_t status);
 //FUNCTIONS
 //////////////////////////////////////////////////////////////////////////
 
-void Transport_Init(void)
+void Transport_Init(logging_logger_t *logger_p)
 {
     module = (__typeof__(module)) {0};
+    module.logger_p = logger_p;
 
     ISOTP_Bind(&module.ctx,
                module.rx_buffer,
@@ -95,7 +97,12 @@ void Transport_Update(void)
     bool data_available = memfault_packetizer_get_chunk(data, &number_of_bytes);
     if (data_available )
     {
-        ISOTP_Send(&module.ctx, data, number_of_bytes);
+        Logging_Debug(module.logger_p, "Chunk available: {length: %u}", number_of_bytes);
+        if (!ISOTP_Send(&module.ctx, data, number_of_bytes))
+        {
+            Logging_Warning(module.logger_p, "Abort transport due to ISOTP error.");
+            memfault_packetizer_abort();
+        }
     }
 
     ISOTP_Proccess(&module.ctx);

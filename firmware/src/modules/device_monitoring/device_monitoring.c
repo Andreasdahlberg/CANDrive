@@ -79,7 +79,7 @@ void DeviceMonitoring_Init(void)
     Logging_SetLevel(module.logger_p, DEVICE_MONITORING_LOGGER_DEBUG_LEVEL);
 
     memfault_platform_boot();
-    Transport_Init();
+    Transport_Init(module.logger_p);
 
     Logging_Info(module.logger_p, "DeviceMonitoring initialized {type: mflt}");
 }
@@ -150,7 +150,6 @@ eMemfaultRebootReason ResetReasonToMemfault(enum device_monitoring_reboot_reason
 
 MemfaultMetricId MetricIdToMemfault(enum device_monitoring_metric_id id)
 {
-
     switch (id)
     {
         case DEV_MON_METRIC_CAN_TX_ERROR:

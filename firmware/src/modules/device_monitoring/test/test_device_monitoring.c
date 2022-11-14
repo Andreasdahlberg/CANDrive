@@ -34,6 +34,7 @@ along with CANDrive firmware.  If not, see <http://www.gnu.org/licenses/>.
 #include <stdbool.h>
 #include <string.h>
 #include "memfault/components.h"
+#include "utility.h"
 #include "logging.h"
 #include "device_monitoring.h"
 
@@ -108,6 +109,22 @@ void test_DeviceMonitoring_TimerCallback(void **state)
     DeviceMonitoring_Update();
 }
 
+void test_DeviceMonitoring_TransportLayer(void ** state)
+{
+    /* No data available, do nothing. */
+    will_return(memfault_packetizer_get_chunk, false);
+    expect_function_call(ISOTP_Proccess);
+    DeviceMonitoring_Update();
+
+    /* Send failed. */
+    will_return(memfault_packetizer_get_chunk, true);
+    will_return(ISOTP_Send, false);
+    expect_any(ISOTP_Send, data_p);
+    expect_function_call(memfault_packetizer_abort);
+    expect_function_call(ISOTP_Proccess);
+    DeviceMonitoring_Update();
+}
+
 void test_DeviceMonitoring_ResetImminent(void **state)
 {
     expect_value(memfault_reboot_tracking_mark_reset_imminent, reboot_reason, kMfltRebootReason_UserReset);
@@ -123,6 +140,31 @@ void test_DeviceMonitoring_ResetImminent(void **state)
     DeviceMonitoring_ResetImminent(UINT32_MAX);
 }
 
+void test_DeviceMonitoring_Count_InvalidId(void **state)
+{
+    expect_assert_failure(DeviceMonitoring_Count(UINT32_MAX, 0));
+}
+
+void test_DeviceMonitoring_Count(void **state)
+{
+    will_return_always(memfault_metrics_heartbeat_add, 0);
+
+    int32_t test_data[] = {INT32_MIN, 0, INT32_MAX};
+    for (size_t i = 0; i < ElementsIn(test_data); ++i)
+    {
+        expect_value(memfault_metrics_heartbeat_add, amount, test_data[i]);
+        DeviceMonitoring_Count(DEV_MON_METRIC_CAN_TX_ERROR, test_data[i]);
+    }
+}
+
+void test_DeviceMonitoring_Timer(void **state)
+{
+    will_return(memfault_metrics_heartbeat_timer_start, 0);
+    DeviceMonitoring_StartTimer(DEV_MON_METRIC_MAIN_TASK_TIME);
+
+    will_return(memfault_metrics_heartbeat_timer_stop, 0);
+    DeviceMonitoring_StopTimer(DEV_MON_METRIC_MAIN_TASK_TIME);
+}
 
 //////////////////////////////////////////////////////////////////////////
 //FUNCTIONS
@@ -134,7 +176,11 @@ int main(int argc, char *argv[])
     {
         cmocka_unit_test(test_DeviceMonitoring_Init),
         cmocka_unit_test_setup(test_DeviceMonitoring_TimerCallback, Setup),
+        cmocka_unit_test_setup(test_DeviceMonitoring_TransportLayer, Setup),
         cmocka_unit_test_setup(test_DeviceMonitoring_ResetImminent, Setup),
+        cmocka_unit_test_setup(test_DeviceMonitoring_Count_InvalidId, Setup),
+        cmocka_unit_test_setup(test_DeviceMonitoring_Count, Setup),
+        cmocka_unit_test_setup(test_DeviceMonitoring_Timer, Setup)
     };
 
     if (argc >= 2)
