@@ -156,7 +156,7 @@ void ISOTP_Proccess(struct isotp_ctx_t *ctx_p);
  * Send data.
  *
  * @param ctx_p Pointer to link context.
- * @param data_p Pointer to data. data_p must be valid until TX event ISOTP_STATUS_DONE is received.
+ * @param data_p Pointer to data.
  * @param length Number of bytes to send.
  *
  * @return True if send was successful, otherwise false.
