@@ -37,6 +37,7 @@ along with CANDrive firmware.  If not, see <http://www.gnu.org/licenses/>.
 #include "utility.h"
 #include "logging.h"
 #include "device_monitoring.h"
+#include "device_monitoring_cmd.h"
 
 //////////////////////////////////////////////////////////////////////////
 //DEFINES
@@ -109,7 +110,7 @@ void test_DeviceMonitoring_TimerCallback(void **state)
     DeviceMonitoring_Update();
 }
 
-void test_DeviceMonitoring_TransportLayer(void ** state)
+void test_DeviceMonitoring_TransportLayer(void **state)
 {
     /* No data available, do nothing. */
     will_return(memfault_packetizer_get_chunk, false);
@@ -166,13 +167,19 @@ void test_DeviceMonitoring_Timer(void **state)
     DeviceMonitoring_StopTimer(DEV_MON_METRIC_MAIN_TASK_TIME);
 }
 
+void test_DeviceMonitoringCmd_DumpData(void **state)
+{
+    expect_function_call(memfault_data_export_dump_chunks);
+    assert_true(DeviceMonitoringCmd_DumpData());
+}
+
 //////////////////////////////////////////////////////////////////////////
 //FUNCTIONS
 //////////////////////////////////////////////////////////////////////////
 
 int main(int argc, char *argv[])
 {
-    const struct CMUnitTest test_image[] =
+    const struct CMUnitTest test_device_monitoring[] =
     {
         cmocka_unit_test(test_DeviceMonitoring_Init),
         cmocka_unit_test_setup(test_DeviceMonitoring_TimerCallback, Setup),
@@ -183,10 +190,18 @@ int main(int argc, char *argv[])
         cmocka_unit_test_setup(test_DeviceMonitoring_Timer, Setup)
     };
 
+    const struct CMUnitTest test_device_monitoring_cmd[] =
+    {
+        cmocka_unit_test(test_DeviceMonitoringCmd_DumpData)
+    };
+
     if (argc >= 2)
     {
         cmocka_set_test_filter(argv[1]);
     }
 
-    return cmocka_run_group_tests(test_image, NULL, NULL);
+    int status = 0;
+    status = cmocka_run_group_tests(test_device_monitoring, NULL, NULL);
+    status += cmocka_run_group_tests(test_device_monitoring_cmd, NULL, NULL);
+    return status;
 }
