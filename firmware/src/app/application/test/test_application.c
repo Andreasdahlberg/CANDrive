@@ -454,10 +454,19 @@ static void test_ApplicationCmd_UpdateFirmware(void **state)
 {
     struct nvcom_data_t restart_information;
     will_return_always(NVCom_GetData, &restart_information);
+    expect_value(DeviceMonitoring_ResetImminent, reason, DEV_MON_REBOOT_REAS_FW_UPDATE);
     expect_function_call(Board_Reset);
 
     assert_true(ApplicationCmd_UpdateFirmware());
     assert_true(restart_information.request_firmware_update);
+}
+
+static void test_ApplicationCmd_Reset(void **state)
+{
+    expect_value(DeviceMonitoring_ResetImminent, reason, DEV_MON_REBOOT_REAS_USER_RESET);
+    expect_function_call(Board_Reset);
+
+    assert_true(ApplicationCmd_Reset());
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -479,7 +488,8 @@ int main(int argc, char *argv[])
 
     const struct CMUnitTest test_application_cmd[] =
     {
-        cmocka_unit_test(test_ApplicationCmd_UpdateFirmware)
+        cmocka_unit_test(test_ApplicationCmd_UpdateFirmware),
+        cmocka_unit_test(test_ApplicationCmd_Reset)
     };
 
     if (argc >= 2)
