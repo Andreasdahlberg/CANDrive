@@ -211,11 +211,19 @@ void test_DeviceMonitoring_Count(void **state)
 {
     will_return_always(memfault_metrics_heartbeat_add, 0);
 
-    int32_t test_data[] = {INT32_MIN, 0, INT32_MAX};
-    for (size_t i = 0; i < ElementsIn(test_data); ++i)
+    const enum device_monitoring_metric_id counter_ids[] =
     {
-        expect_value(memfault_metrics_heartbeat_add, amount, test_data[i]);
-        DeviceMonitoring_Count(DEV_MON_METRIC_CAN_TX_ERROR, test_data[i]);
+        DEV_MON_METRIC_CAN_TX_ERROR,
+        DEV_MON_METRIC_EMERGENCY_STOP
+    };
+    for (size_t n = 0; n < ElementsIn(counter_ids); ++n)
+    {
+        const int32_t test_data[] = {INT32_MIN, 0, INT32_MAX};
+        for (size_t i = 0; i < ElementsIn(test_data); ++i)
+        {
+            expect_value(memfault_metrics_heartbeat_add, amount, test_data[i]);
+            DeviceMonitoring_Count(counter_ids[n], test_data[i]);
+        }
     }
 }
 
