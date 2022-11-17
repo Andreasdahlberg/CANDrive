@@ -164,6 +164,14 @@ void ISOTP_Proccess(struct isotp_ctx_t *ctx_p);
 bool ISOTP_Send(struct isotp_ctx_t *ctx_p, const void *data_p, size_t length);
 
 /**
+ * Check if the link is currently sending.
+ *
+ * @param ctx_p Pointer to link context.
+ * @return True if sending, otherwise false.
+ */
+bool ISOTP_IsSending(const struct isotp_ctx_t *ctx_p);
+
+/**
  * Receive any available data.
  *
  * @param ctx_p Pointer to link context.
