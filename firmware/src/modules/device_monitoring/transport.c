@@ -92,7 +92,7 @@ void Transport_Update(void)
     uint8_t data[64];
     size_t number_of_bytes = sizeof(data);
 
-    if (!ISOTP_IsSending(&module.ctx) && memfault_packetizer_get_chunk(data, &number_of_bytes))
+    if ((!ISOTP_IsSending(&module.ctx)) && memfault_packetizer_get_chunk(data, &number_of_bytes))
     {
         Logging_Debug(module.logger_p, "Chunk available: {length: %u}", number_of_bytes);
         if (!ISOTP_Send(&module.ctx, data, number_of_bytes))
