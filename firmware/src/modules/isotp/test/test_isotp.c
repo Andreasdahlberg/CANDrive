@@ -244,6 +244,7 @@ static void test_ISOTP_SingleFrame(void **state)
     assert_true(ISOTP_Send(&ctx, tx_data, sizeof(tx_data)));
 
     ProccessUntilStatus(&ctx, ISOTP_STATUS_DONE);
+    assert_false(ISOTP_IsSending(&ctx));
 
     uint8_t rx_data[8];
     size_t res = ISOTP_Receive(&ctx, rx_data, sizeof(rx_data));
@@ -266,6 +267,7 @@ static void test_ISOTP_SingleFrameOverflow(void **state)
     uint8_t tx_data[] = {1, 2, 3, 4, 5, 6};
     assert_true(ISOTP_Send(&ctx, tx_data, sizeof(tx_data)));
     ProccessUntilStatus(&ctx, ISOTP_STATUS_OVERFLOW_ABORT);
+    assert_false(ISOTP_IsSending(&ctx));
 }
 
 static void test_ISOTP_FirstFrameOverflow(void **state)
@@ -285,6 +287,7 @@ static void test_ISOTP_FirstFrameOverflow(void **state)
 
     expect_value(MockTxStatusHandler, status, ISOTP_STATUS_OVERFLOW_ABORT);
     ProccessUntilStatus(&ctx, ISOTP_STATUS_OVERFLOW_ABORT);
+    assert_false(ISOTP_IsSending(&ctx));
 }
 
 static void test_ISOTP_MultiplePacketsOverflow(void **state)
@@ -312,6 +315,7 @@ static void test_ISOTP_MultiplePacketsOverflow(void **state)
     assert_true(ISOTP_Send(&ctx, tx_data, sizeof(tx_data)));
     expect_value(MockTxStatusHandler, status, ISOTP_STATUS_OVERFLOW_ABORT);
     ProccessUntilStatus(&ctx, ISOTP_STATUS_OVERFLOW_ABORT);
+    assert_false(ISOTP_IsSending(&ctx));
 
     uint8_t rx_data[32];
     size_t res = ISOTP_Receive(&ctx, rx_data, sizeof(rx_data));
@@ -331,10 +335,13 @@ static void test_ISOTP_MulipleFrames(void **state)
     ISOTP_Bind(&ctx, rx_buffer, sizeof(rx_buffer), tx_buffer, sizeof(tx_buffer), 0x1, 0x2, MockRxStatusHandler, MockTxStatusHandler);
 
     uint8_t tx_data[] = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9};
+    assert_false(ISOTP_IsSending(&ctx));
     assert_true(ISOTP_Send(&ctx, tx_data, sizeof(tx_data)));
+    assert_true(ISOTP_IsSending(&ctx));
 
     expect_value(MockTxStatusHandler, status, ISOTP_STATUS_DONE);
     ProccessUntilStatus(&ctx, ISOTP_STATUS_DONE);
+    assert_false(ISOTP_IsSending(&ctx));
 
     uint8_t rx_data[32];
     size_t res = ISOTP_Receive(&ctx, rx_data, sizeof(rx_data));
@@ -386,6 +393,7 @@ static void test_ISOTP_ConsecutiveFrameTimeout(void **state)
 
     expect_value(MockTxStatusHandler, status, ISOTP_STATUS_DONE);
     ProccessUntilStatus(&ctx, ISOTP_STATUS_TIMEOUT);
+    assert_false(ISOTP_IsSending(&ctx));
 
     uint8_t rx_data[32];
     size_t res = ISOTP_Receive(&ctx, rx_data, sizeof(rx_data));
@@ -520,6 +528,7 @@ static void test_ISOTP_TxCanTransmitError(void **state)
     will_return(CANInterface_Transmit, false);
     expect_value(MockTxStatusHandler, status, ISOTP_STATUS_OVERFLOW_ABORT);
     Proccess(&ctx, 2);
+    assert_false(ISOTP_IsSending(&ctx));
 }
 
 static void test_ISOTP_WaitingForRxSpace(void **state)
@@ -601,6 +610,7 @@ static void test_ISOTP_TxWaitingTimeout(void **state)
 
     expect_value(MockTxStatusHandler, status, ISOTP_STATUS_TIMEOUT);
     ProccessUntilStatus(&ctx, ISOTP_STATUS_TIMEOUT);
+    assert_false(ISOTP_IsSending(&ctx));
 }
 
 static void test_ISOTP_SeparationTime(void **state)

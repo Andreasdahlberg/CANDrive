@@ -86,6 +86,12 @@ __attribute__((weak)) bool ISOTP_Send(struct isotp_ctx_t *ctx_p, const void *dat
     return mock_type(bool);
 }
 
+__attribute__((weak)) bool ISOTP_IsSending(const struct isotp_ctx_t *ctx_p)
+{
+    assert_non_null(ctx_p);
+    return mock_type(bool);
+}
+
 __attribute__((weak)) void ISOTP_ProccessTx(struct isotp_ctx_t *ctx_p)
 {
     assert_non_null(ctx_p);

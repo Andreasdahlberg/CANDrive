@@ -191,6 +191,11 @@ bool ISOTP_Send(struct isotp_ctx_t *ctx_p, const void *data_p, size_t length)
     return status;
 }
 
+bool ISOTP_IsSending(const struct isotp_ctx_t *ctx_p)
+{
+    return ctx_p->tx_link.state != ISOTP_TX_INACTIVE;
+}
+
 size_t ISOTP_Receive(struct isotp_ctx_t *ctx_p, void *destination_p, size_t length)
 {
     assert(ctx_p != NULL);
