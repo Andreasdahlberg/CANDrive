@@ -52,7 +52,6 @@ struct module_t
     uint32_t last_callback_time;
     uint32_t timer_callback_period;
     device_monitoring_timer_cb_t timer_callback;
-
 };
 
 //////////////////////////////////////////////////////////////////////////

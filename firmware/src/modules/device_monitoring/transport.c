@@ -1,6 +1,6 @@
 /**
  * @file   transport.c
- * @Author Andreas Dahlberg (andreas.dahlberg90@gmail.com)
+ * @author Andreas Dahlberg (andreas.dahlberg90@gmail.com)
  * @brief  Transport link for debug data.
  */
 
@@ -29,11 +29,10 @@ along with CANDrive firmware.  If not, see <http://www.gnu.org/licenses/>.
 #include <assert.h>
 #include <stddef.h>
 #include <string.h>
+#include "memfault/core/data_packetizer.h"
 #include "utility.h"
 #include "isotp.h"
 #include "transport.h"
-
-#include "memfault/core/data_packetizer.h"
 
 //////////////////////////////////////////////////////////////////////////
 //DEFINES
@@ -86,7 +85,6 @@ void Transport_Init(logging_logger_t *logger_p)
                RxStatusCallback,
                TxStatusCallback
               );
-
 }
 
 void Transport_Update(void)
@@ -94,13 +92,12 @@ void Transport_Update(void)
     uint8_t data[64];
     size_t number_of_bytes = sizeof(data);
 
-    bool data_available = memfault_packetizer_get_chunk(data, &number_of_bytes);
-    if (data_available )
+    if (!ISOTP_IsSending(&module.ctx) && memfault_packetizer_get_chunk(data, &number_of_bytes))
     {
         Logging_Debug(module.logger_p, "Chunk available: {length: %u}", number_of_bytes);
         if (!ISOTP_Send(&module.ctx, data, number_of_bytes))
         {
-            Logging_Warning(module.logger_p, "Abort transport due to ISOTP error.");
+            Logging_Warning(module.logger_p, "Failed to send chunk: {length: %u}", number_of_bytes);
             memfault_packetizer_abort();
         }
     }
@@ -117,7 +114,27 @@ static void RxStatusCallback(enum isotp_status_t status __attribute__((unused)))
     /* Empty callback. */
 }
 
-static void TxStatusCallback(enum isotp_status_t status __attribute__((unused)))
+static void TxStatusCallback(enum isotp_status_t status)
 {
-    /* Empty callback. */
+    switch(status)
+    {
+        case ISOTP_STATUS_DONE:
+            break;
+        case ISOTP_STATUS_WAITING:
+            /**
+             * Do nothing here, wait for receiver. No need to check for timeout
+             * since it's handled by the ISO-TP layer.
+             */
+            break;
+        case ISOTP_STATUS_TIMEOUT:
+        case ISOTP_STATUS_LOST_FRAME:
+        case ISOTP_STATUS_OVERFLOW_ABORT:
+            Logging_Warning(module.logger_p, "Abort due to ISOTP error: {status: %u}", (uint32_t)status);
+            memfault_packetizer_abort();
+            break;
+        default:
+            Logging_Error(module.logger_p, "Unknown status: {status: %u}", (uint32_t)status);
+            memfault_packetizer_abort();
+            break;
+    }
 }

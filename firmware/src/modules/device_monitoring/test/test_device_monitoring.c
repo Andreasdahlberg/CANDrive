@@ -1,6 +1,6 @@
 /**
  * @file   test_device_monitoring.c
- * @Author Andreas Dahlberg (andreas.dahlberg90@gmail.com)
+ * @author Andreas Dahlberg (andreas.dahlberg90@gmail.com)
  * @brief  Test suite for the Device Monitoring module.
  */
 
@@ -36,6 +36,7 @@ along with CANDrive firmware.  If not, see <http://www.gnu.org/licenses/>.
 #include "memfault/components.h"
 #include "utility.h"
 #include "logging.h"
+#include "isotp.h"
 #include "device_monitoring.h"
 #include "device_monitoring_cmd.h"
 
@@ -52,6 +53,22 @@ along with CANDrive firmware.  If not, see <http://www.gnu.org/licenses/>.
 //////////////////////////////////////////////////////////////////////////
 
 static struct logging_logger_t *dummy_logger;
+static isotp_status_callback_t rx_cb_fp;
+static isotp_status_callback_t tx_cb_fp;
+
+//////////////////////////////////////////////////////////////////////////
+//MOCKS
+//////////////////////////////////////////////////////////////////////////
+
+void ISOTP_Bind(struct isotp_ctx_t *ctx_p, void *rx_buffer_p, size_t rx_buffer_size, void *tx_buffer_p, size_t tx_buffer_size, uint16_t rx_id, uint16_t tx_id, isotp_status_callback_t rx_callback_fp, isotp_status_callback_t tx_callback_fp)
+{
+    assert_non_null(ctx_p);
+    assert_non_null(rx_buffer_p);
+    assert_non_null(tx_buffer_p);
+
+    rx_cb_fp = rx_callback_fp;
+    tx_cb_fp = tx_callback_fp;
+}
 
 //////////////////////////////////////////////////////////////////////////
 //LOCAL FUNCTIONS
@@ -85,6 +102,7 @@ void test_DeviceMonitoring_Init(void **state)
 void test_DeviceMonitoring_TimerCallback(void **state)
 {
     /* Default expectations for 'Transport_Update()'. */
+    will_return_always(ISOTP_IsSending, false);
     will_return_always(memfault_packetizer_get_chunk, true);
     will_return_always(ISOTP_Send, true);
     expect_any_always(ISOTP_Send, data_p);
@@ -112,18 +130,61 @@ void test_DeviceMonitoring_TimerCallback(void **state)
 
 void test_DeviceMonitoring_TransportLayer(void **state)
 {
+    /* Send successful. */
+    will_return(ISOTP_IsSending, false);
+    will_return(memfault_packetizer_get_chunk, true);
+    will_return(ISOTP_Send, true);
+    expect_any(ISOTP_Send, data_p);
+    expect_function_call(ISOTP_Proccess);
+    DeviceMonitoring_Update();
+
+    tx_cb_fp(ISOTP_STATUS_WAITING);
+    tx_cb_fp(ISOTP_STATUS_DONE);
+}
+
+void test_DeviceMonitoring_TransportLayer_ErrorHandling(void **state)
+{
     /* No data available, do nothing. */
+    will_return(ISOTP_IsSending, false);
     will_return(memfault_packetizer_get_chunk, false);
     expect_function_call(ISOTP_Proccess);
     DeviceMonitoring_Update();
 
+    /* Already sending, do nothing. */
+    will_return(ISOTP_IsSending, true);
+    expect_function_call(ISOTP_Proccess);
+    DeviceMonitoring_Update();
+
     /* Send failed. */
+    will_return(ISOTP_IsSending, false);
     will_return(memfault_packetizer_get_chunk, true);
     will_return(ISOTP_Send, false);
     expect_any(ISOTP_Send, data_p);
     expect_function_call(memfault_packetizer_abort);
     expect_function_call(ISOTP_Proccess);
     DeviceMonitoring_Update();
+
+    /* ISOTP errors. */
+    const enum isotp_status_t test_data[] =
+    {
+        ISOTP_STATUS_TIMEOUT,
+        ISOTP_STATUS_LOST_FRAME,
+        ISOTP_STATUS_OVERFLOW_ABORT,
+        UINT32_MAX
+    };
+    for (size_t i = 0; i < ElementsIn(test_data); ++i)
+    {
+        will_return(ISOTP_IsSending, false);
+        will_return(memfault_packetizer_get_chunk, true);
+        will_return(ISOTP_Send, true);
+        expect_any(ISOTP_Send, data_p);
+        expect_function_call(ISOTP_Proccess);
+        DeviceMonitoring_Update();
+
+        /* Fake callback. */
+        expect_function_call(memfault_packetizer_abort);
+        tx_cb_fp(test_data[i]);
+    }
 }
 
 void test_DeviceMonitoring_ResetImminent(void **state)
@@ -184,6 +245,7 @@ int main(int argc, char *argv[])
         cmocka_unit_test(test_DeviceMonitoring_Init),
         cmocka_unit_test_setup(test_DeviceMonitoring_TimerCallback, Setup),
         cmocka_unit_test_setup(test_DeviceMonitoring_TransportLayer, Setup),
+        cmocka_unit_test_setup(test_DeviceMonitoring_TransportLayer_ErrorHandling, Setup),
         cmocka_unit_test_setup(test_DeviceMonitoring_ResetImminent, Setup),
         cmocka_unit_test_setup(test_DeviceMonitoring_Count_InvalidId, Setup),
         cmocka_unit_test_setup(test_DeviceMonitoring_Count, Setup),
