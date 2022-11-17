@@ -163,6 +163,4 @@ MemfaultMetricId MetricIdToMemfault(enum device_monitoring_metric_id id)
         default:
             assert(0);
     }
-
-    assert(0);
 }
