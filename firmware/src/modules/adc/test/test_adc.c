@@ -81,7 +81,7 @@ static void ExpectDMASetup(void)
     expect_value(dma_set_memory_address, dma, dma);
     expect_value(dma_set_memory_address, channel, channel);
 
-    const uint16_t number_of_data = 32;
+    const uint16_t number_of_data = 48;
     expect_value(dma_set_number_of_data, dma, dma);
     expect_value(dma_set_number_of_data, channel, channel);
     expect_value(dma_set_number_of_data, number, number_of_data);
@@ -156,6 +156,7 @@ static void test_ADC_InitChannel_Invalid(void **state)
     adc_input_t adc_channel;
     ADC_InitChannel(&adc_channel, 0);
     ADC_InitChannel(&adc_channel, 1);
+    ADC_InitChannel(&adc_channel, 2);
     expect_assert_failure(ADC_InitChannel(&adc_channel, 3));
 }
 

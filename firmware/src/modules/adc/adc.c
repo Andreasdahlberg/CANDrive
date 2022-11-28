@@ -45,7 +45,7 @@ along with CANDrive firmware.  If not, see <http://www.gnu.org/licenses/>.
 #endif
 
 #define NUMBER_OF_READINGS_PER_SAMPLE 16
-#define MAX_NUMBER_OF_CHANNELS 2
+#define MAX_NUMBER_OF_CHANNELS 3
 
 //////////////////////////////////////////////////////////////////////////
 //TYPE DEFINITIONS
