@@ -309,6 +309,19 @@ static void test_Application_Run_StateChanges(void **state)
     will_return(SysTime_GetDifference, 0);
     Application_Run();
 
+    /* Fail */
+    expect_function_call(SignalHandler_Process);
+    expect_function_call(MotorController_Update);
+    expect_function_call(Console_Process);
+    expect_function_call(SystemMonitor_Update);
+    will_return(SystemMonitor_GetState, SYSTEM_MONITOR_FAIL);
+    for (size_t i = 0; i < number_of_motors; ++i)
+    {
+        expect_value(MotorController_Brake, index, i);
+    }
+    will_return(SysTime_GetDifference, 0);
+    Application_Run();
+
     /* Inactive */
     expect_function_call(SignalHandler_Process);
     expect_function_call(MotorController_Update);
@@ -404,13 +417,31 @@ static void test_Application_SignalHandlers(void **state)
     GetCallback(signal.id)(&signal);
 }
 
-static void test_Application_SignalHandlers_Emergency(void **state)
+static void test_Application_SignalHandlers_EmergencyState(void **state)
 {
     uint16_t data;
     struct signal_t signal;
     signal.data_p = &data;
 
     will_return_maybe(SystemMonitor_GetState, SYSTEM_MONITOR_EMERGENCY);
+    will_return_maybe(Signal_IDToString, "MockSignal");
+
+    data = 1;
+    signal.id = SIGNAL_CONTROL_MODE1;
+    GetCallback(signal.id)(&signal);
+
+    data = 2;
+    signal.id = SIGNAL_CONTROL_MODE2;
+    GetCallback(signal.id)(&signal);
+}
+
+static void test_Application_SignalHandlers_FailState(void **state)
+{
+    uint16_t data;
+    struct signal_t signal;
+    signal.data_p = &data;
+
+    will_return_maybe(SystemMonitor_GetState, SYSTEM_MONITOR_FAIL);
     will_return_maybe(Signal_IDToString, "MockSignal");
 
     data = 1;
@@ -482,7 +513,8 @@ int main(int argc, char *argv[])
         cmocka_unit_test_setup(test_Application_Run, Setup),
         cmocka_unit_test_setup(test_Application_Run_StateChanges, Setup),
         cmocka_unit_test_setup(test_Application_SignalHandlers, Setup),
-        cmocka_unit_test_setup(test_Application_SignalHandlers_Emergency, Setup),
+        cmocka_unit_test_setup(test_Application_SignalHandlers_EmergencyState, Setup),
+        cmocka_unit_test_setup(test_Application_SignalHandlers_FailState, Setup),
         cmocka_unit_test_setup(test_Application_ResetCheck, Setup),
     };
 
