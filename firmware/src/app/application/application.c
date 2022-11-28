@@ -287,7 +287,8 @@ static void HandleModeSignal(struct signal_t *signal_p, uint8_t index)
 {
     Signal_Log(signal_p, module.logger);
 
-    if (SystemMonitor_GetState() != SYSTEM_MONITOR_EMERGENCY)
+    if ((SystemMonitor_GetState() != SYSTEM_MONITOR_EMERGENCY) &&
+            (SystemMonitor_GetState() != SYSTEM_MONITOR_FAIL))
     {
         const uint8_t mode = *(uint8_t *)signal_p->data_p;
         switch (mode)
@@ -328,6 +329,7 @@ static void HandleStateChanges(void)
                 DeviceMonitoring_Count(DEV_MON_METRIC_EMERGENCY_STOP, 1);
                 BrakeAllMotors();
                 break;
+            case SYSTEM_MONITOR_FAIL:
             case SYSTEM_MONITOR_INACTIVE:
                 BrakeAllMotors();
                 break;
