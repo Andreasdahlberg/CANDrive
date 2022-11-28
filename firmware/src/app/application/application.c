@@ -148,13 +148,13 @@ void Application_Init(void)
     Logging_Init(SysTime_GetSystemTime);
 
     NVCom_Init();
+    ADC_Init();
     SystemMonitor_Init();
     CANInterface_Init();
     DeviceMonitoring_Init();
     Flash_Init();
     NVS_Init(Board_GetNVSAddress(), Board_GetNumberOfPagesInNVS());
     Config_Init();
-    ADC_Init();
     MotorController_Init();
     ADC_Start();
     SignalHandler_Init();
