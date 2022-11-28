@@ -234,6 +234,15 @@ uintptr_t Board_GetBackupMemoryAddress(void)
     return (BACKUP_REGS_BASE + 0x04);
 }
 
+uint32_t Board_VSenseToVoltage(uint32_t value)
+{
+    /* Vsense voltage divider values in Ohm. */
+    const uint32_t r1 = 10000;
+    const uint32_t r2 = 1200;
+
+    return ((value * (r1 + r2)) + (r2 / 2)) / r2;
+}
+
 //////////////////////////////////////////////////////////////////////////
 //LOCAL FUNCTIONS
 //////////////////////////////////////////////////////////////////////////

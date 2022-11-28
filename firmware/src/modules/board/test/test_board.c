@@ -120,6 +120,13 @@ static void test_Board_GetMaxCurrent(void **state)
     assert_int_equal(Board_GetMaxCurrent(), 5000);
 }
 
+static void test_Board_VSenseToVoltage(void **state)
+{
+    assert_int_equal(Board_VSenseToVoltage(0), 0);
+    assert_int_equal(Board_VSenseToVoltage(1650), 15400);
+    assert_int_equal(Board_VSenseToVoltage(3300), 30800);
+}
+
 //////////////////////////////////////////////////////////////////////////
 //FUNCTIONS
 //////////////////////////////////////////////////////////////////////////
@@ -137,6 +144,7 @@ int main(int argc, char *argv[])
         cmocka_unit_test(test_Board_GetNVSAddress),
         cmocka_unit_test(test_Board_GetNumberOfPagesInNVS),
         cmocka_unit_test(test_Board_GetMaxCurrent),
+        cmocka_unit_test(test_Board_VSenseToVoltage)
     };
 
     if (argc >= 2)

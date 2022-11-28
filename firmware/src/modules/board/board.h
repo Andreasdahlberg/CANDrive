@@ -201,4 +201,13 @@ uint32_t Board_GetMaxCurrent(void);
  */
 uintptr_t Board_GetBackupMemoryAddress(void);
 
+/**
+ * Convert VSense reading to voltage.
+ *
+ * @param value VSense value.
+ *
+ * @return VSense voltage.
+ */
+uint32_t Board_VSenseToVoltage(uint32_t value);
+
 #endif
