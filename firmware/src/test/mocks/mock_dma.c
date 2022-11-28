@@ -66,7 +66,7 @@ __attribute__((weak)) void dma_clear_interrupt_flags(uint32_t dma, uint8_t chann
 
 __attribute__((weak)) bool dma_get_interrupt_flag(uint32_t dma, uint8_t channel, uint32_t interrupts)
 {
-    mock_type(bool);
+    return mock_type(bool);
 }
 
 __attribute__((weak)) void dma_enable_mem2mem_mode(uint32_t dma, uint8_t channel)
@@ -167,7 +167,7 @@ __attribute__((weak)) void dma_set_memory_address(uint32_t dma, uint8_t channel,
 
 __attribute__((weak)) uint16_t dma_get_number_of_data(uint32_t dma, uint8_t channel)
 {
-    mock_type(uint16_t);
+    return mock_type(uint16_t);
 }
 
 __attribute__((weak)) void dma_set_number_of_data(uint32_t dma, uint8_t channel, uint16_t number)
@@ -180,4 +180,3 @@ __attribute__((weak)) void dma_set_number_of_data(uint32_t dma, uint8_t channel,
 //////////////////////////////////////////////////////////////////////////
 //LOCAL FUNCTIONS
 //////////////////////////////////////////////////////////////////////////
-
