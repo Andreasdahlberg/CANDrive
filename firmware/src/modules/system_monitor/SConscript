@@ -30,7 +30,8 @@ env.Append(CPPPATH=[
     '#src/modules/logging',
     '#src/modules/systime',
     '#src/modules/system_monitor',
-    '#src/modules/nvcom'
+    '#src/modules/nvcom',
+    '#src/modules/filter'
 
 ])
 

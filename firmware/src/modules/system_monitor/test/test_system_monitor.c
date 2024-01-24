@@ -191,6 +191,7 @@ static void test_SystemMonitor_Update(void **state)
         handles[i] =  SystemMonitor_GetWatchdogHandle();
     }
 
+    will_return_always(SysTime_GetDifference, 0);
     will_return_always(Board_GetEmergencyPinState, false);
 
     /* Expect watchdog reset since the watchdog is feed when getting the handles*/
@@ -215,6 +216,8 @@ static void test_SystemMonitor_Update(void **state)
 
 static void test_SystemMonitor_ControlActivity(void **state)
 {
+    will_return(SysTime_GetDifference, 0);
+
     SystemMonitor_GetWatchdogHandle();
     assert_int_equal(SystemMonitor_GetState(), SYSTEM_MONITOR_INACTIVE);
 
@@ -229,8 +232,14 @@ static void test_SystemMonitor_ControlActivity(void **state)
     SystemMonitor_Update();
     assert_int_equal(SystemMonitor_GetState(), SYSTEM_MONITOR_ACTIVE);
 
+    will_return(SysTime_GetSystemTime, 0);
+    will_return_always(ADC_GetVoltage, 100);
+    will_return_always(Board_VSenseToVoltage, 12000);
+    will_return_always(Filter_IsInitialized, true);
+    will_return_always(Filter_Output, 12000);
+
     will_return(Board_GetEmergencyPinState, false);
-    will_return(SysTime_GetDifference, 201);
+    will_return_count(SysTime_GetDifference, 201, 2);
     SystemMonitor_Update();
     assert_int_equal(SystemMonitor_GetState(), SYSTEM_MONITOR_INACTIVE);
 
@@ -243,6 +252,8 @@ static void test_SystemMonitor_ControlActivity(void **state)
 
 static void test_SystemMonitor_Emergency(void **state)
 {
+    will_return_always(SysTime_GetDifference, 0);
+
     SystemMonitor_GetWatchdogHandle();
 
     expect_function_call(iwdg_reset);

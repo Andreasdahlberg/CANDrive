@@ -40,16 +40,16 @@ along with SillyCat firmware.  If not, see <http://www.gnu.org/licenses/>.
 
 enum device_monitoring_reboot_reason
 {
-  DEV_MON_REBOOT_REAS_USER_RESET = 1,
-  DEV_MON_REBOOT_REAS_FW_UPDATE,
-  DEV_MON_REBOOT_REAS_SW_RESET,
+    DEV_MON_REBOOT_REAS_USER_RESET = 1,
+    DEV_MON_REBOOT_REAS_FW_UPDATE,
+    DEV_MON_REBOOT_REAS_SW_RESET,
 };
 
 enum device_monitoring_metric_id
 {
-  DEV_MON_METRIC_CAN_TX_ERROR = 1,
-  DEV_MON_METRIC_EMERGENCY_STOP,
-  DEV_MON_METRIC_MAIN_TASK_TIME,
+    DEV_MON_METRIC_CAN_TX_ERROR = 1,
+    DEV_MON_METRIC_EMERGENCY_STOP,
+    DEV_MON_METRIC_MAIN_TASK_TIME,
 };
 
 typedef void (*device_monitoring_timer_cb_t)(void);
