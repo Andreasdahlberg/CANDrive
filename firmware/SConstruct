@@ -87,7 +87,7 @@ Help('serial: Display serial output from the device.\n')
 env.Command('monitor', app, '../scripts/monitor.py ${SERIAL_PORT} ${SOURCE} -b ${BAUD_RATE}')
 Help('monitor: Display formatted output from the device.\n')
 
-env.Command("format", None, 'astyle --options=.astylerc --recursive src/*.c src/*.h --exclude=src/libopencm3')
+env.Command("format", None, 'astyle --options=.astylerc --recursive src/*.c src/*.h --exclude=src/libopencm3 --exclude=src/modules/third_party')
 Help('format: Format all source files.\n')
 
 compdb = env.CompilationDatabase()
