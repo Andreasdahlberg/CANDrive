@@ -22,7 +22,7 @@ Import(['*'])
 test_env = env.Clone()
 test_env['CCFLAGS'].remove('--coverage')
 test_env.Append(CPPPATH=[
-    '#src/modules/system_monitor',
+    '#src/modules/system_monitor'
     ])
 
 source = Glob('*.c')
