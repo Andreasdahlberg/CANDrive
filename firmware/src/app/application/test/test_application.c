@@ -121,13 +121,13 @@ static int Setup(void **state)
     expect_any(Serial_Init, baud_rate);
     expect_function_call(Logging_Init);
     expect_function_call(NVCom_Init);
+    expect_function_call(ADC_Init);
     expect_function_call(SystemMonitor_Init);
     expect_function_call(CANInterface_Init);
     will_return(Board_GetNVSAddress, 0x801F800);
     will_return(Board_GetNumberOfPagesInNVS, 2);
     expect_function_call(NVS_Init);
     expect_function_call(Config_Init);
-    expect_function_call(ADC_Init);
     expect_function_call(MotorController_Init);
     expect_function_call(SignalHandler_Init);
     will_return(Logging_GetLogger, dummy_logger);
@@ -180,13 +180,13 @@ static void test_Application_Init_NoMotors(void **state)
     expect_value(Serial_Init, baud_rate, BAUD_RATE);
     expect_function_call(Logging_Init);
     expect_function_call(NVCom_Init);
+    expect_function_call(ADC_Init);
     expect_function_call(SystemMonitor_Init);
     expect_function_call(CANInterface_Init);
     will_return(Board_GetNVSAddress, 0x801F800);
     will_return(Board_GetNumberOfPagesInNVS, 2);
     expect_function_call(NVS_Init);
     expect_function_call(Config_Init);
-    expect_function_call(ADC_Init);
     expect_function_call(MotorController_Init);
     expect_function_call(SignalHandler_Init);
     will_return(Logging_GetLogger, dummy_logger);
@@ -217,13 +217,13 @@ static void test_Application_Init(void **state)
     expect_value(Serial_Init, baud_rate, BAUD_RATE);
     expect_function_call(Logging_Init);
     expect_function_call(NVCom_Init);
+    expect_function_call(ADC_Init);
     expect_function_call(SystemMonitor_Init);
     expect_function_call(CANInterface_Init);
     will_return(Board_GetNVSAddress, 0x801F800);
     will_return(Board_GetNumberOfPagesInNVS, 2);
     expect_function_call(NVS_Init);
     expect_function_call(Config_Init);
-    expect_function_call(ADC_Init);
     expect_function_call(MotorController_Init);
     expect_function_call(SignalHandler_Init);
     will_return(Logging_GetLogger, dummy_logger);
@@ -306,6 +306,19 @@ static void test_Application_Run_StateChanges(void **state)
     expect_function_call(Console_Process);
     expect_function_call(SystemMonitor_Update);
     will_return(SystemMonitor_GetState, SYSTEM_MONITOR_ACTIVE);
+    will_return(SysTime_GetDifference, 0);
+    Application_Run();
+
+    /* Fail */
+    expect_function_call(SignalHandler_Process);
+    expect_function_call(MotorController_Update);
+    expect_function_call(Console_Process);
+    expect_function_call(SystemMonitor_Update);
+    will_return(SystemMonitor_GetState, SYSTEM_MONITOR_FAIL);
+    for (size_t i = 0; i < number_of_motors; ++i)
+    {
+        expect_value(MotorController_Brake, index, i);
+    }
     will_return(SysTime_GetDifference, 0);
     Application_Run();
 
@@ -404,13 +417,31 @@ static void test_Application_SignalHandlers(void **state)
     GetCallback(signal.id)(&signal);
 }
 
-static void test_Application_SignalHandlers_Emergency(void **state)
+static void test_Application_SignalHandlers_EmergencyState(void **state)
 {
     uint16_t data;
     struct signal_t signal;
     signal.data_p = &data;
 
     will_return_maybe(SystemMonitor_GetState, SYSTEM_MONITOR_EMERGENCY);
+    will_return_maybe(Signal_IDToString, "MockSignal");
+
+    data = 1;
+    signal.id = SIGNAL_CONTROL_MODE1;
+    GetCallback(signal.id)(&signal);
+
+    data = 2;
+    signal.id = SIGNAL_CONTROL_MODE2;
+    GetCallback(signal.id)(&signal);
+}
+
+static void test_Application_SignalHandlers_FailState(void **state)
+{
+    uint16_t data;
+    struct signal_t signal;
+    signal.data_p = &data;
+
+    will_return_maybe(SystemMonitor_GetState, SYSTEM_MONITOR_FAIL);
     will_return_maybe(Signal_IDToString, "MockSignal");
 
     data = 1;
@@ -482,7 +513,8 @@ int main(int argc, char *argv[])
         cmocka_unit_test_setup(test_Application_Run, Setup),
         cmocka_unit_test_setup(test_Application_Run_StateChanges, Setup),
         cmocka_unit_test_setup(test_Application_SignalHandlers, Setup),
-        cmocka_unit_test_setup(test_Application_SignalHandlers_Emergency, Setup),
+        cmocka_unit_test_setup(test_Application_SignalHandlers_EmergencyState, Setup),
+        cmocka_unit_test_setup(test_Application_SignalHandlers_FailState, Setup),
         cmocka_unit_test_setup(test_Application_ResetCheck, Setup),
     };
 

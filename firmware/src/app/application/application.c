@@ -148,13 +148,13 @@ void Application_Init(void)
     Logging_Init(SysTime_GetSystemTime);
 
     NVCom_Init();
+    ADC_Init();
     SystemMonitor_Init();
     CANInterface_Init();
     DeviceMonitoring_Init();
     Flash_Init();
     NVS_Init(Board_GetNVSAddress(), Board_GetNumberOfPagesInNVS());
     Config_Init();
-    ADC_Init();
     MotorController_Init();
     ADC_Start();
     SignalHandler_Init();
@@ -287,7 +287,8 @@ static void HandleModeSignal(struct signal_t *signal_p, uint8_t index)
 {
     Signal_Log(signal_p, module.logger);
 
-    if (SystemMonitor_GetState() != SYSTEM_MONITOR_EMERGENCY)
+    if ((SystemMonitor_GetState() != SYSTEM_MONITOR_EMERGENCY) &&
+            (SystemMonitor_GetState() != SYSTEM_MONITOR_FAIL))
     {
         const uint8_t mode = *(uint8_t *)signal_p->data_p;
         switch (mode)
@@ -328,6 +329,7 @@ static void HandleStateChanges(void)
                 DeviceMonitoring_Count(DEV_MON_METRIC_EMERGENCY_STOP, 1);
                 BrakeAllMotors();
                 break;
+            case SYSTEM_MONITOR_FAIL:
             case SYSTEM_MONITOR_INACTIVE:
                 BrakeAllMotors();
                 break;

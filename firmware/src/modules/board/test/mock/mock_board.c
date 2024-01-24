@@ -129,6 +129,11 @@ __attribute__((weak)) uintptr_t Board_GetBackupMemoryAddress(void)
     return mock_type(uintptr_t);
 }
 
+__attribute__((weak)) uint32_t Board_VSenseToVoltage(uint32_t value)
+{
+    return mock_type(uint32_t);
+}
+
 //////////////////////////////////////////////////////////////////////////
 //LOCAL FUNCTIONS
 //////////////////////////////////////////////////////////////////////////
