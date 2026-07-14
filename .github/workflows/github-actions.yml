@@ -2,7 +2,7 @@ name: CANDrive CI
 on: [push, pull_request]
 jobs:
   test-and-build-app:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-24.04
     env:
       SONAR_RUNNER_HOME: /usr/lib/sonar-scanner
 
@@ -11,13 +11,13 @@ jobs:
         run: sudo python3 -m pip install cantools
 
       - name: Install build tools
-        run: sudo apt-get update -y && sudo apt-get install -y gcc-arm-none-eabi libnewlib-arm-none-eabi libnewlib-nano-arm-none-eabi valgrind gcovr
+        run: sudo apt-get update -y && sudo apt-get install -y gcc-arm-none-eabi libnewlib-arm-none-eabi libstdc++-arm-none-eabi-newlib valgrind gcovr
 
       - name: Install SCons
         run: sudo python3 -m pip install scons
 
       - name: Check out repository and submodules
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
         with:
           submodules: recursive
 
@@ -59,23 +59,23 @@ jobs:
           scons -C ${{ github.workspace }}/firmware release SOFTWARE_VERSION=$GITHUB_REF_NAME -j2
 
       - name: Archive application
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: candrive-fw-app
           path: firmware/build/app/app/application.*
 
 
   build-boot:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-24.04
 
     steps:
       - name: Install build tools
-        run: sudo apt-get update -y && sudo apt-get install -y gcc-arm-none-eabi libnewlib-arm-none-eabi libnewlib-nano-arm-none-eabi
+        run: sudo apt-get update -y && sudo apt-get install -y gcc-arm-none-eabi libnewlib-arm-none-eabi libstdc++-arm-none-eabi-newlib
       - name: Install SCons
         run: sudo python3 -m pip install scons
 
       - name: Check out repository and submodules
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
         with:
           submodules: recursive
 
@@ -88,7 +88,7 @@ jobs:
           scons -C ${{ github.workspace }}/firmware release-boot -j2
 
       - name: Archive bootloader
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: candrive-fw-boot
           path: firmware/build/bootloader/bootloader/bootloader.*
@@ -101,12 +101,12 @@ jobs:
     if: github.ref_type == 'tag'
 
     steps:
-    - uses: actions/download-artifact@v3
+    - uses: actions/download-artifact@v4
       with:
         name: candrive-fw-app
         path: artifacts
 
-    - uses: actions/download-artifact@v3
+    - uses: actions/download-artifact@v4
       with:
         name: candrive-fw-boot
         path: artifacts
