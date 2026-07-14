@@ -19,10 +19,9 @@ import SCons.Util
 import SCons.Tool.cc as cc
 from SCons.Script import Dir
 import os
+import shutil
 
 __author__ = 'andreas.dahlberg90@gmail.com (Andreas Dahlberg)'
-
-CANTOOLS = 'cantools'
 
 def candb_emitter(target, source, env):
     path_of_calling_sconscript = Dir('.').srcnode().path
@@ -35,7 +34,7 @@ def generate(env):
     """Add Builders and construction variables for the compiler to an Environment."""
     cc.generate(env)
 
-    env['CANTOOLS'] = env.Detect(CANTOOLS)
+    env['CANTOOLS'] = shutil.which('cantools')
     env['CANTOOLSCOM'] = '$CANTOOLS generate_c_source --no-floating-point-numbers --database-name ${TARGET.filebase} --output-directory ${TARGET.dir} ${SOURCE}'
     env['CANTOOLSSRCSUFFIX']  = '.dbc'
     env.Append(BUILDERS={
@@ -44,7 +43,7 @@ def generate(env):
 
 
 def exists(env):
-    return env.Detect('CANTOOLS')
+    return shutil.which('cantools') is not None
 
 
 def _get_candb_builder():
