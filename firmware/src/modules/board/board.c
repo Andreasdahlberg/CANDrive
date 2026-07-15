@@ -30,6 +30,7 @@ along with CANDrive firmware.  If not, see <http://www.gnu.org/licenses/>.
 #include <libopencm3/cm3/common.h>
 #include <libopencm3/stm32/gpio.h>
 #include <libopencm3/cm3/scb.h>
+#include <stdint.h>
 #include <assert.h>
 #include "memory_map.h"
 #include "utility.h"
@@ -161,7 +162,7 @@ uint32_t Board_GetSoftwareRevision(void)
 
 struct board_id_t Board_GetId(void)
 {
-    const uint32_t uid_base_address = 0x1FFFF7E8;
+    const uintptr_t uid_base_address = 0x1FFFF7E8;
 
     struct board_id_t id;
     id.offset_0 = MMIO32(uid_base_address);

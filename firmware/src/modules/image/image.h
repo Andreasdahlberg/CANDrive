@@ -57,7 +57,7 @@ struct image_header_t
     char version[32];
     uintptr_t vector_address;
     uint32_t reserved;
-    char git_sha[14];
+    char git_sha[32];
 } __attribute__((packed));
 
 //////////////////////////////////////////////////////////////////////////
