@@ -103,7 +103,7 @@ void flash_unlock(void)
 
 static int Setup(void **state)
 {
-    will_return_always(Logging_GetLogger, dummy_logger);
+    will_return_ptr_always(Logging_GetLogger, dummy_logger);
     expect_function_call(flash_clear_status_flags);
     Flash_Init();
     return 0;
@@ -115,7 +115,7 @@ static int Setup(void **state)
 
 static void test_Flash_Init(void **state)
 {
-    will_return_always(Logging_GetLogger, dummy_logger);
+    will_return_ptr_always(Logging_GetLogger, dummy_logger);
     expect_function_call(flash_clear_status_flags);
     Flash_Init();
 }
@@ -137,7 +137,7 @@ static void test_Flash_Write_CompleteWords(void **state)
     const uint32_t data[2] = {0xAABBCCDD, 0xFFEEDDCC};
 
     expect_function_call(flash_unlock);
-    will_return_count(flash_get_status_flags, FLASH_SR_EOP, ElementsIn(data));
+    will_return_uint_count(flash_get_status_flags, FLASH_SR_EOP, ElementsIn(data));
     expect_function_calls(flash_clear_status_flags, ElementsIn(data));
     expect_function_call(flash_lock);
 
@@ -152,7 +152,7 @@ static void test_Flash_Write_Remainder(void **state)
     const uint32_t number_of_words = sizeof(data) / sizeof(uint32_t);
 
     expect_function_call(flash_unlock);
-    will_return_count(flash_get_status_flags, FLASH_SR_EOP, number_of_words + 1);
+    will_return_uint_count(flash_get_status_flags, FLASH_SR_EOP, number_of_words + 1);
     expect_function_calls(flash_clear_status_flags, number_of_words + 1);
     expect_function_call(flash_lock);
 
@@ -166,7 +166,7 @@ static void test_Flash_Write_Failed(void **state)
     const uint32_t data[1] = {0xAABBCCDD};
 
     expect_function_call(flash_unlock);
-    will_return_always(flash_get_status_flags, FLASH_SR_PGERR);
+    will_return_uint_always(flash_get_status_flags, FLASH_SR_PGERR);
     expect_function_call(flash_clear_status_flags);
     expect_function_call(flash_lock);
 
@@ -175,7 +175,7 @@ static void test_Flash_Write_Failed(void **state)
 
 static void test_Flash_ErasePage(void **state)
 {
-    will_return_always(flash_get_status_flags, FLASH_SR_EOP);
+    will_return_uint_always(flash_get_status_flags, FLASH_SR_EOP);
 
     flash_data[0][0] = 0xAA;
     flash_data[1][0] = 0xBB;
@@ -197,7 +197,7 @@ static void test_Flash_ErasePage(void **state)
 
 static void test_Flash_ErasePage_Failed(void **state)
 {
-    will_return_always(flash_get_status_flags, FLASH_SR_PGERR);
+    will_return_uint_always(flash_get_status_flags, FLASH_SR_PGERR);
 
     expect_function_call(flash_unlock);
     expect_function_call(flash_clear_status_flags);

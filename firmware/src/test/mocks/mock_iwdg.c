@@ -61,7 +61,7 @@ __attribute__((weak)) void iwdg_start(void)
 
 __attribute__((weak)) void iwdg_set_period_ms(uint32_t period)
 {
-    check_expected(period);
+    check_expected_uint(period);
 }
 
 __attribute__((weak)) bool iwdg_reload_busy(void)

@@ -72,8 +72,8 @@ static int Setup(void **state)
     create_corrupt_crc = false;
 
     flash_erase_all_pages();
-    will_return_maybe(Logging_GetLogger, dummy_logger);
-    will_return_maybe(flash_get_status_flags, FLASH_SR_EOP);
+    will_return_ptr_maybe(Logging_GetLogger, dummy_logger);
+    will_return_uint_maybe(flash_get_status_flags, FLASH_SR_EOP);
 
     NVS_Init(FLASH_START_ADDRESS, NUMBER_OF_PAGES);
 
@@ -127,8 +127,8 @@ static void test_NVS_Init_Invalid(void **state)
 
 static void test_NVS_Init_CrcError(void **state)
 {
-    will_return_maybe(Logging_GetLogger, dummy_logger);
-    will_return_maybe(flash_get_status_flags, FLASH_SR_EOP);
+    will_return_ptr_maybe(Logging_GetLogger, dummy_logger);
+    will_return_uint_maybe(flash_get_status_flags, FLASH_SR_EOP);
 
     assert_true(NVS_Store("Foo", 10));
 
@@ -145,7 +145,7 @@ static void test_NVS_Init_CrcError(void **state)
 
 static void test_NVS_StoreAndRetrieve(void **state)
 {
-    will_return_maybe(flash_get_status_flags, FLASH_SR_EOP);
+    will_return_uint_maybe(flash_get_status_flags, FLASH_SR_EOP);
 
     assert_true(NVS_Store("Foo", 10));
     assert_true(NVS_Store("Bar", 20));
@@ -161,14 +161,14 @@ static void test_NVS_StoreAndRetrieve(void **state)
 
 static void test_NVS_Store_Failed(void **state)
 {
-    will_return_maybe(flash_get_status_flags, FLASH_SR_PGERR);
+    will_return_uint_maybe(flash_get_status_flags, FLASH_SR_PGERR);
 
     assert_false(NVS_Store("Foo", 10));
 }
 
 static void test_NVS_Remove(void **state)
 {
-    will_return_maybe(flash_get_status_flags, FLASH_SR_EOP);
+    will_return_uint_maybe(flash_get_status_flags, FLASH_SR_EOP);
 
     /* Try to remove non existing value. */
     assert_false(NVS_Remove("Foo"));
@@ -192,17 +192,17 @@ static void test_NVS_Remove(void **state)
 
 static void test_NVS_Remove_FailedFlashWrite(void **state)
 {
-    will_return_count(flash_get_status_flags, FLASH_SR_EOP, 8);
+    will_return_uint_count(flash_get_status_flags, FLASH_SR_EOP, 8);
     assert_true(NVS_Store("Foo", 10));
 
-    will_return_maybe(flash_get_status_flags, FLASH_SR_PGERR);
+    will_return_uint_maybe(flash_get_status_flags, FLASH_SR_PGERR);
     assert_false(NVS_Remove("Foo"));
 }
 
 static void test_NVS_RetrieveExistingValues(void **state)
 {
-    will_return_maybe(Logging_GetLogger, dummy_logger);
-    will_return_maybe(flash_get_status_flags, FLASH_SR_EOP);
+    will_return_ptr_maybe(Logging_GetLogger, dummy_logger);
+    will_return_uint_maybe(flash_get_status_flags, FLASH_SR_EOP);
 
     assert_true(NVS_Store("Foo", 50));
     assert_true(NVS_Store("Bar", 60));
@@ -220,8 +220,8 @@ static void test_NVS_RetrieveExistingValues(void **state)
 
 static void test_NVS_PageFull(void **state)
 {
-    will_return_maybe(Logging_GetLogger, dummy_logger);
-    will_return_maybe(flash_get_status_flags, FLASH_SR_EOP);
+    will_return_ptr_maybe(Logging_GetLogger, dummy_logger);
+    will_return_uint_maybe(flash_get_status_flags, FLASH_SR_EOP);
 
     /* Fill up the first page */
     for (size_t i = 0; i < 16; ++i)
@@ -260,8 +260,8 @@ static void test_NVS_PageFull(void **state)
 
 static void test_NVS_PageWrapAround(void **state)
 {
-    will_return_maybe(Logging_GetLogger, dummy_logger);
-    will_return_maybe(flash_get_status_flags, FLASH_SR_EOP);
+    will_return_ptr_maybe(Logging_GetLogger, dummy_logger);
+    will_return_uint_maybe(flash_get_status_flags, FLASH_SR_EOP);
 
     /* Fill up the first page. */
     for (size_t i = 0; i < 16; ++i)
@@ -309,8 +309,8 @@ static void test_NVS_PageWrapAround(void **state)
 
 static void test_NVS_Clear(void **state)
 {
-    will_return_maybe(Logging_GetLogger, dummy_logger);
-    will_return_maybe(flash_get_status_flags, FLASH_SR_EOP);
+    will_return_ptr_maybe(Logging_GetLogger, dummy_logger);
+    will_return_uint_maybe(flash_get_status_flags, FLASH_SR_EOP);
 
     assert_true(NVS_Store("Foo", 10));
     assert_true(NVS_Store("Bar", 20));
@@ -327,8 +327,8 @@ static void test_NVS_Clear(void **state)
 
 static void test_NVS_ClearFailed(void **state)
 {
-    will_return_maybe(Logging_GetLogger, dummy_logger);
-    will_return_maybe(flash_get_status_flags, FLASH_SR_PGERR);
+    will_return_ptr_maybe(Logging_GetLogger, dummy_logger);
+    will_return_uint_maybe(flash_get_status_flags, FLASH_SR_PGERR);
 
     assert_false(NVS_Clear());
 }
@@ -349,7 +349,7 @@ static void test_NVSCmd_Store_InvalidFormat(void **state)
 
 static void test_NVSCmd_Store(void **state)
 {
-    will_return_maybe(flash_get_status_flags, FLASH_SR_EOP);
+    will_return_uint_maybe(flash_get_status_flags, FLASH_SR_EOP);
     const uint32_t values[] = {0, 50, UINT32_MAX};
 
     for (size_t i = 0; i < ElementsIn(values); ++i)
@@ -376,7 +376,7 @@ static void test_NVSCmd_Remove_InvalidFormat(void **state)
 
 static void test_NVSCmd_Remove(void **state)
 {
-    will_return_maybe(flash_get_status_flags, FLASH_SR_EOP);
+    will_return_uint_maybe(flash_get_status_flags, FLASH_SR_EOP);
 
     const char name[] = "DummyName";
     assert_true(NVS_Store(name, 10));

@@ -61,12 +61,12 @@ __attribute__((weak)) int memfault_platform_boot(void)
 __attribute__((weak)) void memfault_reboot_tracking_mark_reset_imminent(eMemfaultRebootReason reboot_reason,
         const sMfltRebootTrackingRegInfo *reg)
 {
-    check_expected(reboot_reason);
+    check_expected_uint(reboot_reason);
 }
 
 __attribute__((weak)) int memfault_metrics_heartbeat_add(MemfaultMetricId key, int32_t amount)
 {
-    check_expected(amount);
+    check_expected_int(amount);
     return mock_type(int);
 }
 

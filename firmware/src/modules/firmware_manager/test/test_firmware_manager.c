@@ -95,8 +95,8 @@ static void ResetCallback(void)
 
 static int Setup(void **state)
 {
-    will_return_always(Logging_GetLogger, dummy_logger);
-    will_return_maybe(Board_GetApplicationAddress, 0x1000);
+    will_return_ptr_always(Logging_GetLogger, dummy_logger);
+    will_return_uint_maybe(Board_GetApplicationAddress, 0x1000);
     FirmwareManager_Init(ResetCallback);
     return 0;
 }
@@ -121,8 +121,8 @@ static void ExpectFirmwareImage(struct firmware_image_t *image_p, uint32_t crc)
 
 static void test_FirmwareManager_Init(void **state)
 {
-    will_return_always(Logging_GetLogger, dummy_logger);
-    will_return_maybe(Board_GetApplicationAddress, 0x1000);
+    will_return_ptr_always(Logging_GetLogger, dummy_logger);
+    will_return_uint_maybe(Board_GetApplicationAddress, 0x1000);
     FirmwareManager_Init(ResetCallback);
 
     assert_true(FirmwareManager_Active());
@@ -141,11 +141,11 @@ static void test_FirmwareManager_GetFirmwareInformation(void **state)
     struct message_header_t message_header = {REQ_FW_INFO, 0, 0, fake_crc};
     ExpectMessageHeader(&message_header, fake_crc);
 
-    will_return_maybe(Board_GetHardwareRevision, 1);
-    will_return_maybe(Board_GetApplicationAddress, 0x1000);
-    will_return_maybe(Image_GetHeader, &image_header);
-    will_return_maybe(Image_IsValid, true);
-    will_return_maybe(Image_TypeToString, "TestApp");
+    will_return_uint_maybe(Board_GetHardwareRevision, 1);
+    will_return_uint_maybe(Board_GetApplicationAddress, 0x1000);
+    will_return_ptr_maybe(Image_GetHeader, &image_header);
+    will_return_uint_maybe(Image_IsValid, true);
+    will_return_ptr_maybe(Image_TypeToString, "TestApp");
 
     const struct firmware_info_msg_t info =
     {
@@ -171,9 +171,9 @@ static void test_FirmwareManager_GetFirmwareInformation_InvalidImageHeader(void 
     struct message_header_t message_header = {REQ_FW_INFO, 0, 0, fake_crc};
     ExpectMessageHeader(&message_header, fake_crc);
 
-    will_return_maybe(Board_GetHardwareRevision, 1);
-    will_return_maybe(Board_GetApplicationAddress, 0x1000);
-    will_return_maybe(Image_GetHeader, NULL);
+    will_return_uint_maybe(Board_GetHardwareRevision, 1);
+    will_return_uint_maybe(Board_GetApplicationAddress, 0x1000);
+    will_return_ptr_maybe(Image_GetHeader, NULL);
 
     const struct firmware_info_msg_t info =
     {
@@ -199,10 +199,10 @@ static void test_FirmwareManager_GetFirmwareInformation_InvalidImage(void **stat
     struct message_header_t message_header = {REQ_FW_INFO, 0, 0, fake_crc};
     ExpectMessageHeader(&message_header, fake_crc);
 
-    will_return_maybe(Board_GetHardwareRevision, 1);
-    will_return_maybe(Board_GetApplicationAddress, 0x1000);
-    will_return_maybe(Image_GetHeader, &image_header);
-    will_return_maybe(Image_IsValid, false);
+    will_return_uint_maybe(Board_GetHardwareRevision, 1);
+    will_return_uint_maybe(Board_GetApplicationAddress, 0x1000);
+    will_return_ptr_maybe(Image_GetHeader, &image_header);
+    will_return_uint_maybe(Image_IsValid, false);
 
     const struct firmware_info_msg_t info =
     {
@@ -228,11 +228,11 @@ static void test_FirmwareManager_GetFirmwareInformation_SendFailed(void **state)
     struct message_header_t message_header = {REQ_FW_INFO, 0, 0, fake_crc};
     ExpectMessageHeader(&message_header, fake_crc);
 
-    will_return_maybe(Board_GetHardwareRevision, 1);
-    will_return_maybe(Board_GetApplicationAddress, 0x1000);
-    will_return_maybe(Image_GetHeader, &image_header);
-    will_return_maybe(Image_IsValid, true);
-    will_return_maybe(Image_TypeToString, "TestApp");
+    will_return_uint_maybe(Board_GetHardwareRevision, 1);
+    will_return_uint_maybe(Board_GetApplicationAddress, 0x1000);
+    will_return_ptr_maybe(Image_GetHeader, &image_header);
+    will_return_uint_maybe(Image_IsValid, true);
+    will_return_ptr_maybe(Image_TypeToString, "TestApp");
 
     const struct firmware_info_msg_t info =
     {
@@ -261,11 +261,11 @@ static void test_FirmwareManager_GetFirmwareInformation_Timeout(void **state)
     struct message_header_t message_header = {REQ_FW_INFO, 0, 0, fake_crc};
     ExpectMessageHeader(&message_header, fake_crc);
 
-    will_return_maybe(Board_GetHardwareRevision, 1);
-    will_return_maybe(Board_GetApplicationAddress, 0x1000);
-    will_return_maybe(Image_GetHeader, &image_header);
-    will_return_maybe(Image_IsValid, true);
-    will_return_maybe(Image_TypeToString, "TestApp");
+    will_return_uint_maybe(Board_GetHardwareRevision, 1);
+    will_return_uint_maybe(Board_GetApplicationAddress, 0x1000);
+    will_return_ptr_maybe(Image_GetHeader, &image_header);
+    will_return_uint_maybe(Image_IsValid, true);
+    will_return_ptr_maybe(Image_TypeToString, "TestApp");
 
     const struct firmware_info_msg_t info =
     {
@@ -297,11 +297,11 @@ static void test_FirmwareManager_GetFirmwareInformation_UnknownStatus(void **sta
     struct message_header_t message_header = {REQ_FW_INFO, 0, 0, fake_crc};
     ExpectMessageHeader(&message_header, fake_crc);
 
-    will_return_maybe(Board_GetHardwareRevision, 1);
-    will_return_maybe(Board_GetApplicationAddress, 0x1000);
-    will_return_maybe(Image_GetHeader, &image_header);
-    will_return_maybe(Image_IsValid, true);
-    will_return_maybe(Image_TypeToString, "TestApp");
+    will_return_uint_maybe(Board_GetHardwareRevision, 1);
+    will_return_uint_maybe(Board_GetApplicationAddress, 0x1000);
+    will_return_ptr_maybe(Image_GetHeader, &image_header);
+    will_return_uint_maybe(Image_IsValid, true);
+    will_return_ptr_maybe(Image_TypeToString, "TestApp");
 
     const struct firmware_info_msg_t info =
     {
@@ -340,8 +340,8 @@ static void test_FirmwareManager_Reset(void **state)
 
 static void test_FirmwareManager_Reset_NoCallback(void **state)
 {
-    will_return_always(Logging_GetLogger, dummy_logger);
-    will_return_maybe(Board_GetApplicationAddress, 0x1000);
+    will_return_ptr_always(Logging_GetLogger, dummy_logger);
+    will_return_uint_maybe(Board_GetApplicationAddress, 0x1000);
     FirmwareManager_Init(NULL);
 
     const uint32_t fake_crc = 0xAABBCCDD;
@@ -469,9 +469,9 @@ static void test_FirmwareManager_DownloadFirmware(void **state)
     const uint32_t image_size = page_size * 2;
     const uint32_t fake_crc = 0xAABBCCDD;
 
-    will_return_maybe(Board_GetApplicationAddress, 0x1000);
-    will_return_count(Flash_ErasePage, true, image_size / page_size);
-    will_return_always(Flash_Write, true);
+    will_return_uint_maybe(Board_GetApplicationAddress, 0x1000);
+    will_return_uint_count(Flash_ErasePage, true, image_size / page_size);
+    will_return_uint_always(Flash_Write, true);
 
     /* Firmware header part */
     struct message_header_t message_header = {REQ_FW_HEADER, 0, fake_crc, fake_crc};
@@ -544,7 +544,7 @@ static void test_FirmwareManager_DownloadFirmware_Timeout(void **state)
     const uint32_t image_size = page_size * 2;
     const uint32_t fake_crc = 0xAABBCCDD;
 
-    will_return_maybe(Board_GetApplicationAddress, 0x1000);
+    will_return_uint_maybe(Board_GetApplicationAddress, 0x1000);
     will_return(Flash_ErasePage, true);
 
     /* Firmware header part */
@@ -571,7 +571,7 @@ static void test_FirmwareManager_DownloadFirmware_UnknownStatus(void **state)
     const uint32_t image_size = page_size * 2;
     const uint32_t fake_crc = 0xAABBCCDD;
 
-    will_return_maybe(Board_GetApplicationAddress, 0x1000);
+    will_return_uint_maybe(Board_GetApplicationAddress, 0x1000);
     will_return(Flash_ErasePage, true);
 
     /* Firmware header part */
@@ -598,7 +598,7 @@ static void test_FirmwareManager_DownloadFirmware_FailedHeaderErasePage(void **s
     const uint32_t image_size = page_size * 2;
     const uint32_t fake_crc = 0xAABBCCDD;
 
-    will_return_maybe(Board_GetApplicationAddress, 0x1000);
+    will_return_uint_maybe(Board_GetApplicationAddress, 0x1000);
     will_return(Flash_ErasePage, false);
 
     /* Firmware header part */
@@ -624,7 +624,7 @@ static void test_FirmwareManager_DownloadFirmware_FailedWrite(void **state)
     const uint32_t image_size = page_size * 2;
     const uint32_t fake_crc = 0xAABBCCDD;
 
-    will_return_maybe(Board_GetApplicationAddress, 0x1000);
+    will_return_uint_maybe(Board_GetApplicationAddress, 0x1000);
     will_return(Flash_ErasePage, true);
     will_return(Flash_Write, false);
 
@@ -654,8 +654,8 @@ static void test_FirmwareManager_DownloadFirmware_FailedDataErasePage(void **sta
     const uint32_t image_size = page_size * 2;
     const uint32_t fake_crc = 0xAABBCCDD;
 
-    will_return_maybe(Board_GetApplicationAddress, 0x1000);
-    will_return_always(Flash_Write, true);
+    will_return_uint_maybe(Board_GetApplicationAddress, 0x1000);
+    will_return_uint_always(Flash_Write, true);
 
     /* Firmware header part */
     struct message_header_t message_header = {REQ_FW_HEADER, 0, fake_crc, fake_crc};

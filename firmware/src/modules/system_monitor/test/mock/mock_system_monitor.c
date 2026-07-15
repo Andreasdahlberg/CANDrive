@@ -70,7 +70,7 @@ __attribute__((weak)) uint32_t SystemMonitor_GetWatchdogHandle(void)
 
 __attribute__((weak)) void SystemMonitor_FeedWatchdog(uint32_t handle)
 {
-    check_expected(handle);
+    check_expected_uint(handle);
 }
 
 __attribute__((weak)) void SystemMonitor_ReportActivity(void)

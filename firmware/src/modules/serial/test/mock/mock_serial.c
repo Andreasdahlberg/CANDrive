@@ -55,7 +55,7 @@ along with CANDrive firmware.  If not, see <http://www.gnu.org/licenses/>.
 
 __attribute__((weak)) void Serial_Init(uint32_t baud_rate)
 {
-    check_expected(baud_rate);
+    check_expected_uint(baud_rate);
 }
 
 __attribute__((weak)) void Serial_Send(const void *data_p, size_t size)

@@ -60,8 +60,8 @@ void sys_tick_handler(void);
 
 void ExpectSysTickSetup(void)
 {
-    expect_value(systick_set_frequency, freq, 1000);
-    expect_value(systick_set_frequency, ahb, 72000000);
+    expect_uint_value(systick_set_frequency, freq, 1000);
+    expect_uint_value(systick_set_frequency, ahb, 72000000);
     will_return(systick_set_frequency, true);
     expect_function_call(systick_interrupt_enable);
     expect_function_call(systick_counter_enable);
@@ -110,12 +110,12 @@ static void test_SysTime_GetSystemTimeUs(void **state)
     const uint32_t ratio = 72000;
     const uint32_t us[] = {0, 1, 500, 999};
 
-    will_return_maybe(systick_get_reload, ratio - 1);
+    will_return_uint_maybe(systick_get_reload, ratio - 1);
 
     /* Only microseconds */
     for (size_t i = 0; i < ElementsIn(us); ++i)
     {
-        will_return_count(systick_get_countflag, false, 2);
+        will_return_uint_count(systick_get_countflag, false, 2);
         will_return(systick_get_value, MicrosecondsToTicks(us[i]));
         assert_int_equal(SysTime_GetSystemTimeUs(), us[i]);
     }
@@ -126,13 +126,13 @@ static void test_SysTime_GetSystemTimeUs(void **state)
     /* Milliseconds and microseconds */
     for (size_t i = 0; i < ElementsIn(us); ++i)
     {
-        will_return_count(systick_get_countflag, false, 2);
+        will_return_uint_count(systick_get_countflag, false, 2);
         will_return(systick_get_value, MicrosecondsToTicks(us[i]));
         assert_int_equal(SysTime_GetSystemTimeUs(), 1000 * milliseconds + us[i]);
     }
 
     /* Millisecond wrap over */
-    will_return_count(systick_get_countflag, true, 2);
+    will_return_uint_count(systick_get_countflag, true, 2);
     will_return(systick_get_value, MicrosecondsToTicks(999));
     will_return(systick_get_value, MicrosecondsToTicks(1));
     assert_int_equal(SysTime_GetSystemTimeUs(), 1000 * milliseconds + 1);

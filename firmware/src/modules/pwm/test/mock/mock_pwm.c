@@ -60,12 +60,12 @@ __attribute__((weak)) void PWM_Init(pwm_output_t *self_p, const struct pwm_confi
 
 __attribute__((weak)) void PWM_SetFrequency(pwm_output_t *self_p, uint32_t frequency)
 {
-    check_expected(frequency);
+    check_expected_uint(frequency);
 }
 
 __attribute__((weak)) void PWM_SetDuty(pwm_output_t *self_p, uint32_t duty)
 {
-    check_expected(duty);
+    check_expected_uint(duty);
 }
 
 __attribute__((weak)) void PWM_Enable(const pwm_output_t *self_p)

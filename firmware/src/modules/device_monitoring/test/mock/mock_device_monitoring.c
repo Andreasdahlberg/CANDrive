@@ -72,13 +72,13 @@ __attribute__((weak)) void DeviceMonitoring_SetCallback(uint32_t period_sec, dev
 
 __attribute__((weak)) void DeviceMonitoring_ResetImminent(enum device_monitoring_reboot_reason reason)
 {
-    check_expected(reason);
+    check_expected_int(reason);
 }
 
 __attribute__((weak)) void DeviceMonitoring_Count(enum device_monitoring_metric_id id, int32_t amount)
 {
-    check_expected(id);
-    check_expected(amount);
+    check_expected_int(id);
+    check_expected_int(amount);
 }
 
 __attribute__((weak)) void DeviceMonitoring_StartTimer(enum device_monitoring_metric_id id)

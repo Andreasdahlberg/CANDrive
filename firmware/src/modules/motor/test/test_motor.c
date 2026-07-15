@@ -101,15 +101,15 @@ static int Setup(void **state)
 
     motor = (__typeof__(motor)) {0};
 
-    will_return_maybe(Config_GetCountsPerRev, COUNTS_PER_REVOLUTION);
+    will_return_uint_maybe(Config_GetCountsPerRev, COUNTS_PER_REVOLUTION);
     will_return(Logging_GetLogger, dummy_logger);
-    expect_value(timer_set_period, timer_peripheral, motor_config.encoder.timer);
-    expect_value(timer_set_period, period, COUNTS_PER_REVOLUTION - 1);
-    expect_value(timer_enable_counter, timer_peripheral, motor_config.encoder.timer);
-    expect_value(PWM_Init, config_p, &motor_config.pwm);
+    expect_uint_value(timer_set_period, timer_peripheral, motor_config.encoder.timer);
+    expect_uint_value(timer_set_period, period, COUNTS_PER_REVOLUTION - 1);
+    expect_uint_value(timer_enable_counter, timer_peripheral, motor_config.encoder.timer);
+    expect_memory(PWM_Init, config_p, &motor_config.pwm, sizeof(motor_config.pwm));
     expect_function_call(PWM_Disable);
-    expect_value(PWM_SetFrequency, frequency, DEFAULT_PWM_FREQUENCY);
-    expect_value(PWM_SetDuty, duty, 0);
+    expect_uint_value(PWM_SetFrequency, frequency, DEFAULT_PWM_FREQUENCY);
+    expect_uint_value(PWM_SetDuty, duty, 0);
 
     Motor_Init(&motor, motor_name, &motor_config);
     return 0;
@@ -126,7 +126,7 @@ static void ExpectUpdate(uint32_t time_difference, uint32_t count)
     will_return(SysTime_GetDifference, time_difference);
     if (time_difference >= 10)
     {
-        expect_value(timer_get_counter, timer_peripheral, motor_config.encoder.timer);
+        expect_uint_value(timer_get_counter, timer_peripheral, motor_config.encoder.timer);
         will_return(timer_get_counter, count);
         will_return(ADC_GetVoltage, 0);
         will_return(SysTime_GetSystemTime, time_difference);
@@ -136,7 +136,7 @@ static void ExpectUpdate(uint32_t time_difference, uint32_t count)
 static void ExpectNewDuty(uint32_t duty)
 {
     expect_function_call(PWM_Disable);
-    expect_value(PWM_SetDuty, duty, duty);
+    expect_uint_value(PWM_SetDuty, duty, duty);
     expect_function_call(PWM_Enable);
 }
 
@@ -160,7 +160,7 @@ static void test_Motor_Init_Error(void **state)
     expect_assert_failure(Motor_Init(&motor, NULL, &motor_config));
     expect_assert_failure(Motor_Init(&motor, motor_name, NULL));
 
-    will_return_maybe(Config_GetCountsPerRev, 0);
+    will_return_uint_maybe(Config_GetCountsPerRev, 0);
     expect_assert_failure(Motor_Init(&motor, motor_name, &motor_config));
 }
 
@@ -170,15 +170,15 @@ static void test_Motor_Init(void **state)
     pwm_output_t pwm;
     adc_input_t adc;
 
-    will_return_maybe(Config_GetCountsPerRev, COUNTS_PER_REVOLUTION);
+    will_return_uint_maybe(Config_GetCountsPerRev, COUNTS_PER_REVOLUTION);
     will_return(Logging_GetLogger, dummy_logger);
-    expect_value(timer_set_period, timer_peripheral, motor_config.encoder.timer);
-    expect_value(timer_set_period, period, COUNTS_PER_REVOLUTION - 1);
-    expect_value(timer_enable_counter, timer_peripheral, motor_config.encoder.timer);
-    expect_value(PWM_Init, config_p, &motor_config.pwm);
+    expect_uint_value(timer_set_period, timer_peripheral, motor_config.encoder.timer);
+    expect_uint_value(timer_set_period, period, COUNTS_PER_REVOLUTION - 1);
+    expect_uint_value(timer_enable_counter, timer_peripheral, motor_config.encoder.timer);
+    expect_memory(PWM_Init, config_p, &motor_config.pwm, sizeof(motor_config.pwm));
     expect_function_call(PWM_Disable);
-    expect_value(PWM_SetFrequency, frequency, DEFAULT_PWM_FREQUENCY);
-    expect_value(PWM_SetDuty, duty, 0);
+    expect_uint_value(PWM_SetFrequency, frequency, DEFAULT_PWM_FREQUENCY);
+    expect_uint_value(PWM_SetDuty, duty, 0);
 
     Motor_Init(&motor, motor_name, &motor_config);
 }
@@ -200,7 +200,7 @@ static void test_Motor_Update_Invalid(void **state)
 
 static void test_Motor_Update(void **state)
 {
-    will_return_maybe(Filter_IsInitialized, true);
+    will_return_uint_maybe(Filter_IsInitialized, true);
 
     /* Not time for update */
     ExpectUpdate(9, 0);
@@ -232,7 +232,7 @@ static void test_Motor_Update(void **state)
 
 static void test_Motor_Update_WrapAround(void **state)
 {
-    will_return_maybe(Filter_IsInitialized, false);
+    will_return_uint_maybe(Filter_IsInitialized, false);
 
     /* First update to init the internal motor state to a known value. */
     ExpectUpdate(10, 9550);
@@ -310,7 +310,7 @@ static void test_Motor_SetSpeed(void **state)
     ExpectNewDuty(abs(speed));
     Motor_SetSpeed(&motor, speed);
 
-    expect_value(PWM_SetDuty, duty, 0);
+    expect_uint_value(PWM_SetDuty, duty, 0);
     Motor_Coast(&motor);
 
     ExpectNewDuty(abs(speed));
@@ -334,7 +334,7 @@ static void test_Motor_Coast_Invalid(void **state)
 
 static void test_Motor_Coast(void **state)
 {
-    expect_value(PWM_SetDuty, duty, 0);
+    expect_uint_value(PWM_SetDuty, duty, 0);
     Motor_Coast(&motor);
     assert_int_equal(Motor_GetStatus(&motor), MOTOR_COAST);
 }
@@ -382,7 +382,7 @@ static void test_Motor_GetPosition(void **state)
 
     for (size_t i = 0; i < ElementsIn(counter_data); ++i)
     {
-        expect_value(timer_get_counter, timer_peripheral, motor_config.encoder.timer);
+        expect_uint_value(timer_get_counter, timer_peripheral, motor_config.encoder.timer);
         will_return(timer_get_counter, counter_data[i]);
 
         uint32_t expect_position = (counter_data[i] * 360) / COUNTS_PER_REVOLUTION;

@@ -65,29 +65,29 @@ __attribute__((weak)) void MotorController_Update(void)
 
 __attribute__((weak)) void MotorController_SetRPM(size_t index, int16_t rpm)
 {
-    check_expected(index);
-    check_expected(rpm);
+    check_expected_uint(index);
+    check_expected_int(rpm);
 }
 
 __attribute__((weak)) void MotorController_SetCurrent(size_t index, int16_t current)
 {
-    check_expected(index);
-    check_expected(current);
+    check_expected_uint(index);
+    check_expected_int(current);
 }
 
 __attribute__((weak)) void MotorController_Run(size_t index)
 {
-    check_expected(index);
+    check_expected_uint(index);
 }
 
 __attribute__((weak)) void MotorController_Coast(size_t index)
 {
-    check_expected(index);
+    check_expected_uint(index);
 }
 
 __attribute__((weak)) void MotorController_Brake(size_t index)
 {
-    check_expected(index);
+    check_expected_uint(index);
 }
 
 __attribute__((weak)) uint32_t MotorController_GetPosition(size_t index)

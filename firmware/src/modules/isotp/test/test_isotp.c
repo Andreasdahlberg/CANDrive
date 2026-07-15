@@ -123,13 +123,13 @@ uint32_t SysTime_GetSystemTimeUs(void)
 
 static void MockRxStatusHandler(enum isotp_status_t status)
 {
-    check_expected(status);
+    check_expected_uint(status);
     got_callback = true;
 }
 
 static void MockTxStatusHandler(enum isotp_status_t status)
 {
-    check_expected(status);
+    check_expected_uint(status);
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -150,7 +150,7 @@ static int Setup(void **state)
 
 static void ProccessUntilStatus(struct isotp_ctx_t *ctx_p, enum isotp_status_t expected_status)
 {
-    expect_value(MockRxStatusHandler, status, expected_status);
+    expect_uint_value(MockRxStatusHandler, status, expected_status);
 
     /* Max iterations is used as a timeout if the status callback is never called. */
     const size_t max_iterations = 2000;
@@ -198,7 +198,7 @@ static void InjectFlowControlFrame(uint32_t id)
 
 static void test_ISOTP_Bind_InvalidParameters(void **state)
 {
-    will_return_maybe(Logging_GetLogger, dummy_logger);
+    will_return_ptr_maybe(Logging_GetLogger, dummy_logger);
 
     uint8_t rx_buffer[8];
     expect_assert_failure(ISOTP_Bind(NULL, rx_buffer, sizeof(rx_buffer), tx_buffer, sizeof(tx_buffer), 0x1, 0x2, MockRxStatusHandler, MockTxStatusHandler));
@@ -229,12 +229,12 @@ static void test_ISOTP_Send_InvalidParameters(void **state)
 
 static void test_ISOTP_SingleFrame(void **state)
 {
-    will_return_maybe(Logging_GetLogger, dummy_logger);
+    will_return_ptr_maybe(Logging_GetLogger, dummy_logger);
     expect_any_always(CANInterface_AddFilter, id);
     expect_any_always(CANInterface_AddFilter, mask);
-    will_return_maybe(CANInterface_Transmit, true);
-    will_return_maybe(SysTime_GetSystemTime, 0);
-    will_return_maybe(SysTime_GetDifference, 1);
+    will_return_uint_maybe(CANInterface_Transmit, true);
+    will_return_uint_maybe(SysTime_GetSystemTime, 0);
+    will_return_uint_maybe(SysTime_GetDifference, 1);
 
     uint8_t rx_buffer[32];
     ISOTP_Bind(&ctx, rx_buffer, sizeof(rx_buffer), tx_buffer, sizeof(tx_buffer), 0x1, 0x2, MockRxStatusHandler, MockTxStatusHandler);
@@ -254,12 +254,12 @@ static void test_ISOTP_SingleFrame(void **state)
 
 static void test_ISOTP_SingleFrameOverflow(void **state)
 {
-    will_return_maybe(Logging_GetLogger, dummy_logger);
+    will_return_ptr_maybe(Logging_GetLogger, dummy_logger);
     expect_any_always(CANInterface_AddFilter, id);
     expect_any_always(CANInterface_AddFilter, mask);
-    will_return_maybe(CANInterface_Transmit, true);
-    will_return_maybe(SysTime_GetSystemTime, 0);
-    will_return_maybe(SysTime_GetDifference, 1);
+    will_return_uint_maybe(CANInterface_Transmit, true);
+    will_return_uint_maybe(SysTime_GetSystemTime, 0);
+    will_return_uint_maybe(SysTime_GetDifference, 1);
 
     uint8_t rx_buffer[4];
     ISOTP_Bind(&ctx, rx_buffer, sizeof(rx_buffer), tx_buffer, sizeof(tx_buffer), 0x1, 0x2, MockRxStatusHandler, MockTxStatusHandler);
@@ -272,12 +272,12 @@ static void test_ISOTP_SingleFrameOverflow(void **state)
 
 static void test_ISOTP_FirstFrameOverflow(void **state)
 {
-    will_return_maybe(Logging_GetLogger, dummy_logger);
+    will_return_ptr_maybe(Logging_GetLogger, dummy_logger);
     expect_any_always(CANInterface_AddFilter, id);
     expect_any_always(CANInterface_AddFilter, mask);
-    will_return_maybe(CANInterface_Transmit, true);
-    will_return_maybe(SysTime_GetSystemTime, 0);
-    will_return_maybe(SysTime_GetDifference, 1);
+    will_return_uint_maybe(CANInterface_Transmit, true);
+    will_return_uint_maybe(SysTime_GetSystemTime, 0);
+    will_return_uint_maybe(SysTime_GetDifference, 1);
 
     uint8_t rx_buffer[4];
     ISOTP_Bind(&ctx, rx_buffer, sizeof(rx_buffer), tx_buffer, sizeof(tx_buffer), 0x1, 0x2, MockRxStatusHandler, MockTxStatusHandler);
@@ -285,19 +285,19 @@ static void test_ISOTP_FirstFrameOverflow(void **state)
     uint8_t tx_data[] = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9};
     assert_true(ISOTP_Send(&ctx, tx_data, sizeof(tx_data)));
 
-    expect_value(MockTxStatusHandler, status, ISOTP_STATUS_OVERFLOW_ABORT);
+    expect_uint_value(MockTxStatusHandler, status, ISOTP_STATUS_OVERFLOW_ABORT);
     ProccessUntilStatus(&ctx, ISOTP_STATUS_OVERFLOW_ABORT);
     assert_false(ISOTP_IsSending(&ctx));
 }
 
 static void test_ISOTP_MultiplePacketsOverflow(void **state)
 {
-    will_return_maybe(Logging_GetLogger, dummy_logger);
+    will_return_ptr_maybe(Logging_GetLogger, dummy_logger);
     expect_any_always(CANInterface_AddFilter, id);
     expect_any_always(CANInterface_AddFilter, mask);
-    will_return_maybe(CANInterface_Transmit, true);
-    will_return_maybe(SysTime_GetSystemTime, 0);
-    will_return_maybe(SysTime_GetDifference, 101);
+    will_return_uint_maybe(CANInterface_Transmit, true);
+    will_return_uint_maybe(SysTime_GetSystemTime, 0);
+    will_return_uint_maybe(SysTime_GetDifference, 101);
 
     uint8_t rx_buffer[64];
     ISOTP_Bind(&ctx, rx_buffer, sizeof(rx_buffer), tx_buffer, sizeof(tx_buffer), 0x1, 0x2, MockRxStatusHandler, MockTxStatusHandler);
@@ -305,15 +305,15 @@ static void test_ISOTP_MultiplePacketsOverflow(void **state)
     const uint8_t tx_data[32] = {0};
 
     assert_true(ISOTP_Send(&ctx, tx_data, sizeof(tx_data)));
-    expect_value(MockTxStatusHandler, status, ISOTP_STATUS_DONE);
+    expect_uint_value(MockTxStatusHandler, status, ISOTP_STATUS_DONE);
     ProccessUntilStatus(&ctx, ISOTP_STATUS_DONE);
 
     assert_true(ISOTP_Send(&ctx, tx_data, sizeof(tx_data)));
-    expect_value(MockTxStatusHandler, status, ISOTP_STATUS_DONE);
+    expect_uint_value(MockTxStatusHandler, status, ISOTP_STATUS_DONE);
     ProccessUntilStatus(&ctx, ISOTP_STATUS_DONE);
 
     assert_true(ISOTP_Send(&ctx, tx_data, sizeof(tx_data)));
-    expect_value(MockTxStatusHandler, status, ISOTP_STATUS_OVERFLOW_ABORT);
+    expect_uint_value(MockTxStatusHandler, status, ISOTP_STATUS_OVERFLOW_ABORT);
     ProccessUntilStatus(&ctx, ISOTP_STATUS_OVERFLOW_ABORT);
     assert_false(ISOTP_IsSending(&ctx));
 
@@ -324,12 +324,12 @@ static void test_ISOTP_MultiplePacketsOverflow(void **state)
 
 static void test_ISOTP_MulipleFrames(void **state)
 {
-    will_return_maybe(Logging_GetLogger, dummy_logger);
+    will_return_ptr_maybe(Logging_GetLogger, dummy_logger);
     expect_any_always(CANInterface_AddFilter, id);
     expect_any_always(CANInterface_AddFilter, mask);
-    will_return_maybe(CANInterface_Transmit, true);
-    will_return_maybe(SysTime_GetSystemTime, 0);
-    will_return_maybe(SysTime_GetDifference, 1);
+    will_return_uint_maybe(CANInterface_Transmit, true);
+    will_return_uint_maybe(SysTime_GetSystemTime, 0);
+    will_return_uint_maybe(SysTime_GetDifference, 1);
 
     uint8_t rx_buffer[32];
     ISOTP_Bind(&ctx, rx_buffer, sizeof(rx_buffer), tx_buffer, sizeof(tx_buffer), 0x1, 0x2, MockRxStatusHandler, MockTxStatusHandler);
@@ -339,7 +339,7 @@ static void test_ISOTP_MulipleFrames(void **state)
     assert_true(ISOTP_Send(&ctx, tx_data, sizeof(tx_data)));
     assert_true(ISOTP_IsSending(&ctx));
 
-    expect_value(MockTxStatusHandler, status, ISOTP_STATUS_DONE);
+    expect_uint_value(MockTxStatusHandler, status, ISOTP_STATUS_DONE);
     ProccessUntilStatus(&ctx, ISOTP_STATUS_DONE);
     assert_false(ISOTP_IsSending(&ctx));
 
@@ -351,12 +351,12 @@ static void test_ISOTP_MulipleFrames(void **state)
 
 static void test_ISOTP_MaxDataLength(void **state)
 {
-    will_return_maybe(Logging_GetLogger, dummy_logger);
+    will_return_ptr_maybe(Logging_GetLogger, dummy_logger);
     expect_any_always(CANInterface_AddFilter, id);
     expect_any_always(CANInterface_AddFilter, mask);
-    will_return_maybe(CANInterface_Transmit, true);
-    will_return_maybe(SysTime_GetSystemTime, 0);
-    will_return_maybe(SysTime_GetDifference, 1);
+    will_return_uint_maybe(CANInterface_Transmit, true);
+    will_return_uint_maybe(SysTime_GetSystemTime, 0);
+    will_return_uint_maybe(SysTime_GetDifference, 1);
 
     uint8_t rx_buffer[ISOTP_MAX_DATA_LENGTH];
     ISOTP_Bind(&ctx, rx_buffer, sizeof(rx_buffer), tx_buffer, sizeof(tx_buffer), 0x1, 0x2, MockRxStatusHandler, MockTxStatusHandler);
@@ -365,7 +365,7 @@ static void test_ISOTP_MaxDataLength(void **state)
     FillBuffer(tx_data, sizeof(tx_data));
     assert_true(ISOTP_Send(&ctx, tx_data, sizeof(tx_data)));
 
-    expect_value(MockTxStatusHandler, status, ISOTP_STATUS_DONE);
+    expect_uint_value(MockTxStatusHandler, status, ISOTP_STATUS_DONE);
     ProccessUntilStatus(&ctx, ISOTP_STATUS_DONE);
 
     uint8_t rx_data[ISOTP_MAX_DATA_LENGTH];
@@ -376,14 +376,14 @@ static void test_ISOTP_MaxDataLength(void **state)
 
 static void test_ISOTP_ConsecutiveFrameTimeout(void **state)
 {
-    will_return_maybe(Logging_GetLogger, dummy_logger);
+    will_return_ptr_maybe(Logging_GetLogger, dummy_logger);
     expect_any_always(CANInterface_AddFilter, id);
     expect_any_always(CANInterface_AddFilter, mask);
-    will_return_maybe(CANInterface_Transmit, true);
+    will_return_uint_maybe(CANInterface_Transmit, true);
 
     /* Should cause timeout while waiting for the first consecutive frame. */
-    will_return_maybe(SysTime_GetSystemTime, 0);
-    will_return_maybe(SysTime_GetDifference, 1001);
+    will_return_uint_maybe(SysTime_GetSystemTime, 0);
+    will_return_uint_maybe(SysTime_GetDifference, 1001);
 
     uint8_t rx_buffer[32];
     ISOTP_Bind(&ctx, rx_buffer, sizeof(rx_buffer), tx_buffer, sizeof(tx_buffer), 0x1, 0x2, MockRxStatusHandler, MockTxStatusHandler);
@@ -391,7 +391,7 @@ static void test_ISOTP_ConsecutiveFrameTimeout(void **state)
     uint8_t tx_data[] = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9};
     assert_true(ISOTP_Send(&ctx, tx_data, sizeof(tx_data)));
 
-    expect_value(MockTxStatusHandler, status, ISOTP_STATUS_DONE);
+    expect_uint_value(MockTxStatusHandler, status, ISOTP_STATUS_DONE);
     ProccessUntilStatus(&ctx, ISOTP_STATUS_TIMEOUT);
     assert_false(ISOTP_IsSending(&ctx));
 
@@ -402,14 +402,14 @@ static void test_ISOTP_ConsecutiveFrameTimeout(void **state)
 
 static void test_ISOTP_FlowControlFrameTimeout(void **state)
 {
-    will_return_maybe(Logging_GetLogger, dummy_logger);
+    will_return_ptr_maybe(Logging_GetLogger, dummy_logger);
     expect_any_always(CANInterface_AddFilter, id);
     expect_any_always(CANInterface_AddFilter, mask);
-    will_return_maybe(CANInterface_Transmit, true);
+    will_return_uint_maybe(CANInterface_Transmit, true);
 
     /* Should cause timeout while waiting for the first flow control frame. */
-    will_return_maybe(SysTime_GetSystemTime, 0);
-    will_return_maybe(SysTime_GetDifference, 1001);
+    will_return_uint_maybe(SysTime_GetSystemTime, 0);
+    will_return_uint_maybe(SysTime_GetDifference, 1001);
 
     uint8_t rx_buffer[32];
     ISOTP_Bind(&ctx, rx_buffer, sizeof(rx_buffer), tx_buffer, sizeof(tx_buffer), 0x1, 0x2, MockRxStatusHandler, MockTxStatusHandler);
@@ -419,7 +419,7 @@ static void test_ISOTP_FlowControlFrameTimeout(void **state)
     uint8_t tx_data[ISOTP_MAX_DATA_LENGTH] = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9};
     assert_true(ISOTP_Send(&ctx, tx_data, sizeof(tx_data)));
 
-    expect_value(MockTxStatusHandler, status, ISOTP_STATUS_TIMEOUT);
+    expect_uint_value(MockTxStatusHandler, status, ISOTP_STATUS_TIMEOUT);
     Proccess(&ctx, 1);
 
     /* Make sure that the buffer is cleared after a flow control frame timeout. */
@@ -428,12 +428,12 @@ static void test_ISOTP_FlowControlFrameTimeout(void **state)
 
 static void test_ISOTP_ConsecutiveFrameLost(void **state)
 {
-    will_return_maybe(Logging_GetLogger, dummy_logger);
+    will_return_ptr_maybe(Logging_GetLogger, dummy_logger);
     expect_any_always(CANInterface_AddFilter, id);
     expect_any_always(CANInterface_AddFilter, mask);
-    will_return_maybe(CANInterface_Transmit, true);
-    will_return_maybe(SysTime_GetSystemTime, 0);
-    will_return_maybe(SysTime_GetDifference, 1);
+    will_return_uint_maybe(CANInterface_Transmit, true);
+    will_return_uint_maybe(SysTime_GetSystemTime, 0);
+    will_return_uint_maybe(SysTime_GetDifference, 1);
 
     uint8_t rx_buffer[64];
     ISOTP_Bind(&ctx, rx_buffer, sizeof(rx_buffer), tx_buffer, sizeof(tx_buffer), 0x1, 0x2, MockRxStatusHandler, MockTxStatusHandler);
@@ -442,7 +442,7 @@ static void test_ISOTP_ConsecutiveFrameLost(void **state)
     FillBuffer(tx_data, sizeof(tx_data));
     assert_true(ISOTP_Send(&ctx, tx_data, sizeof(tx_data)));
 
-    expect_value(MockRxStatusHandler, status, ISOTP_STATUS_LOST_FRAME);
+    expect_uint_value(MockRxStatusHandler, status, ISOTP_STATUS_LOST_FRAME);
     Proccess(&ctx, 2);
     drop_frame = true;
     Proccess(&ctx, 5);
@@ -454,12 +454,12 @@ static void test_ISOTP_ConsecutiveFrameLost(void **state)
 
 static void test_ISOTP_TxBufferFull(void **state)
 {
-    will_return_maybe(Logging_GetLogger, dummy_logger);
+    will_return_ptr_maybe(Logging_GetLogger, dummy_logger);
     expect_any_always(CANInterface_AddFilter, id);
     expect_any_always(CANInterface_AddFilter, mask);
-    will_return_maybe(CANInterface_Transmit, true);
-    will_return_maybe(SysTime_GetSystemTime, 0);
-    will_return_maybe(SysTime_GetDifference, 1);
+    will_return_uint_maybe(CANInterface_Transmit, true);
+    will_return_uint_maybe(SysTime_GetSystemTime, 0);
+    will_return_uint_maybe(SysTime_GetDifference, 1);
 
     uint8_t rx_buffer[32];
     uint8_t tx_data[] = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9};
@@ -469,12 +469,12 @@ static void test_ISOTP_TxBufferFull(void **state)
 
 static void test_ISOTP_SendWithActiveTransfer(void **state)
 {
-    will_return_maybe(Logging_GetLogger, dummy_logger);
+    will_return_ptr_maybe(Logging_GetLogger, dummy_logger);
     expect_any_always(CANInterface_AddFilter, id);
     expect_any_always(CANInterface_AddFilter, mask);
-    will_return_maybe(CANInterface_Transmit, true);
-    will_return_maybe(SysTime_GetSystemTime, 0);
-    will_return_maybe(SysTime_GetDifference, 1);
+    will_return_uint_maybe(CANInterface_Transmit, true);
+    will_return_uint_maybe(SysTime_GetSystemTime, 0);
+    will_return_uint_maybe(SysTime_GetDifference, 1);
 
     uint8_t rx_buffer[32];
     ISOTP_Bind(&ctx, rx_buffer, sizeof(rx_buffer), tx_buffer, sizeof(tx_buffer), 0x1, 0x2, MockRxStatusHandler, MockTxStatusHandler);
@@ -484,7 +484,7 @@ static void test_ISOTP_SendWithActiveTransfer(void **state)
     assert_true(ISOTP_Send(&ctx, tx_data_1, sizeof(tx_data_1)));
     assert_false(ISOTP_Send(&ctx, tx_data_2, sizeof(tx_data_2)));
 
-    expect_value(MockTxStatusHandler, status, ISOTP_STATUS_DONE);
+    expect_uint_value(MockTxStatusHandler, status, ISOTP_STATUS_DONE);
     ProccessUntilStatus(&ctx, ISOTP_STATUS_DONE);
 
     uint8_t rx_data[32];
@@ -495,12 +495,12 @@ static void test_ISOTP_SendWithActiveTransfer(void **state)
 
 static void test_ISOTP_SendWithCanTransmitError(void **state)
 {
-    will_return_maybe(Logging_GetLogger, dummy_logger);
+    will_return_ptr_maybe(Logging_GetLogger, dummy_logger);
     expect_any_always(CANInterface_AddFilter, id);
     expect_any_always(CANInterface_AddFilter, mask);
-    will_return_maybe(CANInterface_Transmit, false);
-    will_return_maybe(SysTime_GetSystemTime, 0);
-    will_return_maybe(SysTime_GetDifference, 1);
+    will_return_uint_maybe(CANInterface_Transmit, false);
+    will_return_uint_maybe(SysTime_GetSystemTime, 0);
+    will_return_uint_maybe(SysTime_GetDifference, 1);
 
     uint8_t rx_buffer[32];
     ISOTP_Bind(&ctx, rx_buffer, sizeof(rx_buffer), tx_buffer, sizeof(tx_buffer), 0x1, 0x2, MockRxStatusHandler, MockTxStatusHandler);
@@ -511,12 +511,12 @@ static void test_ISOTP_SendWithCanTransmitError(void **state)
 
 static void test_ISOTP_TxCanTransmitError(void **state)
 {
-    will_return_maybe(Logging_GetLogger, dummy_logger);
+    will_return_ptr_maybe(Logging_GetLogger, dummy_logger);
     expect_any_always(CANInterface_AddFilter, id);
     expect_any_always(CANInterface_AddFilter, mask);
     will_return(CANInterface_Transmit, true);
-    will_return_maybe(SysTime_GetSystemTime, 0);
-    will_return_maybe(SysTime_GetDifference, 1);
+    will_return_uint_maybe(SysTime_GetSystemTime, 0);
+    will_return_uint_maybe(SysTime_GetDifference, 1);
 
     uint8_t rx_buffer[32];
     ISOTP_Bind(&ctx, rx_buffer, sizeof(rx_buffer), tx_buffer, sizeof(tx_buffer), 0x1, 0x2, MockRxStatusHandler, MockTxStatusHandler);
@@ -526,19 +526,19 @@ static void test_ISOTP_TxCanTransmitError(void **state)
 
     will_return(CANInterface_Transmit, true);
     will_return(CANInterface_Transmit, false);
-    expect_value(MockTxStatusHandler, status, ISOTP_STATUS_OVERFLOW_ABORT);
+    expect_uint_value(MockTxStatusHandler, status, ISOTP_STATUS_OVERFLOW_ABORT);
     Proccess(&ctx, 2);
     assert_false(ISOTP_IsSending(&ctx));
 }
 
 static void test_ISOTP_WaitingForRxSpace(void **state)
 {
-    will_return_maybe(Logging_GetLogger, dummy_logger);
+    will_return_ptr_maybe(Logging_GetLogger, dummy_logger);
     expect_any_always(CANInterface_AddFilter, id);
     expect_any_always(CANInterface_AddFilter, mask);
-    will_return_maybe(CANInterface_Transmit, true);
-    will_return_maybe(SysTime_GetSystemTime, 0);
-    will_return_maybe(SysTime_GetDifference, 101);
+    will_return_uint_maybe(CANInterface_Transmit, true);
+    will_return_uint_maybe(SysTime_GetSystemTime, 0);
+    will_return_uint_maybe(SysTime_GetDifference, 101);
 
     uint8_t rx_buffer[15];
     ISOTP_Bind(&ctx, rx_buffer, sizeof(rx_buffer), tx_buffer, sizeof(tx_buffer), 0x1, 0x2, MockRxStatusHandler, MockTxStatusHandler);
@@ -550,7 +550,7 @@ static void test_ISOTP_WaitingForRxSpace(void **state)
     size_t res;
     ProccessUntilStatus(&ctx, ISOTP_STATUS_WAITING);
     res = ISOTP_Receive(&ctx, rx_data, sizeof(rx_data));
-    expect_value(MockTxStatusHandler, status, ISOTP_STATUS_DONE);
+    expect_uint_value(MockTxStatusHandler, status, ISOTP_STATUS_DONE);
     ProccessUntilStatus(&ctx, ISOTP_STATUS_DONE);
     res += ISOTP_Receive(&ctx, rx_data + res, sizeof(rx_data) - res);
     assert_int_equal(res, sizeof(tx_data));
@@ -559,13 +559,13 @@ static void test_ISOTP_WaitingForRxSpace(void **state)
 
 static void test_ISOTP_RxWaitingTimeout(void **state)
 {
-    will_return_maybe(Logging_GetLogger, dummy_logger);
+    will_return_ptr_maybe(Logging_GetLogger, dummy_logger);
     expect_any_always(CANInterface_AddFilter, id);
     expect_any_always(CANInterface_AddFilter, mask);
-    will_return_maybe(CANInterface_Transmit, true);
-    will_return_maybe(SysTime_GetSystemTime, 0);
-    will_return_count(SysTime_GetDifference, 100, 2);
-    will_return_maybe(SysTime_GetDifference, 101);
+    will_return_uint_maybe(CANInterface_Transmit, true);
+    will_return_uint_maybe(SysTime_GetSystemTime, 0);
+    will_return_uint_count(SysTime_GetDifference, 100, 2);
+    will_return_uint_maybe(SysTime_GetDifference, 101);
 
     uint8_t rx_buffer[15];
     ISOTP_Bind(&ctx, rx_buffer, sizeof(rx_buffer), tx_buffer, sizeof(tx_buffer), 0x1, 0x2, MockRxStatusHandler, MockTxStatusHandler);
@@ -574,7 +574,7 @@ static void test_ISOTP_RxWaitingTimeout(void **state)
     assert_true(ISOTP_Send(&ctx, tx_data, sizeof(tx_data)));
 
     ProccessUntilStatus(&ctx, ISOTP_STATUS_WAITING);
-    expect_value(MockTxStatusHandler, status, ISOTP_STATUS_OVERFLOW_ABORT);
+    expect_uint_value(MockTxStatusHandler, status, ISOTP_STATUS_OVERFLOW_ABORT);
     ProccessUntilStatus(&ctx, ISOTP_STATUS_TIMEOUT);
 
     uint8_t rx_data[32];
@@ -584,12 +584,12 @@ static void test_ISOTP_RxWaitingTimeout(void **state)
 
 static void test_ISOTP_TxWaitingTimeout(void **state)
 {
-    will_return_maybe(Logging_GetLogger, dummy_logger);
+    will_return_ptr_maybe(Logging_GetLogger, dummy_logger);
     expect_any_always(CANInterface_AddFilter, id);
     expect_any_always(CANInterface_AddFilter, mask);
-    will_return_maybe(CANInterface_Transmit, true);
-    will_return_maybe(SysTime_GetSystemTime, 0);
-    will_return_maybe(SysTime_GetDifference, 101);
+    will_return_uint_maybe(CANInterface_Transmit, true);
+    will_return_uint_maybe(SysTime_GetSystemTime, 0);
+    will_return_uint_maybe(SysTime_GetDifference, 101);
 
     uint8_t rx_buffer[15];
     ISOTP_Bind(&ctx, rx_buffer, sizeof(rx_buffer), tx_buffer, sizeof(tx_buffer), 0x1, 0x2, MockRxStatusHandler, MockTxStatusHandler);
@@ -608,19 +608,19 @@ static void test_ISOTP_TxWaitingTimeout(void **state)
     InjectFlowControlFrame(0x02);
     InjectFlowControlFrame(0x02);
 
-    expect_value(MockTxStatusHandler, status, ISOTP_STATUS_TIMEOUT);
+    expect_uint_value(MockTxStatusHandler, status, ISOTP_STATUS_TIMEOUT);
     ProccessUntilStatus(&ctx, ISOTP_STATUS_TIMEOUT);
     assert_false(ISOTP_IsSending(&ctx));
 }
 
 static void test_ISOTP_SeparationTime(void **state)
 {
-    will_return_maybe(Logging_GetLogger, dummy_logger);
+    will_return_ptr_maybe(Logging_GetLogger, dummy_logger);
     expect_any_always(CANInterface_AddFilter, id);
     expect_any_always(CANInterface_AddFilter, mask);
-    will_return_maybe(CANInterface_Transmit, true);
-    will_return_maybe(SysTime_GetSystemTime, 0);
-    will_return_maybe(SysTime_GetDifference, 1);
+    will_return_uint_maybe(CANInterface_Transmit, true);
+    will_return_uint_maybe(SysTime_GetSystemTime, 0);
+    will_return_uint_maybe(SysTime_GetDifference, 1);
 
     uint8_t rx_buffer[32];
     const uint8_t tx_data[] = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15};
@@ -634,7 +634,7 @@ static void test_ISOTP_SeparationTime(void **state)
         ISOTP_SetSeparationTime(&ctx, separation_times_ms[i]);
 
         assert_true(ISOTP_Send(&ctx, tx_data, sizeof(tx_data)));
-        expect_value(MockTxStatusHandler, status, ISOTP_STATUS_DONE);
+        expect_uint_value(MockTxStatusHandler, status, ISOTP_STATUS_DONE);
 
         ProccessUntilStatus(&ctx, ISOTP_STATUS_DONE);
         if (separation_times_ms[i] > 0)
@@ -656,7 +656,7 @@ static void test_ISOTP_SeparationTime(void **state)
         ISOTP_SetSeparationTime(&ctx, separation_times_us[i]);
 
         assert_true(ISOTP_Send(&ctx, tx_data, sizeof(tx_data)));
-        expect_value(MockTxStatusHandler, status, ISOTP_STATUS_DONE);
+        expect_uint_value(MockTxStatusHandler, status, ISOTP_STATUS_DONE);
 
         ProccessUntilStatus(&ctx, ISOTP_STATUS_DONE);
         /* Microseconds timer is not implemented yet so always expect 1 ms. */
@@ -672,7 +672,7 @@ static void test_ISOTP_SeparationTime(void **state)
         ISOTP_SetSeparationTime(&ctx, separation_times_invalid[i]);
 
         assert_true(ISOTP_Send(&ctx, tx_data, sizeof(tx_data)));
-        expect_value(MockTxStatusHandler, status, ISOTP_STATUS_DONE);
+        expect_uint_value(MockTxStatusHandler, status, ISOTP_STATUS_DONE);
 
         ProccessUntilStatus(&ctx, ISOTP_STATUS_DONE);
         /* Expect default value (10 ms) when separation time is invalid. */

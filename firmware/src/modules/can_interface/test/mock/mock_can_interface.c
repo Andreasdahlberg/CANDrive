@@ -73,8 +73,8 @@ __attribute__((weak)) void CANInterface_RegisterListener(caninterface_listener_c
 
 __attribute__((weak)) void CANInterface_AddFilter(uint16_t id, uint16_t mask)
 {
-    check_expected(id);
-    check_expected(mask);
+    check_expected_uint(id);
+    check_expected_uint(mask);
 }
 
 //////////////////////////////////////////////////////////////////////////

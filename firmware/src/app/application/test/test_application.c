@@ -91,7 +91,7 @@ const struct note_section_t note_build_id;
 
 void SignalHandler_RegisterHandler(enum signal_id_t id, signalhandler_handler_cb_t handler_cb)
 {
-    check_expected(id);
+    check_expected_any(id);
     assert_non_null(handler_cb);
 
     signal_handlers[number_of_handlers].id = id;
@@ -134,18 +134,18 @@ static int Setup(void **state)
     expect_function_call(CANInterface_RegisterListener);
     expect_any(CANInterface_AddFilter, id);
     expect_any(CANInterface_AddFilter, mask);
-    will_return_always(Config_GetNumberOfMotors, number_of_motors);
+    will_return_uint_always(Config_GetNumberOfMotors, number_of_motors);
     expect_any_always(SignalHandler_RegisterHandler, id);
-    will_return_maybe(SystemMonitor_GetResetFlags, 0);
-    will_return_maybe(Board_GetHardwareRevision, 1);
-    will_return_maybe(Board_GetSoftwareRevision, 2);
-    will_return_maybe(Config_IsValid, true);
-    will_return_maybe(Config_GetCountsPerRev, 0);
-    will_return_maybe(Config_GetNoLoadRpm, 0);
-    will_return_maybe(Config_GetNoLoadCurrent, 0);
-    will_return_maybe(Config_GetStallCurrent, 0);
-    will_return_maybe(Config_GetMaxCurrent, 0);
-    will_return_maybe(Config_GetValue, 0);
+    will_return_uint_maybe(SystemMonitor_GetResetFlags, 0);
+    will_return_uint_maybe(Board_GetHardwareRevision, 1);
+    will_return_uint_maybe(Board_GetSoftwareRevision, 2);
+    will_return_uint_maybe(Config_IsValid, true);
+    will_return_uint_maybe(Config_GetCountsPerRev, 0);
+    will_return_uint_maybe(Config_GetNoLoadRpm, 0);
+    will_return_uint_maybe(Config_GetNoLoadCurrent, 0);
+    will_return_uint_maybe(Config_GetStallCurrent, 0);
+    will_return_uint_maybe(Config_GetMaxCurrent, 0);
+    will_return_uint_maybe(Config_GetValue, 0);
 
     Application_Init();
     return 0;
@@ -177,7 +177,7 @@ static void test_Application_Init_NoMotors(void **state)
     number_of_handlers = 0;
 
     expect_function_call(SysTime_Init);
-    expect_value(Serial_Init, baud_rate, BAUD_RATE);
+    expect_uint_value(Serial_Init, baud_rate, BAUD_RATE);
     expect_function_call(Logging_Init);
     expect_function_call(NVCom_Init);
     expect_function_call(ADC_Init);
@@ -193,17 +193,17 @@ static void test_Application_Init_NoMotors(void **state)
     expect_function_call(CANInterface_RegisterListener);
     expect_any(CANInterface_AddFilter, id);
     expect_any(CANInterface_AddFilter, mask);
-    will_return_always(Config_GetNumberOfMotors, number_of_motors);
-    will_return_maybe(SystemMonitor_GetResetFlags, 0);
-    will_return_maybe(Board_GetHardwareRevision, 1);
-    will_return_maybe(Board_GetSoftwareRevision, 2);
-    will_return_maybe(Config_IsValid, false);
-    will_return_maybe(Config_GetCountsPerRev, 0);
-    will_return_maybe(Config_GetNoLoadRpm, 0);
-    will_return_maybe(Config_GetNoLoadCurrent, 0);
-    will_return_maybe(Config_GetStallCurrent, 0);
-    will_return_maybe(Config_GetMaxCurrent, 0);
-    will_return_maybe(Config_GetValue, 0);
+    will_return_uint_always(Config_GetNumberOfMotors, number_of_motors);
+    will_return_uint_maybe(SystemMonitor_GetResetFlags, 0);
+    will_return_uint_maybe(Board_GetHardwareRevision, 1);
+    will_return_uint_maybe(Board_GetSoftwareRevision, 2);
+    will_return_uint_maybe(Config_IsValid, false);
+    will_return_uint_maybe(Config_GetCountsPerRev, 0);
+    will_return_uint_maybe(Config_GetNoLoadRpm, 0);
+    will_return_uint_maybe(Config_GetNoLoadCurrent, 0);
+    will_return_uint_maybe(Config_GetStallCurrent, 0);
+    will_return_uint_maybe(Config_GetMaxCurrent, 0);
+    will_return_uint_maybe(Config_GetValue, 0);
 
     Application_Init();
 }
@@ -214,7 +214,7 @@ static void test_Application_Init(void **state)
     number_of_handlers = 0;
 
     expect_function_call(SysTime_Init);
-    expect_value(Serial_Init, baud_rate, BAUD_RATE);
+    expect_uint_value(Serial_Init, baud_rate, BAUD_RATE);
     expect_function_call(Logging_Init);
     expect_function_call(NVCom_Init);
     expect_function_call(ADC_Init);
@@ -230,18 +230,18 @@ static void test_Application_Init(void **state)
     expect_function_call(CANInterface_RegisterListener);
     expect_any(CANInterface_AddFilter, id);
     expect_any(CANInterface_AddFilter, mask);
-    will_return_always(Config_GetNumberOfMotors, number_of_motors);
+    will_return_uint_always(Config_GetNumberOfMotors, number_of_motors);
     expect_any_always(SignalHandler_RegisterHandler, id);
-    will_return_maybe(SystemMonitor_GetResetFlags, 0);
-    will_return_maybe(Board_GetHardwareRevision, 1);
-    will_return_maybe(Board_GetSoftwareRevision, 2);
-    will_return_maybe(Config_IsValid, true);
-    will_return_maybe(Config_GetCountsPerRev, 0);
-    will_return_maybe(Config_GetNoLoadRpm, 0);
-    will_return_maybe(Config_GetNoLoadCurrent, 0);
-    will_return_maybe(Config_GetStallCurrent, 0);
-    will_return_maybe(Config_GetMaxCurrent, 0);
-    will_return_maybe(Config_GetValue, 0);
+    will_return_uint_maybe(SystemMonitor_GetResetFlags, 0);
+    will_return_uint_maybe(Board_GetHardwareRevision, 1);
+    will_return_uint_maybe(Board_GetSoftwareRevision, 2);
+    will_return_uint_maybe(Config_IsValid, true);
+    will_return_uint_maybe(Config_GetCountsPerRev, 0);
+    will_return_uint_maybe(Config_GetNoLoadRpm, 0);
+    will_return_uint_maybe(Config_GetNoLoadCurrent, 0);
+    will_return_uint_maybe(Config_GetStallCurrent, 0);
+    will_return_uint_maybe(Config_GetMaxCurrent, 0);
+    will_return_uint_maybe(Config_GetValue, 0);
 
     Application_Init();
 }
@@ -282,12 +282,12 @@ static void test_Application_Run(void **state)
     };
     will_return(Config_GetNumberOfMotors, number_of_motors);
     will_return(MotorController_GetStatus, &status);
-    expect_value(SignalHandler_SendMotorStatus, rpm1, status.rpm.actual);
-    expect_value(SignalHandler_SendMotorStatus, current1, status.current.actual);
-    expect_value(SignalHandler_SendMotorStatus, msg_status_1, status.status);
-    expect_value(SignalHandler_SendMotorStatus, rpm2, 0);
-    expect_value(SignalHandler_SendMotorStatus, current2, 0);
-    expect_value(SignalHandler_SendMotorStatus, msg_status_2, 0);
+    expect_int_value(SignalHandler_SendMotorStatus, rpm1, status.rpm.actual);
+    expect_int_value(SignalHandler_SendMotorStatus, current1, status.current.actual);
+    expect_uint_value(SignalHandler_SendMotorStatus, msg_status_1, status.status);
+    expect_int_value(SignalHandler_SendMotorStatus, rpm2, 0);
+    expect_int_value(SignalHandler_SendMotorStatus, current2, 0);
+    expect_uint_value(SignalHandler_SendMotorStatus, msg_status_2, 0);
     will_return(SignalHandler_SendMotorStatus, true);
 
     will_return(SysTime_GetSystemTime, 0);
@@ -298,7 +298,7 @@ static void test_Application_Run_StateChanges(void **state)
 {
     const uint32_t motor_status_period_ms = 200;
     const size_t number_of_motors = 2;
-    will_return_always(Config_GetNumberOfMotors, number_of_motors);
+    will_return_uint_always(Config_GetNumberOfMotors, number_of_motors);
 
     /* Active */
     expect_function_call(SignalHandler_Process);
@@ -317,7 +317,7 @@ static void test_Application_Run_StateChanges(void **state)
     will_return(SystemMonitor_GetState, SYSTEM_MONITOR_FAIL);
     for (size_t i = 0; i < number_of_motors; ++i)
     {
-        expect_value(MotorController_Brake, index, i);
+        expect_uint_value(MotorController_Brake, index, i);
     }
     will_return(SysTime_GetDifference, 0);
     Application_Run();
@@ -330,7 +330,7 @@ static void test_Application_Run_StateChanges(void **state)
     will_return(SystemMonitor_GetState, SYSTEM_MONITOR_INACTIVE);
     for (size_t i = 0; i < number_of_motors; ++i)
     {
-        expect_value(MotorController_Brake, index, i);
+        expect_uint_value(MotorController_Brake, index, i);
     }
     will_return(SysTime_GetDifference, 0);
     Application_Run();
@@ -341,11 +341,11 @@ static void test_Application_Run_StateChanges(void **state)
     expect_function_call(Console_Process);
     expect_function_call(SystemMonitor_Update);
     will_return(SystemMonitor_GetState, SYSTEM_MONITOR_EMERGENCY);
-    expect_value(DeviceMonitoring_Count, id, DEV_MON_METRIC_EMERGENCY_STOP);
-    expect_value(DeviceMonitoring_Count, amount, 1);
+    expect_uint_value(DeviceMonitoring_Count, id, DEV_MON_METRIC_EMERGENCY_STOP);
+    expect_int_value(DeviceMonitoring_Count, amount, 1);
     for (size_t i = 0; i < number_of_motors; ++i)
     {
-        expect_value(MotorController_Brake, index, i);
+        expect_uint_value(MotorController_Brake, index, i);
     }
     will_return(SysTime_GetDifference, 0);
     Application_Run();
@@ -366,24 +366,24 @@ static void test_Application_SignalHandlers(void **state)
     struct signal_t signal;
     signal.data_p = &data;
 
-    will_return_maybe(SystemMonitor_GetState, SYSTEM_MONITOR_ACTIVE);
-    will_return_maybe(Signal_IDToString, "MockSignal");
+    will_return_uint_maybe(SystemMonitor_GetState, SYSTEM_MONITOR_ACTIVE);
+    will_return_ptr_maybe(Signal_IDToString, "MockSignal");
 
     data = 1;
     signal.id = SIGNAL_CONTROL_RPM1;
-    expect_value(MotorController_SetRPM, index, BOARD_M1_INDEX);
-    expect_value(MotorController_SetRPM, rpm, data);
+    expect_uint_value(MotorController_SetRPM, index, BOARD_M1_INDEX);
+    expect_int_value(MotorController_SetRPM, rpm, data);
     GetCallback(signal.id)(&signal);
 
     data = 2;
     signal.id = SIGNAL_CONTROL_CURRENT1;
-    expect_value(MotorController_SetCurrent, index, BOARD_M1_INDEX);
-    expect_value(MotorController_SetCurrent, current, data);
+    expect_uint_value(MotorController_SetCurrent, index, BOARD_M1_INDEX);
+    expect_int_value(MotorController_SetCurrent, current, data);
     GetCallback(signal.id)(&signal);
 
     data = 2;
     signal.id = SIGNAL_CONTROL_MODE1;
-    expect_value(MotorController_Coast, index, BOARD_M1_INDEX);
+    expect_uint_value(MotorController_Coast, index, BOARD_M1_INDEX);
     GetCallback(signal.id)(&signal);
 
     data = 0;
@@ -396,24 +396,24 @@ static void test_Application_SignalHandlers(void **state)
 
     data = 3;
     signal.id = SIGNAL_CONTROL_RPM2;
-    expect_value(MotorController_SetRPM, index, BOARD_M2_INDEX);
-    expect_value(MotorController_SetRPM, rpm, data);
+    expect_uint_value(MotorController_SetRPM, index, BOARD_M2_INDEX);
+    expect_int_value(MotorController_SetRPM, rpm, data);
     GetCallback(signal.id)(&signal);
 
     data = 4;
     signal.id = SIGNAL_CONTROL_CURRENT2;
-    expect_value(MotorController_SetCurrent, index, BOARD_M2_INDEX);
-    expect_value(MotorController_SetCurrent, current, data);
+    expect_uint_value(MotorController_SetCurrent, index, BOARD_M2_INDEX);
+    expect_int_value(MotorController_SetCurrent, current, data);
     GetCallback(signal.id)(&signal);
 
     data = 3;
     signal.id = SIGNAL_CONTROL_MODE2;
-    expect_value(MotorController_Brake, index, BOARD_M2_INDEX);
+    expect_uint_value(MotorController_Brake, index, BOARD_M2_INDEX);
     GetCallback(signal.id)(&signal);
 
     data = 1;
     signal.id = SIGNAL_CONTROL_MODE2;
-    expect_value(MotorController_Run, index, BOARD_M2_INDEX);
+    expect_uint_value(MotorController_Run, index, BOARD_M2_INDEX);
     GetCallback(signal.id)(&signal);
 }
 
@@ -423,8 +423,8 @@ static void test_Application_SignalHandlers_EmergencyState(void **state)
     struct signal_t signal;
     signal.data_p = &data;
 
-    will_return_maybe(SystemMonitor_GetState, SYSTEM_MONITOR_EMERGENCY);
-    will_return_maybe(Signal_IDToString, "MockSignal");
+    will_return_uint_maybe(SystemMonitor_GetState, SYSTEM_MONITOR_EMERGENCY);
+    will_return_ptr_maybe(Signal_IDToString, "MockSignal");
 
     data = 1;
     signal.id = SIGNAL_CONTROL_MODE1;
@@ -441,8 +441,8 @@ static void test_Application_SignalHandlers_FailState(void **state)
     struct signal_t signal;
     signal.data_p = &data;
 
-    will_return_maybe(SystemMonitor_GetState, SYSTEM_MONITOR_FAIL);
-    will_return_maybe(Signal_IDToString, "MockSignal");
+    will_return_uint_maybe(SystemMonitor_GetState, SYSTEM_MONITOR_FAIL);
+    will_return_ptr_maybe(Signal_IDToString, "MockSignal");
 
     data = 1;
     signal.id = SIGNAL_CONTROL_MODE1;
@@ -484,8 +484,8 @@ static void test_Application_ResetCheck(void **state)
 static void test_ApplicationCmd_UpdateFirmware(void **state)
 {
     struct nvcom_data_t restart_information;
-    will_return_always(NVCom_GetData, &restart_information);
-    expect_value(DeviceMonitoring_ResetImminent, reason, DEV_MON_REBOOT_REAS_FW_UPDATE);
+    will_return_ptr_always(NVCom_GetData, &restart_information);
+    expect_uint_value(DeviceMonitoring_ResetImminent, reason, DEV_MON_REBOOT_REAS_FW_UPDATE);
     expect_function_call(Board_Reset);
 
     assert_true(ApplicationCmd_UpdateFirmware());
@@ -494,7 +494,7 @@ static void test_ApplicationCmd_UpdateFirmware(void **state)
 
 static void test_ApplicationCmd_Reset(void **state)
 {
-    expect_value(DeviceMonitoring_ResetImminent, reason, DEV_MON_REBOOT_REAS_USER_RESET);
+    expect_uint_value(DeviceMonitoring_ResetImminent, reason, DEV_MON_REBOOT_REAS_USER_RESET);
     expect_function_call(Board_Reset);
 
     assert_true(ApplicationCmd_Reset());

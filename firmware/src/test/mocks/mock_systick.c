@@ -60,8 +60,8 @@ __attribute__((weak)) void systick_set_reload(uint32_t value)
 
 __attribute__((weak)) bool systick_set_frequency(uint32_t freq, uint32_t ahb)
 {
-    check_expected(freq);
-    check_expected(ahb);
+    check_expected_uint(freq);
+    check_expected_uint(ahb);
     mock_type(bool);
 }
 
@@ -114,4 +114,3 @@ __attribute__((weak)) uint32_t systick_get_calib(void)
 //////////////////////////////////////////////////////////////////////////
 //LOCAL FUNCTIONS
 //////////////////////////////////////////////////////////////////////////
-
