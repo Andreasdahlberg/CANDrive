@@ -224,7 +224,7 @@ static inline void InitializeMotors(void)
 
     for (size_t i = 0; i < number_of_motors; ++i)
     {
-        char name[8];
+        char name[12];
         snprintf(name, sizeof(name), "M%" PRIu32, (uint32_t)i);
         Motor_Init(&module.instances[i].motor, name, Board_GetMotorConfig(i));
 
