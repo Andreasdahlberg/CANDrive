@@ -63,7 +63,7 @@ static void test_CRC_Calculate_Even(void **state)
 
     for (size_t i = 0; i < ElementsIn(data); ++i)
     {
-        expect_value(crc_calculate, data, data[i]);
+        expect_uint_value(crc_calculate, data, data[i]);
         will_return(crc_calculate, i);
     }
 
@@ -77,10 +77,10 @@ static void test_CRC_Calculate_Uneven(void **state)
 
     expect_function_call(crc_reset);
 
-    expect_value(crc_calculate, data, 0xDDCCBBAA);
+    expect_uint_value(crc_calculate, data, 0xDDCCBBAA);
     will_return(crc_calculate, 10);
 
-    expect_value(crc_calculate, data, 0xFFEE);
+    expect_uint_value(crc_calculate, data, 0xFFEE);
     will_return(crc_calculate, 20);
 
     const uint32_t result = CRC_Calculate(data, sizeof(data));

@@ -59,9 +59,9 @@ static int Setup(void **state)
 {
     const uint32_t baud_rate = 921600;
 
-    expect_value(usart_set_baudrate, usart, TEST_USART);
-    expect_value(usart_set_baudrate, baud, baud_rate);
-    expect_value(usart_enable, usart, TEST_USART);
+    expect_uint_value(usart_set_baudrate, usart, TEST_USART);
+    expect_uint_value(usart_set_baudrate, baud, baud_rate);
+    expect_uint_value(usart_enable, usart, TEST_USART);
     Serial_Init(baud_rate);
 
     return 0;
@@ -79,9 +79,9 @@ void test_Serial_Init(void **state)
     {
         const uint32_t baud_rate = baud_rates[i];
 
-        expect_value(usart_set_baudrate, usart, TEST_USART);
-        expect_value(usart_set_baudrate, baud, baud_rate);
-        expect_value(usart_enable, usart, TEST_USART);
+        expect_uint_value(usart_set_baudrate, usart, TEST_USART);
+        expect_uint_value(usart_set_baudrate, baud, baud_rate);
+        expect_uint_value(usart_enable, usart, TEST_USART);
         Serial_Init(baud_rate);
     }
 }
@@ -95,8 +95,8 @@ void test_Serial_Send(void **state)
 
     for (size_t i = 0; i < strlen(data); ++i)
     {
-        expect_value(usart_send_blocking, usart, TEST_USART);
-        expect_value(usart_send_blocking, data, data[i]);
+        expect_uint_value(usart_send_blocking, usart, TEST_USART);
+        expect_uint_value(usart_send_blocking, data, data[i]);
     }
 
     Serial_Send(data, strlen(data));

@@ -108,9 +108,9 @@ void test_PWM_Init(void **state)
 {
     pwm_output_t output;
 
-    expect_value(timer_continuous_mode, timer_peripheral, pwm_config.timer_peripheral);
-    expect_value(timer_set_oc_mode, timer_peripheral, pwm_config.timer_peripheral);
-    expect_value(timer_set_oc_mode, oc_mode, TIM_OCM_PWM1);
+    expect_uint_value(timer_continuous_mode, timer_peripheral, pwm_config.timer_peripheral);
+    expect_uint_value(timer_set_oc_mode, timer_peripheral, pwm_config.timer_peripheral);
+    expect_uint_value(timer_set_oc_mode, oc_mode, TIM_OCM_PWM1);
 
     PWM_Init(&output, &pwm_config);
 }
@@ -130,8 +130,8 @@ static void test_PWM_SetFrequency(void **state)
     for (size_t i = 0; i < ElementsIn(frequencies); ++i)
     {
         const uint32_t expected_period = FrequencyToPeriod(frequencies[i]);
-        expect_value(timer_set_period, timer_peripheral, pwm_config.timer_peripheral);
-        expect_value(timer_set_period, period, expected_period);
+        expect_uint_value(timer_set_period, timer_peripheral, pwm_config.timer_peripheral);
+        expect_uint_value(timer_set_period, period, expected_period);
         PWM_SetFrequency(&pwm_output, frequencies[i]);
     }
 }
@@ -150,14 +150,14 @@ static void test_PWM_SetDuty(void **state)
     SetFrequency(72000);
     for (size_t i = 0; i < ElementsIn(duty_cycles); ++i)
     {
-        expect_value(timer_set_oc_value, value, duty_cycles[i]);
+        expect_uint_value(timer_set_oc_value, value, duty_cycles[i]);
         PWM_SetDuty(&pwm_output, duty_cycles[i]);
     }
 
     SetFrequency(36000);
     for (size_t i = 0; i < ElementsIn(duty_cycles); ++i)
     {
-        expect_value(timer_set_oc_value, value, duty_cycles[i] * 2);
+        expect_uint_value(timer_set_oc_value, value, duty_cycles[i] * 2);
         PWM_SetDuty(&pwm_output, (duty_cycles[i]));
     }
 }
@@ -169,9 +169,9 @@ static void test_PWM_Enable_InvalidParameter(void **state)
 
 static void test_PWM_Enable(void **state)
 {
-    expect_value(timer_enable_oc_output, timer_peripheral, pwm_config.timer_peripheral);
-    expect_value(timer_enable_oc_output, oc_id, TIM_OC3);
-    expect_value(timer_enable_counter, timer_peripheral, pwm_config.timer_peripheral);
+    expect_uint_value(timer_enable_oc_output, timer_peripheral, pwm_config.timer_peripheral);
+    expect_uint_value(timer_enable_oc_output, oc_id, TIM_OC3);
+    expect_uint_value(timer_enable_counter, timer_peripheral, pwm_config.timer_peripheral);
     PWM_Enable(&pwm_output);
 }
 
@@ -182,9 +182,9 @@ static void test_PWM_Disable_InvalidParameter(void **state)
 
 static void test_PWM_Disable(void **state)
 {
-    expect_value(timer_disable_counter, timer_peripheral, pwm_config.timer_peripheral);
-    expect_value(timer_disable_oc_output, timer_peripheral, pwm_config.timer_peripheral);
-    expect_value(timer_disable_oc_output, oc_id, TIM_OC3);
+    expect_uint_value(timer_disable_counter, timer_peripheral, pwm_config.timer_peripheral);
+    expect_uint_value(timer_disable_oc_output, timer_peripheral, pwm_config.timer_peripheral);
+    expect_uint_value(timer_disable_oc_output, oc_id, TIM_OC3);
     PWM_Disable(&pwm_output);
 }
 //////////////////////////////////////////////////////////////////////////
@@ -214,4 +214,3 @@ int main(int argc, char *argv[])
 
     return cmocka_run_group_tests(test_PWM, NULL, NULL);
 }
-

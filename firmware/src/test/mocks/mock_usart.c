@@ -56,8 +56,8 @@ along with CANDrive firmware.  If not, see <http://www.gnu.org/licenses/>.
 
 __attribute__((weak)) void usart_set_baudrate(uint32_t usart, uint32_t baud)
 {
-    check_expected(usart);
-    check_expected(baud);
+    check_expected_uint(usart);
+    check_expected_uint(baud);
 }
 
 __attribute__((weak)) void usart_set_databits(uint32_t usart, uint32_t bits)
@@ -87,7 +87,7 @@ __attribute__((weak)) void usart_set_flow_control(uint32_t usart, uint32_t flowc
 
 __attribute__((weak)) void usart_enable(uint32_t usart)
 {
-    check_expected(usart);
+    check_expected_uint(usart);
 }
 
 __attribute__((weak)) void usart_disable(uint32_t usart)
@@ -117,8 +117,8 @@ __attribute__((weak)) void usart_wait_recv_ready(uint32_t usart)
 
 __attribute__((weak)) void usart_send_blocking(uint32_t usart, uint16_t data)
 {
-    check_expected(usart);
-    check_expected(data);
+    check_expected_uint(usart);
+    check_expected_uint(data);
 }
 
 __attribute__((weak)) uint16_t usart_recv_blocking(uint32_t usart)

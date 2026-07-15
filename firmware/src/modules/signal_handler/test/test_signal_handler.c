@@ -61,7 +61,7 @@ static struct logging_logger_t *dummy_logger;
 static int Setup(void **state)
 {
     will_return(SystemMonitor_GetWatchdogHandle, WATCHDOG_HANDLE);
-    will_return_maybe(Logging_GetLogger, dummy_logger);
+    will_return_ptr_maybe(Logging_GetLogger, dummy_logger);
     SignalHandler_Init();
     return 0;
 }
@@ -87,7 +87,7 @@ static void SignalHandlerFunc3(struct signal_t *signal_p)
 static void SignalHandlerFuncWithSignalCheck(struct signal_t *signal_p)
 {
     assert_non_null(signal_p);
-    check_expected(*((uint16_t *)signal_p->data_p));
+    check_expected_uint(*((uint16_t *)signal_p->data_p));
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -97,7 +97,7 @@ static void SignalHandlerFuncWithSignalCheck(struct signal_t *signal_p)
 static void test_SignalHandler_Process(void **state)
 {
     /* Expect nothing to happen since no frames are received. */
-    expect_value(SystemMonitor_FeedWatchdog, handle, WATCHDOG_HANDLE);
+    expect_int_value(SystemMonitor_FeedWatchdog, handle, WATCHDOG_HANDLE);
     SignalHandler_Process();
 
     struct can_frame_t frame = {0};
@@ -106,7 +106,7 @@ static void test_SignalHandler_Process(void **state)
     SignalHandler_Listener(&frame, NULL);
     /* Expect nothing to happen(frame is discarded) since no signal handlers are registered. */
     expect_function_call(SystemMonitor_ReportActivity);
-    expect_value(SystemMonitor_FeedWatchdog, handle, WATCHDOG_HANDLE);
+    expect_int_value(SystemMonitor_FeedWatchdog, handle, WATCHDOG_HANDLE);
     SignalHandler_Process();
 
     SignalHandler_RegisterHandler(SIGNAL_CONTROL_RPM1, SignalHandlerFunc1);
@@ -116,7 +116,7 @@ static void test_SignalHandler_Process(void **state)
     frame.id = 0x00;
     SignalHandler_Listener(&frame, NULL);
     /* Expect nothing to happen since the frame is unsupported. */
-    expect_value(SystemMonitor_FeedWatchdog, handle, WATCHDOG_HANDLE);
+    expect_int_value(SystemMonitor_FeedWatchdog, handle, WATCHDOG_HANDLE);
     SignalHandler_Process();
 
     frame.id = CANDB_CONTROLLER_MSG_MOTOR_CONTROL_FRAME_ID;
@@ -125,7 +125,7 @@ static void test_SignalHandler_Process(void **state)
     expect_function_call(SignalHandlerFunc2);
     expect_function_call(SignalHandlerFunc3);
     expect_function_call(SystemMonitor_ReportActivity);
-    expect_value(SystemMonitor_FeedWatchdog, handle, WATCHDOG_HANDLE);
+    expect_int_value(SystemMonitor_FeedWatchdog, handle, WATCHDOG_HANDLE);
     SignalHandler_Process();
 
     /* Try to fill the frame buffer with unsupported frames. */
@@ -143,7 +143,7 @@ static void test_SignalHandler_Process(void **state)
     expect_function_call(SignalHandlerFunc2);
     expect_function_call(SignalHandlerFunc3);
     expect_function_call(SystemMonitor_ReportActivity);
-    expect_value(SystemMonitor_FeedWatchdog, handle, WATCHDOG_HANDLE);
+    expect_int_value(SystemMonitor_FeedWatchdog, handle, WATCHDOG_HANDLE);
     SignalHandler_Process();
 }
 
@@ -174,8 +174,8 @@ static void test_SignalHandler_Process_FullFIFO(void **state)
     for (size_t i = 0; i < max_number_of_frames; ++i)
     {
         expect_function_call(SystemMonitor_ReportActivity);
-        expect_value(SystemMonitor_FeedWatchdog, handle, WATCHDOG_HANDLE);
-        expect_value(SignalHandlerFuncWithSignalCheck, *((uint16_t *)signal_p->data_p), 1);
+        expect_int_value(SystemMonitor_FeedWatchdog, handle, WATCHDOG_HANDLE);
+        expect_uint_value(SignalHandlerFuncWithSignalCheck, *((uint16_t *)signal_p->data_p), 1);
         SignalHandler_Process();
     }
 }
@@ -194,7 +194,7 @@ static void test_SignalHandler_Process_InvalidFrameSize(void **state)
 
         SignalHandler_Listener(&frame, NULL);
         /* Expect nothing to happen since the frame is invalid. */
-        expect_value(SystemMonitor_FeedWatchdog, handle, WATCHDOG_HANDLE);
+        expect_int_value(SystemMonitor_FeedWatchdog, handle, WATCHDOG_HANDLE);
         SignalHandler_Process();
     }
 }

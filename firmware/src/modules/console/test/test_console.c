@@ -58,7 +58,7 @@ along with CANDrive firmware.  If not, see <http://www.gnu.org/licenses/>.
 
 static void MockWrite(const char *str)
 {
-    check_expected(str);
+    check_expected_ptr(str);
 }
 
 static size_t MockRead(char *str)
@@ -87,10 +87,10 @@ static bool MockCommandHandlerWithArgs()
 
     if (status)
     {
-        check_expected(arg_string);
-        check_expected(arg_int32);
-        check_expected(arg_uint32);
-        check_expected(arg_bool);
+        check_expected_ptr(arg_string);
+        check_expected_int(arg_int32);
+        check_expected_uint(arg_uint32);
+        check_expected_int(arg_bool);
     }
 
     return status;
@@ -199,9 +199,9 @@ static void test_Console(void **state)
     ExpectEndOfCommand(true);
 
     expect_string(MockCommandHandlerWithArgs, arg_string, "foo");
-    expect_value(MockCommandHandlerWithArgs, arg_int32, 512);
-    expect_value(MockCommandHandlerWithArgs, arg_uint32, 256);
-    expect_value(MockCommandHandlerWithArgs, arg_bool, true);
+    expect_int_value(MockCommandHandlerWithArgs, arg_int32, 512);
+    expect_uint_value(MockCommandHandlerWithArgs, arg_uint32, 256);
+    expect_int_value(MockCommandHandlerWithArgs, arg_bool, true);
     ExpectCommand("mock_command_args foo 512 256 1");
     ExpectEndOfCommand(true);
 }

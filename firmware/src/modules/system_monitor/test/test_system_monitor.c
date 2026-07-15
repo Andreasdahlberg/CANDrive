@@ -93,7 +93,7 @@ static void WatchdogReset(bool expect_assert_failure)
 static int Setup(void **state)
 {
     restart_information = (__typeof__(restart_information)) {0};
-    will_return_always(NVCom_GetData, &restart_information);
+    will_return_ptr_always(NVCom_GetData, &restart_information);
 
     NormalReset();
     SystemMonitor_Init();
@@ -106,7 +106,7 @@ static int Setup(void **state)
 
 static void test_SystemMonitor_Init(void **state)
 {
-    will_return_always(NVCom_GetData, &restart_information);
+    will_return_ptr_always(NVCom_GetData, &restart_information);
 
     /* Cold/normal start */
     NormalReset();
@@ -191,8 +191,8 @@ static void test_SystemMonitor_Update(void **state)
         handles[i] =  SystemMonitor_GetWatchdogHandle();
     }
 
-    will_return_always(SysTime_GetDifference, 0);
-    will_return_always(Board_GetEmergencyPinState, false);
+    will_return_uint_always(SysTime_GetDifference, 0);
+    will_return_uint_always(Board_GetEmergencyPinState, false);
 
     /* Expect watchdog reset since the watchdog is feed when getting the handles*/
     expect_function_call(iwdg_reset);
@@ -233,13 +233,13 @@ static void test_SystemMonitor_ControlActivity(void **state)
     assert_int_equal(SystemMonitor_GetState(), SYSTEM_MONITOR_ACTIVE);
 
     will_return(SysTime_GetSystemTime, 0);
-    will_return_always(ADC_GetVoltage, 100);
-    will_return_always(Board_VSenseToVoltage, 12000);
-    will_return_always(Filter_IsInitialized, true);
-    will_return_always(Filter_Output, 12000);
+    will_return_uint_always(ADC_GetVoltage, 100);
+    will_return_uint_always(Board_VSenseToVoltage, 12000);
+    will_return_uint_always(Filter_IsInitialized, true);
+    will_return_uint_always(Filter_Output, 12000);
 
     will_return(Board_GetEmergencyPinState, false);
-    will_return_count(SysTime_GetDifference, 201, 2);
+    will_return_uint_count(SysTime_GetDifference, 201, 2);
     SystemMonitor_Update();
     assert_int_equal(SystemMonitor_GetState(), SYSTEM_MONITOR_INACTIVE);
 
@@ -252,7 +252,7 @@ static void test_SystemMonitor_ControlActivity(void **state)
 
 static void test_SystemMonitor_Emergency(void **state)
 {
-    will_return_always(SysTime_GetDifference, 0);
+    will_return_uint_always(SysTime_GetDifference, 0);
 
     SystemMonitor_GetWatchdogHandle();
 
@@ -268,7 +268,7 @@ static void test_SystemMonitor_Emergency(void **state)
 
 static void test_SystemMonitor_GetResetFlags(void **state)
 {
-    will_return_always(NVCom_GetData, &restart_information);
+    will_return_ptr_always(NVCom_GetData, &restart_information);
 
     uint32_t data[] = {0x00000000, 0x00000001, 0x10010110, UINT32_MAX};
 

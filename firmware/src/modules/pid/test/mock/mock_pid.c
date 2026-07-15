@@ -67,7 +67,7 @@ __attribute__((weak)) int32_t PID_Update(struct pid_t *self_p, int32_t input)
 __attribute__((weak)) void PID_SetSetpoint(struct pid_t *self_p, int32_t setpoint)
 {
     assert_non_null(self_p);
-    check_expected(setpoint);
+    check_expected_int(setpoint);
 }
 
 __attribute__((weak)) int32_t PID_GetSetpoint(const struct pid_t *self_p)
@@ -102,4 +102,3 @@ __attribute__((weak)) void PID_Reset(struct pid_t *self_p)
 //////////////////////////////////////////////////////////////////////////
 //LOCAL FUNCTIONS
 //////////////////////////////////////////////////////////////////////////
-

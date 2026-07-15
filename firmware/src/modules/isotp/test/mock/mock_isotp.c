@@ -62,7 +62,7 @@ __attribute__((weak)) void ISOTP_Bind(struct isotp_ctx_t *ctx_p, void *rx_buffer
 __attribute__((weak)) void ISOTP_SetSeparationTime(struct isotp_ctx_t *ctx_p, uint8_t separation_time)
 {
     assert_non_null(ctx_p);
-    check_expected(separation_time);
+    check_expected_uint(separation_time);
 }
 
 __attribute__((weak)) void ISOTP_Proccess(struct isotp_ctx_t *ctx_p)
@@ -82,7 +82,7 @@ __attribute__((weak)) size_t ISOTP_Receive(struct isotp_ctx_t *ctx_p, void *dest
 __attribute__((weak)) bool ISOTP_Send(struct isotp_ctx_t *ctx_p, const void *data_p, size_t length)
 {
     assert_non_null(ctx_p);
-    check_expected(data_p);
+    check_expected_ptr(data_p);
     return mock_type(bool);
 }
 

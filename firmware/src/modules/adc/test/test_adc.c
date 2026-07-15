@@ -66,44 +66,44 @@ static void ExpectDMASetup(void)
     const uint32_t dma = DMA1;
     const uint8_t channel = DMA_CHANNEL1;
 
-    expect_value(dma_channel_reset, dma, dma);
-    expect_value(dma_channel_reset, channel, channel);
-    expect_value(dma_enable_circular_mode, dma, dma);
-    expect_value(dma_enable_circular_mode, channel, channel);
-    expect_value(dma_enable_memory_increment_mode, dma, dma);
-    expect_value(dma_enable_memory_increment_mode, channel, channel);
-    expect_value(dma_set_read_from_peripheral, dma, dma);
-    expect_value(dma_set_read_from_peripheral, channel, channel);
-    expect_value(dma_enable_transfer_complete_interrupt, dma, dma);
-    expect_value(dma_enable_transfer_complete_interrupt, channel, channel);
-    expect_value(dma_enable_channel, dma, dma);
-    expect_value(dma_enable_channel, channel, channel);
-    expect_value(dma_set_memory_address, dma, dma);
-    expect_value(dma_set_memory_address, channel, channel);
+    expect_uint_value(dma_channel_reset, dma, dma);
+    expect_uint_value(dma_channel_reset, channel, channel);
+    expect_uint_value(dma_enable_circular_mode, dma, dma);
+    expect_uint_value(dma_enable_circular_mode, channel, channel);
+    expect_uint_value(dma_enable_memory_increment_mode, dma, dma);
+    expect_uint_value(dma_enable_memory_increment_mode, channel, channel);
+    expect_uint_value(dma_set_read_from_peripheral, dma, dma);
+    expect_uint_value(dma_set_read_from_peripheral, channel, channel);
+    expect_uint_value(dma_enable_transfer_complete_interrupt, dma, dma);
+    expect_uint_value(dma_enable_transfer_complete_interrupt, channel, channel);
+    expect_uint_value(dma_enable_channel, dma, dma);
+    expect_uint_value(dma_enable_channel, channel, channel);
+    expect_uint_value(dma_set_memory_address, dma, dma);
+    expect_uint_value(dma_set_memory_address, channel, channel);
 
     const uint16_t number_of_data = 48;
-    expect_value(dma_set_number_of_data, dma, dma);
-    expect_value(dma_set_number_of_data, channel, channel);
-    expect_value(dma_set_number_of_data, number, number_of_data);
+    expect_uint_value(dma_set_number_of_data, dma, dma);
+    expect_uint_value(dma_set_number_of_data, channel, channel);
+    expect_uint_value(dma_set_number_of_data, number, number_of_data);
 }
 
 static void ExpectADCSetup(void)
 {
     const uint32_t adc = ADC1;
 
-    expect_value(adc_enable_scan_mode, adc, adc);
-    expect_value(adc_enable_dma, adc, adc);
-    expect_value(adc_power_on, adc, adc);
+    expect_uint_value(adc_enable_scan_mode, adc, adc);
+    expect_uint_value(adc_enable_dma, adc, adc);
+    expect_uint_value(adc_power_on, adc, adc);
 }
 
 static void ExpectADCConversionStart(const uint8_t *channels_p, size_t number_of_channels)
 {
     const uint32_t adc = ADC1;
 
-    expect_value(adc_set_regular_sequence, adc, adc);
-    expect_value(adc_set_regular_sequence, length, number_of_channels);
+    expect_uint_value(adc_set_regular_sequence, adc, adc);
+    expect_uint_value(adc_set_regular_sequence, length, number_of_channels);
     expect_memory(adc_set_regular_sequence, channel, channels_p, number_of_channels);
-    expect_value(adc_start_conversion_regular, adc, adc);
+    expect_uint_value(adc_start_conversion_regular, adc, adc);
 }
 
 static void ClearSampleBuffer()

@@ -65,7 +65,7 @@ static int Setup(void **state)
 
 static void test_NVCom_ColdRestart(void **state)
 {
-    will_return_always(Board_GetBackupMemoryAddress, (uintptr_t)fake_backup_registers);
+    will_return_uint_always(Board_GetBackupMemoryAddress, (uintptr_t)fake_backup_registers);
     NVCom_Init();
 
     struct nvcom_data_t *data_p = NVCom_GetData();
@@ -79,7 +79,7 @@ static void test_NVCom_ColdRestart(void **state)
 
 static void test_NVCom_WarmRestart(void **state)
 {
-    will_return_always(Board_GetBackupMemoryAddress, (uintptr_t)fake_backup_registers);
+    will_return_uint_always(Board_GetBackupMemoryAddress, (uintptr_t)fake_backup_registers);
     NVCom_Init();
 
     struct nvcom_data_t *data_p = NVCom_GetData();

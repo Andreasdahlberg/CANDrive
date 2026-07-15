@@ -64,7 +64,7 @@ static struct dummy_image_t image;
 static int Setup(void **state)
 {
     image = (__typeof__(image)) {0};
-    will_return_always(Logging_GetLogger, dummy_logger);
+    will_return_ptr_always(Logging_GetLogger, dummy_logger);
     Image_Init();
 
     return 0;

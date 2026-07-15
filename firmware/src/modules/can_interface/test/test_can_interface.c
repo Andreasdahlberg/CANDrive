@@ -60,10 +60,10 @@ static int Setup(void **state)
 {
     will_return(Logging_GetLogger, dummy_logger);
     will_return(can_init, 0);
-    expect_value(can_init, canport, CAN1);
-    expect_value(can_reset, canport, CAN1);
-    expect_value(can_enable_irq, canport, CAN1);
-    expect_value(can_enable_irq, irq, CAN_IER_FMPIE0);
+    expect_uint_value(can_init, canport, CAN1);
+    expect_uint_value(can_reset, canport, CAN1);
+    expect_uint_value(can_enable_irq, canport, CAN1);
+    expect_uint_value(can_enable_irq, irq, CAN_IER_FMPIE0);
     CANInterface_Init();
 
     return 0;
@@ -71,9 +71,9 @@ static int Setup(void **state)
 
 static void Listener(const struct can_frame_t *frame_p, void *arg_p)
 {
-    check_expected(frame_p->id);
-    check_expected(frame_p->size);
-    check_expected(frame_p->data);
+    check_expected_uint(frame_p->id);
+    check_expected_uint(frame_p->size);
+    check_expected_ptr(frame_p->data);
 
     if (arg_p != NULL)
     {
@@ -83,7 +83,7 @@ static void Listener(const struct can_frame_t *frame_p, void *arg_p)
 
 static void ReceiveCANFrame(const struct can_frame_t *frame_p)
 {
-    expect_value(can_receive, canport, CAN1);
+    expect_uint_value(can_receive, canport, CAN1);
     will_return(can_receive, frame_p->id);
     will_return(can_receive, frame_p->size);
     will_return(can_receive, frame_p->data);
@@ -103,11 +103,11 @@ static uint16_t ShiftedIDMask(uint16_t id_mask)
 
 static void ExpectCANFilterInit(uint32_t filter_id, uint16_t id1, uint16_t mask1, uint16_t id2, uint16_t mask2)
 {
-    expect_value(can_filter_id_mask_16bit_init, nr, filter_id);
-    expect_value(can_filter_id_mask_16bit_init, id1, ShiftedIDMask(id1));
-    expect_value(can_filter_id_mask_16bit_init, mask1, ShiftedIDMask(mask1));
-    expect_value(can_filter_id_mask_16bit_init, id2, ShiftedIDMask(id2));
-    expect_value(can_filter_id_mask_16bit_init, mask2, ShiftedIDMask(mask2));
+    expect_uint_value(can_filter_id_mask_16bit_init, nr, filter_id);
+    expect_uint_value(can_filter_id_mask_16bit_init, id1, ShiftedIDMask(id1));
+    expect_uint_value(can_filter_id_mask_16bit_init, mask1, ShiftedIDMask(mask1));
+    expect_uint_value(can_filter_id_mask_16bit_init, id2, ShiftedIDMask(id2));
+    expect_uint_value(can_filter_id_mask_16bit_init, mask2, ShiftedIDMask(mask2));
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -118,8 +118,8 @@ static void test_CANInterface_Init_Error(void **state)
 {
     will_return(Logging_GetLogger, dummy_logger);
     will_return(can_init, 1);
-    expect_value(can_init, canport, CAN1);
-    expect_value(can_reset, canport, CAN1);
+    expect_uint_value(can_init, canport, CAN1);
+    expect_uint_value(can_reset, canport, CAN1);
     expect_assert_failure(CANInterface_Init())
 }
 
@@ -127,10 +127,10 @@ static void test_CANInterface_Init(void **state)
 {
     will_return(Logging_GetLogger, dummy_logger);
     will_return(can_init, 0);
-    expect_value(can_init, canport, CAN1);
-    expect_value(can_reset, canport, CAN1);
-    expect_value(can_enable_irq, canport, CAN1);
-    expect_value(can_enable_irq, irq, CAN_IER_FMPIE0);
+    expect_uint_value(can_init, canport, CAN1);
+    expect_uint_value(can_reset, canport, CAN1);
+    expect_uint_value(can_enable_irq, canport, CAN1);
+    expect_uint_value(can_enable_irq, irq, CAN_IER_FMPIE0);
     CANInterface_Init();
 }
 
@@ -160,8 +160,8 @@ static void test_CANInterface_ReceiveWithListener(void **state)
 {
     const struct can_frame_t frame = {.id = 0x1, .size = 2, .data = {0x3, 0x4}};
 
-    expect_value(Listener, frame_p->id, frame.id);
-    expect_value(Listener, frame_p->size,frame.size);
+    expect_uint_value(Listener, frame_p->id, frame.id);
+    expect_uint_value(Listener, frame_p->size,frame.size);
     expect_memory(Listener, frame_p->data, frame.data, frame.size);
 
     CANInterface_RegisterListener(Listener, NULL);
@@ -182,11 +182,11 @@ static void test_CANInterface_Transmit_Error(void **state)
     const uint32_t id = 0x2;
     uint8_t data = 1;
 
-    will_return_maybe(SysTime_GetSystemTime, 0);
-    will_return_maybe(can_available_mailbox, true);
-    expect_value(can_transmit, canport, CAN1);
-    expect_value(can_transmit, id, id);
-    expect_value(can_transmit, length, sizeof(data));
+    will_return_uint_maybe(SysTime_GetSystemTime, 0);
+    will_return_uint_maybe(can_available_mailbox, true);
+    expect_uint_value(can_transmit, canport, CAN1);
+    expect_uint_value(can_transmit, id, id);
+    expect_uint_value(can_transmit, length, sizeof(data));
     expect_memory(can_transmit, data, &data, sizeof(data));
     will_return(can_transmit, -1);
 
@@ -199,15 +199,15 @@ static void test_CANInterface_Transmit_Timeout(void **state)
     uint8_t data = 1;
     const uint32_t timeout_ms = 2;
 
-    will_return_maybe(SysTime_GetSystemTime, 0);
-    will_return_maybe(can_available_mailbox, false);
+    will_return_uint_maybe(SysTime_GetSystemTime, 0);
+    will_return_uint_maybe(can_available_mailbox, false);
     for (uint32_t i = 0; i <= timeout_ms; ++i)
     {
         will_return(SysTime_GetDifference, i);
     }
-    expect_value(can_transmit, canport, CAN1);
-    expect_value(can_transmit, id, id);
-    expect_value(can_transmit, length, sizeof(data));
+    expect_uint_value(can_transmit, canport, CAN1);
+    expect_uint_value(can_transmit, id, id);
+    expect_uint_value(can_transmit, length, sizeof(data));
     expect_memory(can_transmit, data, &data, sizeof(data));
     will_return(can_transmit, -1);
 
@@ -220,11 +220,11 @@ static void test_CANInterface_Transmit(void **state)
     uint8_t data[] = {0, 1, 2, 3, 4, 5, 6, 7};
     int mailbox_number = 0;
 
-    will_return_maybe(SysTime_GetSystemTime, 0);
-    will_return_maybe(can_available_mailbox, true);
-    expect_value(can_transmit, canport, CAN1);
-    expect_value(can_transmit, id, id);
-    expect_value(can_transmit, length, sizeof(data));
+    will_return_uint_maybe(SysTime_GetSystemTime, 0);
+    will_return_uint_maybe(can_available_mailbox, true);
+    expect_uint_value(can_transmit, canport, CAN1);
+    expect_uint_value(can_transmit, id, id);
+    expect_uint_value(can_transmit, length, sizeof(data));
     expect_memory(can_transmit, data, &data, sizeof(data));
     will_return(can_transmit, mailbox_number);
 

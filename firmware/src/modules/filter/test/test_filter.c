@@ -89,7 +89,7 @@ void test_Filter_Process(void **state)
     }
 
     /* Accept some difference due to rounding */
-    assert_in_range(Filter_Output(&filter), 85, 87);
+    assert_uint_in_range(Filter_Output(&filter), 85, 87);
 
     /* Check if large values are working. */
     Filter_Init(&filter, UINT32_MAX, FILTER_ALPHA(alpha));

@@ -80,7 +80,7 @@ __attribute__((weak)) int16_t Motor_GetCurrent(const struct motor_t *self_p)
 __attribute__((weak)) void Motor_SetSpeed(struct motor_t *self_p, int16_t speed)
 {
     assert_non_null(self_p);
-    check_expected(speed);
+    check_expected_int(speed);
 }
 
 __attribute__((weak)) void Motor_Coast(struct motor_t *self_p)

@@ -76,8 +76,8 @@ void ISOTP_Bind(struct isotp_ctx_t *ctx_p, void *rx_buffer_p, size_t rx_buffer_s
 
 static int Setup(void **state)
 {
-    will_return_always(Logging_GetLogger, dummy_logger);
-    will_return_always(memfault_platform_boot, 0);
+    will_return_ptr_always(Logging_GetLogger, dummy_logger);
+    will_return_uint_always(memfault_platform_boot, 0);
     DeviceMonitoring_Init();
 
     return 0;
@@ -94,17 +94,17 @@ void MockCallback(void)
 
 void test_DeviceMonitoring_Init(void **state)
 {
-    will_return_always(Logging_GetLogger, dummy_logger);
-    will_return_always(memfault_platform_boot, 0);
+    will_return_ptr_always(Logging_GetLogger, dummy_logger);
+    will_return_uint_always(memfault_platform_boot, 0);
     DeviceMonitoring_Init();
 }
 
 void test_DeviceMonitoring_TimerCallback(void **state)
 {
     /* Default expectations for 'Transport_Update()'. */
-    will_return_always(ISOTP_IsSending, false);
-    will_return_always(memfault_packetizer_get_chunk, true);
-    will_return_always(ISOTP_Send, true);
+    will_return_uint_always(ISOTP_IsSending, false);
+    will_return_uint_always(memfault_packetizer_get_chunk, true);
+    will_return_uint_always(ISOTP_Send, true);
     expect_any_always(ISOTP_Send, data_p);
     expect_function_call_any(ISOTP_Proccess);
 
@@ -189,16 +189,16 @@ void test_DeviceMonitoring_TransportLayer_ErrorHandling(void **state)
 
 void test_DeviceMonitoring_ResetImminent(void **state)
 {
-    expect_value(memfault_reboot_tracking_mark_reset_imminent, reboot_reason, kMfltRebootReason_UserReset);
+    expect_uint_value(memfault_reboot_tracking_mark_reset_imminent, reboot_reason, kMfltRebootReason_UserReset);
     DeviceMonitoring_ResetImminent(DEV_MON_REBOOT_REAS_USER_RESET);
 
-    expect_value(memfault_reboot_tracking_mark_reset_imminent, reboot_reason, kMfltRebootReason_FirmwareUpdate);
+    expect_uint_value(memfault_reboot_tracking_mark_reset_imminent, reboot_reason, kMfltRebootReason_FirmwareUpdate);
     DeviceMonitoring_ResetImminent(DEV_MON_REBOOT_REAS_FW_UPDATE);
 
-    expect_value(memfault_reboot_tracking_mark_reset_imminent, reboot_reason, kMfltRebootReason_SoftwareReset);
+    expect_uint_value(memfault_reboot_tracking_mark_reset_imminent, reboot_reason, kMfltRebootReason_SoftwareReset);
     DeviceMonitoring_ResetImminent(DEV_MON_REBOOT_REAS_SW_RESET);
 
-    expect_value(memfault_reboot_tracking_mark_reset_imminent, reboot_reason, kMfltRebootReason_Unknown);
+    expect_uint_value(memfault_reboot_tracking_mark_reset_imminent, reboot_reason, kMfltRebootReason_Unknown);
     DeviceMonitoring_ResetImminent(UINT32_MAX);
 }
 
@@ -209,7 +209,7 @@ void test_DeviceMonitoring_Count_InvalidId(void **state)
 
 void test_DeviceMonitoring_Count(void **state)
 {
-    will_return_always(memfault_metrics_heartbeat_add, 0);
+    will_return_uint_always(memfault_metrics_heartbeat_add, 0);
 
     const enum device_monitoring_metric_id counter_ids[] =
     {
@@ -221,7 +221,7 @@ void test_DeviceMonitoring_Count(void **state)
         const int32_t test_data[] = {INT32_MIN, 0, INT32_MAX};
         for (size_t i = 0; i < ElementsIn(test_data); ++i)
         {
-            expect_value(memfault_metrics_heartbeat_add, amount, test_data[i]);
+            expect_int_value(memfault_metrics_heartbeat_add, amount, test_data[i]);
             DeviceMonitoring_Count(counter_ids[n], test_data[i]);
         }
     }
